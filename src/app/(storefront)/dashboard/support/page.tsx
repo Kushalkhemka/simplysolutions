@@ -94,24 +94,24 @@ export default function SupportPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
-                <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600">{openCount}</div>
-                    <div className="text-sm text-muted-foreground">Open</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl p-4 text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{openCount}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Open Tickets</div>
                 </div>
-                <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-purple-600">{awaitingCount}</div>
-                    <div className="text-sm text-muted-foreground">Awaiting Reply</div>
+                <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 rounded-xl p-4 text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-purple-600">{awaitingCount}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Awaiting Reply</div>
                 </div>
-                <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-green-600">{resolvedCount}</div>
-                    <div className="text-sm text-muted-foreground">Resolved</div>
+                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl p-4 text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-green-600">{resolvedCount}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Resolved</div>
                 </div>
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
+            <div className="flex flex-col gap-4">
+                <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search tickets..."
@@ -120,15 +120,16 @@ export default function SupportPage() {
                         className="pl-10"
                     />
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {['all', 'open', 'in_progress', 'awaiting_reply', 'resolved'].map(status => (
                         <Button
                             key={status}
                             variant={filter === status ? 'default' : 'outline'}
                             size="sm"
                             onClick={() => setFilter(status)}
+                            className="whitespace-nowrap flex-shrink-0"
                         >
-                            {status === 'all' ? 'All' : status.replace('_', ' ')}
+                            {status === 'all' ? 'All' : status.replace('_', ' ').replace(/^\w/, c => c.toUpperCase())}
                         </Button>
                     ))}
                 </div>

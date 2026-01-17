@@ -83,38 +83,52 @@ export default function AffiliatePage() {
     if (!data?.isAffiliate) {
         return (
             <div className="max-w-2xl mx-auto space-y-8">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-2">Become an Affiliate</h1>
-                    <p className="text-muted-foreground">
-                        Earn 10% commission on every sale you refer!
-                    </p>
+                {/* Hero Section */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 p-8 text-white">
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSI0Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
+                    <div className="relative text-center">
+                        <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm mb-4">
+                            <DollarSign className="h-4 w-4" />
+                            <span>Earn 10% Commission</span>
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl font-bold mb-3">Become an Affiliate</h1>
+                        <p className="text-white/80 max-w-md mx-auto">
+                            Join our affiliate program and earn money for every sale you refer!
+                        </p>
+                    </div>
                 </div>
 
-                <div className="bg-card border rounded-lg p-6">
-                    <h2 className="font-semibold mb-4">Why Join Our Affiliate Program?</h2>
-                    <ul className="space-y-3">
-                        <li className="flex items-start gap-3">
-                            <DollarSign className="h-5 w-5 text-green-500 mt-0.5" />
-                            <div>
-                                <p className="font-medium">10% Commission</p>
-                                <p className="text-sm text-muted-foreground">Earn on every successful sale</p>
+                <div className="bg-card border rounded-xl p-6">
+                    <h2 className="font-semibold mb-4 text-lg">Why Join Our Affiliate Program?</h2>
+                    <div className="grid gap-4">
+                        <div className="flex items-start gap-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
+                            <div className="p-2 bg-green-500 rounded-lg">
+                                <DollarSign className="h-5 w-5 text-white" />
                             </div>
-                        </li>
-                        <li className="flex items-start gap-3">
-                            <TrendingUp className="h-5 w-5 text-blue-500 mt-0.5" />
                             <div>
-                                <p className="font-medium">Real-time Tracking</p>
-                                <p className="text-sm text-muted-foreground">Monitor clicks and conversions</p>
+                                <p className="font-medium">10% Commission on Every Sale</p>
+                                <p className="text-sm text-muted-foreground">Earn real money for each successful referral</p>
                             </div>
-                        </li>
-                        <li className="flex items-start gap-3">
-                            <LinkIcon className="h-5 w-5 text-purple-500 mt-0.5" />
+                        </div>
+                        <div className="flex items-start gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
+                            <div className="p-2 bg-blue-500 rounded-lg">
+                                <TrendingUp className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="font-medium">Real-time Analytics</p>
+                                <p className="text-sm text-muted-foreground">Track your clicks and conversions instantly</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-4 p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-900">
+                            <div className="p-2 bg-purple-500 rounded-lg">
+                                <LinkIcon className="h-5 w-5 text-white" />
+                            </div>
                             <div>
                                 <p className="font-medium">Unique Affiliate Link</p>
-                                <p className="text-sm text-muted-foreground">Share and earn instantly</p>
+                                <p className="text-sm text-muted-foreground">Share your personalized link and start earning</p>
                             </div>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <form onSubmit={applyAsAffiliate} className="bg-card border rounded-lg p-6 space-y-4">
@@ -221,8 +235,8 @@ export default function AffiliatePage() {
                                 <div className="text-right">
                                     <p className="font-medium text-green-600">+₹{com.commission_amount}</p>
                                     <p className={`text-xs px-2 py-0.5 rounded ${com.status === 'paid'
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-yellow-100 text-yellow-800'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-yellow-100 text-yellow-800'
                                         }`}>
                                         {com.status}
                                     </p>
