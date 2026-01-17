@@ -1020,6 +1020,143 @@ export interface Database {
                     updated_at?: string
                 }
             }
+            tickets: {
+                Row: {
+                    id: string
+                    user_id: string
+                    ticket_number: string
+                    subject: string
+                    category: 'order_issue' | 'license_issue' | 'payment' | 'technical' | 'other'
+                    priority: 'low' | 'medium' | 'high' | 'urgent'
+                    status: 'open' | 'in_progress' | 'awaiting_reply' | 'resolved' | 'closed'
+                    order_id: string | null
+                    assigned_to: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    ticket_number?: string
+                    subject: string
+                    category: 'order_issue' | 'license_issue' | 'payment' | 'technical' | 'other'
+                    priority?: 'low' | 'medium' | 'high' | 'urgent'
+                    status?: 'open' | 'in_progress' | 'awaiting_reply' | 'resolved' | 'closed'
+                    order_id?: string | null
+                    assigned_to?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    ticket_number?: string
+                    subject?: string
+                    category?: 'order_issue' | 'license_issue' | 'payment' | 'technical' | 'other'
+                    priority?: 'low' | 'medium' | 'high' | 'urgent'
+                    status?: 'open' | 'in_progress' | 'awaiting_reply' | 'resolved' | 'closed'
+                    order_id?: string | null
+                    assigned_to?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+            ticket_messages: {
+                Row: {
+                    id: string
+                    ticket_id: string
+                    sender_type: 'user' | 'admin'
+                    sender_id: string
+                    message: string
+                    attachments: Json
+                    is_internal: boolean
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    ticket_id: string
+                    sender_type: 'user' | 'admin'
+                    sender_id: string
+                    message: string
+                    attachments?: Json
+                    is_internal?: boolean
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    ticket_id?: string
+                    sender_type?: 'user' | 'admin'
+                    sender_id?: string
+                    message?: string
+                    attachments?: Json
+                    is_internal?: boolean
+                    created_at?: string
+                }
+            }
+            push_subscriptions: {
+                Row: {
+                    id: string
+                    user_id: string
+                    endpoint: string
+                    keys: Json
+                    is_active: boolean
+                    user_agent: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    endpoint: string
+                    keys: Json
+                    is_active?: boolean
+                    user_agent?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    endpoint?: string
+                    keys?: Json
+                    is_active?: boolean
+                    user_agent?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+            notifications: {
+                Row: {
+                    id: string
+                    user_id: string | null
+                    type: 'order_update' | 'ticket_reply' | 'price_alert' | 'promotion' | 'system'
+                    title: string
+                    body: string
+                    data: Json
+                    is_read: boolean
+                    sent_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id?: string | null
+                    type: 'order_update' | 'ticket_reply' | 'price_alert' | 'promotion' | 'system'
+                    title: string
+                    body: string
+                    data?: Json
+                    is_read?: boolean
+                    sent_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string | null
+                    type?: 'order_update' | 'ticket_reply' | 'price_alert' | 'promotion' | 'system'
+                    title?: string
+                    body?: string
+                    data?: Json
+                    is_read?: boolean
+                    sent_at?: string
+                }
+            }
         }
         Views: {
             [_ in never]: never

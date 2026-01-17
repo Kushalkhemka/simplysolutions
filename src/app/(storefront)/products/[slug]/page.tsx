@@ -1,10 +1,13 @@
 import { notFound } from 'next/navigation';
 
 import Link from 'next/link';
+import Image from 'next/image';
+import { getAmazonAsin, getAmazonProductUrl } from '@/lib/data/amazonAsinMap';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProductCard } from '@/components/product/ProductCard';
+import { AddToCartButton } from '@/components/product/AddToCartButton';
 import {
     ShoppingCart,
     Heart,
@@ -116,7 +119,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
         .limit(4);
 
     const discountPercent = Math.round(((product.mrp - product.price) / product.mrp) * 100);
-    const allImages = [product.main_image_url, ...(product.image_urls || [])].filter(Boolean);
+    const allImages = Array.from(new Set([product.main_image_url, ...(product.image_urls || [])].filter(Boolean)));
+
+    // Get Amazon ASIN for this product
+    const amazonAsin = getAmazonAsin(product.name) || getAmazonAsin(product.slug);
+    const amazonUrl = amazonAsin ? getAmazonProductUrl(amazonAsin) : null;
 
     // Prepare breadcrumb items for JSON-LD
     const breadcrumbItems = [
@@ -232,7 +239,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                                     {(product.bullet_points as string[]).map((point: string, idx: number) => (
                                         <li key={idx} className="flex items-start gap-2 text-sm">
                                             <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                            <span>{point}</span>
+                                            <span>{point.replace(/^[✓✔☑✅\s]+/, '')}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -262,11 +269,36 @@ export default async function ProductPage({ params }: ProductPageProps) {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex gap-3">
-                            <Button size="lg" className="flex-1 gap-2">
-                                <ShoppingCart className="h-5 w-5" />
-                                Add to Cart
-                            </Button>
+                        <div className="flex flex-wrap gap-3">
+                            <AddToCartButton
+                                productId={product.id}
+                                productName={product.name}
+                                stockQuantity={product.stock_quantity}
+                                className="flex-1"
+                            />
+                            {amazonUrl && (
+                                <a
+                                    href={amazonUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex-1"
+                                >
+                                    <Button
+                                        size="lg"
+                                        variant="outline"
+                                        className="w-full gap-2 border-[#FF9900] hover:bg-[#FF9900]/10"
+                                    >
+                                        Order from
+                                        <Image
+                                            src="/images/Amazon_logo.svg.webp"
+                                            alt="Amazon"
+                                            width={70}
+                                            height={21}
+                                            className="object-contain translate-y-0.5"
+                                        />
+                                    </Button>
+                                </a>
+                            )}
                             <Button size="lg" variant="outline">
                                 <Heart className="h-5 w-5" />
                             </Button>
@@ -316,9 +348,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {product.description && (
                     <div className="mb-12">
                         <h2 className="text-xl font-bold mb-4">Description</h2>
-                        <div className="prose max-w-none text-muted-foreground">
-                            <p>{product.description}</p>
-                        </div>
+                        <div
+                            className="prose max-w-none text-muted-foreground"
+                            dangerouslySetInnerHTML={{ __html: product.description }}
+                        />
                     </div>
                 )}
 

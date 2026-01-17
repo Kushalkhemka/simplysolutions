@@ -16,6 +16,13 @@ import {
     LogOut,
     ShieldCheck,
     Headset,
+    Share2,
+    Coins,
+    FileText,
+    Users,
+    Handshake,
+    LifeBuoy,
+    Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -165,6 +172,41 @@ export function Header() {
                                     <DropdownMenuItem asChild>
                                         <Link href="/dashboard/licenses" className="cursor-pointer">
                                             <ShieldCheck className="mr-2 h-4 w-4" /> My Licenses
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/dashboard/referral" className="cursor-pointer">
+                                            <Users className="mr-2 h-4 w-4" /> Refer a Friend
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/dashboard/affiliate" className="cursor-pointer">
+                                            <Handshake className="mr-2 h-4 w-4" /> Affiliate Program
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/dashboard/loyalty" className="cursor-pointer">
+                                            <Coins className="mr-2 h-4 w-4" /> Loyalty Points
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/dashboard/invoices" className="cursor-pointer">
+                                            <FileText className="mr-2 h-4 w-4" /> Invoice Info
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/dashboard/support" className="cursor-pointer">
+                                            <LifeBuoy className="mr-2 h-4 w-4" /> Support Tickets
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/wishlist" className="cursor-pointer">
+                                            <Heart className="mr-2 h-4 w-4" /> Wishlist
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/dashboard/settings" className="cursor-pointer">
+                                            <Settings className="mr-2 h-4 w-4" /> Settings
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />

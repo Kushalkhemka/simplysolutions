@@ -37,5 +37,6 @@ export {
     LockKey,
     Wrench,
     MagnifyingGlass,
-    Question
+    Question,
+    WhatsappLogo
 } from '@phosphor-icons/react';

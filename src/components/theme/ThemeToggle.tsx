@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { Button } from '@/components/ui/button';
@@ -12,13 +13,22 @@ import {
 
 export function ThemeToggle() {
     const { theme, setTheme, resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
-                    {resolvedTheme === 'dark' ? (
-                        <Moon className="h-5 w-5" />
+                    {mounted ? (
+                        resolvedTheme === 'dark' ? (
+                            <Moon className="h-5 w-5" />
+                        ) : (
+                            <Sun className="h-5 w-5" />
+                        )
                     ) : (
                         <Sun className="h-5 w-5" />
                     )}

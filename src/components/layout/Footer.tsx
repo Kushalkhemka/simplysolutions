@@ -15,7 +15,8 @@ import {
     Truck,
     Headset,
     Clock,
-    PaperPlaneRight
+    PaperPlaneRight,
+    WhatsappLogo
 } from '@/components/ui/icons';
 
 const categories = [
@@ -162,15 +163,29 @@ export function Footer() {
                         <ul className="space-y-4">
                             <li className="flex gap-3 text-sm text-muted-foreground">
                                 <MapPin size={20} weight="fill" className="text-primary flex-shrink-0" />
-                                <span>123 Digital Square, Tech Park<br />New Delhi, India 110001</span>
+                                <span>Delhi, India</span>
                             </li>
                             <li className="flex gap-3 text-sm text-muted-foreground">
                                 <Envelope size={20} weight="fill" className="text-primary flex-shrink-0" />
-                                <a href="mailto:support@simplysolutions.com" className="hover:text-foreground transition-colors">support@simplysolutions.com</a>
+                                <a href="mailto:support@simplysolutions.co.in" className="hover:text-foreground transition-colors">support@simplysolutions.co.in</a>
                             </li>
                             <li className="flex gap-3 text-sm text-muted-foreground">
-                                <Phone size={20} weight="fill" className="text-primary flex-shrink-0" />
-                                <span>+91 98765 43210</span>
+                                <WhatsappLogo size={20} weight="fill" className="text-[#25D366] flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <span className="block font-medium text-foreground text-xs mb-0.5">Escalations</span>
+                                    <a href="https://wa.me/91859584557" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                                        +91 85958 4557
+                                    </a>
+                                </div>
+                            </li>
+                            <li className="flex gap-3 text-sm text-muted-foreground">
+                                <WhatsappLogo size={20} weight="fill" className="text-[#25D366] flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <span className="block font-medium text-foreground text-xs mb-0.5">24/7 AI Tech Support</span>
+                                    <a href="https://wa.me/919953994557" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                                        +91 99539 94557
+                                    </a>
+                                </div>
                             </li>
                         </ul>
                     </div>
@@ -276,6 +291,6 @@ export function Footer() {
                     </div>
                 </div>
             </div>
-        </footer>
+        </footer >
     );
 }

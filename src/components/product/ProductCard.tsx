@@ -24,6 +24,9 @@ function getProductRating(productId: string): number {
     return RATINGS[Math.abs(hash) % RATINGS.length];
 }
 
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/stores/auth-store';
+
 interface ProductCardProps {
     product: Product;
     showQuickAdd?: boolean;
@@ -37,9 +40,19 @@ export function ProductCard({ product, showQuickAdd = true, variant = 'default' 
     const savings = product.mrp - product.price;
     const rating = getProductRating(product.id);
 
+    const { isAuthenticated } = useAuthStore();
+    const router = useRouter();
+
     const addToCartSafe = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        if (!isAuthenticated) {
+            toast.error('Please login to add items to cart');
+            router.push('/login');
+            return;
+        }
+
         const success = await addItem(product.id);
         if (success) {
             toast.success(`Added ${product.name} to cart`);
