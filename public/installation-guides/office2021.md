@@ -52,4 +52,4 @@ Then, ****scroll up this page**** and you will get the option to enter the insta
 
 
 
-In case of any error or query, feel free to reach out to us at +91-9711397918 (only whatsapp) or mail us at support@simplysolutions.co.in
+In case of any error or query, feel free to reach out to us at +91-8595899215 (only whatsapp) or mail us at support@simplysolutions.co.in

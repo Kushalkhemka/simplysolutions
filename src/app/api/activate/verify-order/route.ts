@@ -25,35 +25,32 @@ export async function POST(request: NextRequest) {
             }, { status: 404 });
         }
 
-        // Check if already redeemed (has confirmation_id or license key)
-        if (order.confirmation_id) {
-            // Get the license key if it exists
-            const { data: licenseData } = await supabase
-                .from('amazon_activation_license_keys')
-                .select('license_key, sku')
-                .eq('order_id', orderId.trim())
+        // Check if already redeemed (has license key assigned)
+        const { data: licenseData } = await supabase
+            .from('amazon_activation_license_keys')
+            .select('license_key, fsn')
+            .eq('order_id', orderId.trim())
+            .single();
+
+        if (licenseData) {
+            // Get product info from products_data using FSN
+            const { data: productData } = await supabase
+                .from('products_data')
+                .select('product_title, download_link, installation_doc, product_image')
+                .eq('fsn', licenseData.fsn)
                 .single();
 
-            if (licenseData) {
-                // Get product info from SKU
-                const { data: productData } = await supabase
-                    .from('products')
-                    .select('name, images')
-                    .eq('sku', licenseData.sku)
-                    .single();
-
-                return NextResponse.json({
-                    valid: true,
-                    isAlreadyRedeemed: true,
-                    licenseKey: licenseData.license_key,
-                    productInfo: {
-                        productName: productData?.name || 'Microsoft Office',
-                        productImage: productData?.images?.[0] || null,
-                        downloadUrl: null,
-                        sku: licenseData.sku
-                    }
-                });
-            }
+            return NextResponse.json({
+                valid: true,
+                isAlreadyRedeemed: true,
+                licenseKey: licenseData.license_key,
+                productInfo: {
+                    productName: productData?.product_title || 'Microsoft Office',
+                    productImage: productData?.product_image || null,
+                    downloadUrl: productData?.download_link,
+                    installationDoc: productData?.installation_doc ? `/installation-docs/${productData.installation_doc}` : null
+                }
+            });
         }
 
         // Order is valid and not yet redeemed

@@ -153,7 +153,7 @@ export default function ActivatePage() {
             toast.error('Please enter all 9 installation ID blocks');
             return;
         }
-        toast.info('For phone activation, please contact support on WhatsApp: +91 9711397918');
+        toast.info('For phone activation, please contact support on WhatsApp: +91 8595899215');
     };
 
     return (
@@ -310,8 +310,8 @@ export default function ActivatePage() {
                                     <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
                                         <p className="text-xs text-[#B12704]">
                                             <span className="font-bold">Multiple Keys?</span> Contact us on WhatsApp:{' '}
-                                            <a href="https://wa.me/919711397918" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-[#CC0C39]">
-                                                9711397918
+                                            <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-[#CC0C39]">
+                                                8595899215
                                             </a>
                                             {' '}(message only)
                                         </p>

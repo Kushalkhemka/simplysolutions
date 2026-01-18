@@ -122,4 +122,4 @@ Link account either using mobile number or email address as per your convenience
 **Word** - [**https://apps.apple.com/us/app/microsoft-word/id586447913**](https://apps.apple.com/us/app/microsoft-word/id586447913)
 **Powerpoint** - [**https://apps.apple.com/us/app/microsoft-powerpoint/id586449534**](https://apps.apple.com/us/app/microsoft-powerpoint/id586449534)
 
-**In case of any error or query, feel free to reach out to us at +91-9711397918 or mail us at support@simplysolutions.co.in**
+**In case of any error or query, feel free to reach out to us at +91-8595899215 or mail us at support@simplysolutions.co.in**

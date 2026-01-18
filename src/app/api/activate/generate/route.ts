@@ -6,143 +6,121 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(request: NextRequest) {
     try {
-        const { secretCode, operatingSystem } = await request.json();
+        const { secretCode } = await request.json();
 
-        // Validate input
         if (!secretCode) {
-            return NextResponse.json(
-                { error: 'Secret code is required' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Secret code is required' }, { status: 400 });
         }
 
-        // Remove any spaces or dashes from the code
-        const cleanCode = secretCode.replace(/[\s-]/g, '');
+        // Remove any spaces from the code
+        const cleanCode = secretCode.replace(/\s/g, '');
 
-        // Create supabase client with service role
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // Fetch the secret code record
-        const { data: secretCodeData, error: secretCodeError } = await supabase
-            .from('amazon_secret_codes')
-            .select('*')
-            .eq('secret_code', cleanCode)
+        // Look up order by secret code (stored as order_id for digital delivery)
+        const { data: order, error: orderError } = await supabase
+            .from('amazon_orders')
+            .select('id, order_id, fsn, license_key_id')
+            .eq('order_id', cleanCode)
             .single();
 
-        if (secretCodeError || !secretCodeData) {
-            return NextResponse.json(
-                { success: false, error: 'Secret code not found' },
-                { status: 404 }
-            );
+        if (orderError || !order) {
+            return NextResponse.json({ success: false, error: 'Secret code not found' }, { status: 404 });
         }
 
         // Check if already redeemed
-        if (secretCodeData.is_redeemed && secretCodeData.license_key_id) {
-            // Return the existing license key
+        if (order.license_key_id) {
             const { data: existingKey } = await supabase
                 .from('amazon_activation_license_keys')
-                .select('*')
-                .eq('id', secretCodeData.license_key_id)
+                .select('license_key, fsn')
+                .eq('id', order.license_key_id)
                 .single();
 
             if (existingKey) {
+                const { data: productData } = await supabase
+                    .from('products_data')
+                    .select('product_title, download_link, installation_doc, product_image')
+                    .eq('fsn', existingKey.fsn)
+                    .single();
+
                 return NextResponse.json({
                     success: true,
                     alreadyRedeemed: true,
                     licenseKey: existingKey.license_key,
                     productInfo: {
-                        productName: existingKey.product_name,
-                        productImage: existingKey.product_image,
-                        downloadUrl: existingKey.download_url,
-                        sku: existingKey.sku,
+                        productName: productData?.product_title || 'Microsoft Office',
+                        productImage: productData?.product_image || null,
+                        downloadUrl: productData?.download_link,
+                        installationDoc: productData?.installation_doc ? `/installation-docs/${productData.installation_doc}` : null
                     }
                 });
             }
         }
 
-        // Find an available license key matching the SKU
+        // Get FSN from order
+        const fsn = order.fsn;
+        if (!fsn) {
+            return NextResponse.json({ success: false, error: 'Product not configured. Please contact support.' }, { status: 404 });
+        }
+
+        // Find an available license key matching the FSN
         const { data: availableKey, error: keyError } = await supabase
             .from('amazon_activation_license_keys')
-            .select('*')
-            .eq('sku', secretCodeData.sku)
+            .select('id, license_key, fsn')
+            .eq('fsn', fsn)
             .eq('is_redeemed', false)
+            .is('order_id', null)
             .limit(1)
             .single();
 
         if (keyError || !availableKey) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'No license keys available for this product. Please contact support.'
-                },
-                { status: 404 }
-            );
+            return NextResponse.json({
+                success: false,
+                error: 'No license keys available for this product. Please contact support.'
+            }, { status: 404 });
         }
 
-        // Mark the license key as redeemed
-        const now = new Date().toISOString();
+        // Mark the license key as redeemed and link to order
         const { error: updateKeyError } = await supabase
             .from('amazon_activation_license_keys')
             .update({
                 is_redeemed: true,
-                redeemed_at: now,
-                updated_at: now,
+                order_id: cleanCode
             })
             .eq('id', availableKey.id);
 
         if (updateKeyError) {
             console.error('Error updating license key:', updateKeyError);
-            return NextResponse.json(
-                { success: false, error: 'Failed to assign license key' },
-                { status: 500 }
-            );
+            return NextResponse.json({ success: false, error: 'Failed to assign license key' }, { status: 500 });
         }
 
-        // Update the secret code with the assigned license key
-        const { error: updateCodeError } = await supabase
-            .from('amazon_secret_codes')
-            .update({
-                license_key_id: availableKey.id,
-                is_redeemed: true,
-                redeemed_at: now,
-                updated_at: now,
-            })
-            .eq('id', secretCodeData.id);
+        // Update amazon_order with the license key reference
+        await supabase
+            .from('amazon_orders')
+            .update({ license_key_id: availableKey.id })
+            .eq('id', order.id);
 
-        if (updateCodeError) {
-            console.error('Error updating secret code:', updateCodeError);
-            // Try to rollback the license key update
-            await supabase
-                .from('amazon_activation_license_keys')
-                .update({
-                    is_redeemed: false,
-                    redeemed_at: null,
-                })
-                .eq('id', availableKey.id);
-
-            return NextResponse.json(
-                { success: false, error: 'Failed to complete activation' },
-                { status: 500 }
-            );
-        }
+        // Get product info
+        const { data: productData } = await supabase
+            .from('products_data')
+            .select('product_title, download_link, installation_doc, product_image')
+            .eq('fsn', fsn)
+            .single();
 
         return NextResponse.json({
             success: true,
             alreadyRedeemed: false,
             licenseKey: availableKey.license_key,
             productInfo: {
-                productName: availableKey.product_name,
-                productImage: availableKey.product_image,
-                downloadUrl: availableKey.download_url,
-                sku: availableKey.sku,
+                productName: productData?.product_title || 'Microsoft Office',
+                productImage: productData?.product_image || null,
+                downloadUrl: productData?.download_link,
+                installationDoc: productData?.installation_doc ? `/installation-docs/${productData.installation_doc}` : null
             }
         });
 
     } catch (error) {
         console.error('Error generating license key:', error);
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

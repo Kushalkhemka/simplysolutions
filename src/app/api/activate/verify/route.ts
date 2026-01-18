@@ -8,95 +8,102 @@ export async function POST(request: NextRequest) {
     try {
         const { secretCode } = await request.json();
 
-        // Validate input
         if (!secretCode) {
-            return NextResponse.json(
-                { error: 'Secret code is required' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Secret code is required' }, { status: 400 });
         }
 
-        // Remove any spaces or dashes from the code
-        const cleanCode = secretCode.replace(/[\s-]/g, '');
+        // Remove any spaces from the code
+        const cleanCode = secretCode.replace(/\s/g, '');
 
         // Validate 15-digit format
         if (!/^\d{15,17}$/.test(cleanCode)) {
-            return NextResponse.json(
-                {
-                    valid: false,
-                    error: 'Invalid secret code format. Please enter a 15-17 digit code.'
-                },
-                { status: 400 }
-            );
+            return NextResponse.json({
+                valid: false,
+                error: 'Invalid secret code format. Please enter a 15-17 digit code.'
+            }, { status: 400 });
         }
 
-        // Create supabase client with service role
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // Check if secret code exists
-        const { data: secretCodeData, error: secretCodeError } = await supabase
-            .from('amazon_secret_codes')
-            .select('*')
-            .eq('secret_code', cleanCode)
+        // Check if order exists with this secret code as order_id
+        // Digital delivery orders use the 15-digit code as order_id
+        const { data: order, error: orderError } = await supabase
+            .from('amazon_orders')
+            .select('id, order_id, fsn, license_key_id, fulfillment_type')
+            .eq('order_id', cleanCode)
             .single();
 
-        if (secretCodeError || !secretCodeData) {
-            return NextResponse.json(
-                {
-                    valid: false,
-                    error: 'Secret code not found. Please check your code and try again.'
-                },
-                { status: 404 }
-            );
+        if (orderError || !order) {
+            return NextResponse.json({
+                valid: false,
+                error: 'Secret code not found. Please check your code and try again.'
+            }, { status: 404 });
         }
 
-        // Check if already redeemed
-        if (secretCodeData.is_redeemed && secretCodeData.license_key_id) {
-            // Fetch the already assigned license key
+        // Check if already redeemed (has license key assigned)
+        if (order.license_key_id) {
             const { data: existingKey } = await supabase
                 .from('amazon_activation_license_keys')
-                .select('*')
-                .eq('id', secretCodeData.license_key_id)
+                .select('license_key, fsn')
+                .eq('id', order.license_key_id)
                 .single();
+
+            // Get product info from products_data
+            let productInfo = null;
+            if (existingKey?.fsn) {
+                const { data: productData } = await supabase
+                    .from('products_data')
+                    .select('product_title, download_link, installation_doc, product_image')
+                    .eq('fsn', existingKey.fsn)
+                    .single();
+
+                if (productData) {
+                    productInfo = {
+                        productName: productData.product_title,
+                        productImage: productData.product_image,
+                        downloadUrl: productData.download_link,
+                        installationDoc: productData.installation_doc ? `/installation-docs/${productData.installation_doc}` : null
+                    };
+                }
+            }
 
             return NextResponse.json({
                 valid: true,
                 isAlreadyRedeemed: true,
-                sku: secretCodeData.sku,
+                fsn: order.fsn,
                 licenseKey: existingKey?.license_key || null,
-                productInfo: existingKey ? {
-                    productName: existingKey.product_name,
-                    productImage: existingKey.product_image,
-                    downloadUrl: existingKey.download_url,
-                } : null
+                productInfo
             });
         }
 
-        // Get product info from available license keys with matching SKU
-        const { data: availableKey } = await supabase
-            .from('amazon_activation_license_keys')
-            .select('product_name, product_image, download_url')
-            .eq('sku', secretCodeData.sku)
-            .eq('is_redeemed', false)
-            .limit(1)
-            .single();
+        // Get product info from products_data using FSN
+        let productInfo = null;
+        if (order.fsn) {
+            const { data: productData } = await supabase
+                .from('products_data')
+                .select('product_title, download_link, installation_doc, product_image')
+                .eq('fsn', order.fsn)
+                .single();
+
+            if (productData) {
+                productInfo = {
+                    productName: productData.product_title,
+                    productImage: productData.product_image,
+                    downloadUrl: productData.download_link,
+                    installationDoc: productData.installation_doc ? `/installation-docs/${productData.installation_doc}` : null
+                };
+            }
+        }
 
         return NextResponse.json({
             valid: true,
             isAlreadyRedeemed: false,
-            sku: secretCodeData.sku,
-            productInfo: availableKey ? {
-                productName: availableKey.product_name,
-                productImage: availableKey.product_image,
-                downloadUrl: availableKey.download_url,
-            } : null
+            fsn: order.fsn,
+            productInfo
         });
 
     } catch (error) {
         console.error('Error verifying secret code:', error);
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

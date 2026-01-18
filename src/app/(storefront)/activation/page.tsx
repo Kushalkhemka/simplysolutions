@@ -3,15 +3,14 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import {
-    Package,
+    ShoppingBag,
     CheckCircle,
     Copy,
     Download,
     X,
     AlertTriangle,
     Phone,
-    Video,
-    ShoppingBag
+    Video
 } from 'lucide-react';
 import { toast } from 'sonner';
 import InstallationGuide from '@/components/InstallationGuide';
@@ -145,7 +144,7 @@ export default function FBAActivatePage() {
     };
 
     const handleInstallationIdChange = (index: number, value: string) => {
-        const cleanValue = value.replace(/\D/g, '').slice(0, 6);
+        const cleanValue = value.replace(/\D/g, '').slice(0, 7);
         const newIds = [...installationIds];
         newIds[index] = cleanValue;
         setInstallationIds(newIds);
@@ -162,7 +161,7 @@ export default function FBAActivatePage() {
             toast.error('Please enter all 9 installation ID blocks');
             return;
         }
-        toast.info('For phone activation, please contact support on WhatsApp: +91 9711397918');
+        toast.info('For phone activation, please contact support on WhatsApp: +91 8595899215');
     };
 
     return (
@@ -181,14 +180,11 @@ export default function FBAActivatePage() {
             {/* Header Banner */}
             <div className="bg-[#232F3E] py-4 border-b-4 border-[#FF9900]">
                 <div className="container-dense">
-                    <div className="flex items-center justify-center gap-3 mb-1">
-                        <Package className="w-6 h-6 text-[#FF9900]" />
-                        <h1 className="text-2xl md:text-3xl font-bold text-center text-white uppercase tracking-wider">
-                            FBA Order Activation
-                        </h1>
-                    </div>
-                    <p className="text-center text-[#FF9900] text-sm font-medium">
-                        For Amazon FBA Customers
+                    <h1 className="text-2xl md:text-3xl font-bold text-center text-white uppercase tracking-wider">
+                        Secure Online Activation
+                    </h1>
+                    <p className="text-center text-[#FF9900] text-sm mt-1 font-medium">
+                        For Amazon.in Customers
                     </p>
                 </div>
             </div>
@@ -315,7 +311,7 @@ export default function FBAActivatePage() {
                                     <div ref={installationRef} className="pt-6 mt-6 border-t border-[#DDD]">
                                         <div className="flex items-center justify-between mb-3">
                                             <h3 className="font-bold text-[#0F1111] text-sm uppercase">
-                                                Phone Activation (If Online Fails)
+                                                Phone Activation
                                             </h3>
                                             <button onClick={scrollToInstallation} className="text-xs text-[#007185] hover:underline hover:text-[#C7511F]">
                                                 Learn more ↓
@@ -323,7 +319,7 @@ export default function FBAActivatePage() {
                                         </div>
 
                                         <p className="text-xs text-[#565959] mb-3">
-                                            Enter your 54-digit Installation ID below for phone activation:
+                                            Enter your 63-digit Installation ID below for phone activation:
                                         </p>
 
                                         <div className="grid grid-cols-3 sm:grid-cols-9 gap-1 mb-4">
@@ -335,8 +331,8 @@ export default function FBAActivatePage() {
                                                     value={id}
                                                     onChange={(e) => handleInstallationIdChange(index, e.target.value)}
                                                     className="w-full px-1 py-2 text-center font-mono text-xs border border-[#888C8C] rounded focus:outline-none focus:ring-2 focus:ring-[#FF9900] bg-white"
-                                                    maxLength={6}
-                                                    placeholder="000000"
+                                                    maxLength={7}
+                                                    placeholder="0000000"
                                                 />
                                             ))}
                                         </div>
@@ -363,49 +359,53 @@ export default function FBAActivatePage() {
                         </div>
                     </div>
 
-                    {/* Help Section */}
-                    <div className="mt-6 bg-white rounded-lg shadow border border-[#DDD] overflow-hidden">
-                        <div className="bg-gradient-to-b from-[#F7F8FA] to-[#E7E9EC] px-4 py-3 border-b border-[#DDD]">
-                            <h3 className="font-bold text-[#0F1111] text-sm">
-                                How to find your Amazon Order ID
-                            </h3>
+                    {/* Help Section - only show when no license key generated */}
+                    {!activationResult?.success && (
+                        <div className="mt-6 bg-white rounded-lg shadow border border-[#DDD] overflow-hidden">
+                            <div className="bg-gradient-to-b from-[#F7F8FA] to-[#E7E9EC] px-4 py-3 border-b border-[#DDD]">
+                                <h3 className="font-bold text-[#0F1111] text-sm">
+                                    How to find your Amazon Order ID
+                                </h3>
+                            </div>
+                            <div className="p-4">
+                                <ol className="space-y-2 text-sm text-[#0F1111]">
+                                    <li className="flex gap-2">
+                                        <span className="font-bold text-[#FF9900]">1.</span>
+                                        <span>Open your Amazon app or visit amazon.in</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <span className="font-bold text-[#FF9900]">2.</span>
+                                        <span>Go to <strong>Your Orders</strong></span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <span className="font-bold text-[#FF9900]">3.</span>
+                                        <span>Find your software order and click on it</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <span className="font-bold text-[#FF9900]">4.</span>
+                                        <span>The Order ID is at the top (format: <code className="bg-[#F7F8FA] px-1 rounded">XXX-XXXXXXX-XXXXXXX</code>)</span>
+                                    </li>
+                                </ol>
+                            </div>
                         </div>
-                        <div className="p-4">
-                            <ol className="space-y-2 text-sm text-[#0F1111]">
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-[#FF9900]">1.</span>
-                                    <span>Open your Amazon app or visit amazon.in</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-[#FF9900]">2.</span>
-                                    <span>Go to <strong>Your Orders</strong></span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-[#FF9900]">3.</span>
-                                    <span>Find your software order and click on it</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-[#FF9900]">4.</span>
-                                    <span>The Order ID is at the top (format: <code className="bg-[#F7F8FA] px-1 rounded">XXX-XXXXXXX-XXXXXXX</code>)</span>
-                                </li>
-                            </ol>
-                        </div>
-                    </div>
+                    )}
 
-                    {/* Amazon Logo Link */}
-                    <div className="mt-6 text-center">
-                        <p className="text-xs text-[#565959]">
-                            Purchased from{' '}
-                            <Image
-                                src="/images/Amazon_logo.svg.webp"
-                                alt="Amazon"
-                                width={60}
-                                height={18}
-                                className="inline-block align-middle mx-1"
-                            />
-                            ? Enter your Order ID above.
-                        </p>
-                    </div>
+                    {/* Amazon Logo Link - only show when no license key generated */}
+                    {!activationResult?.success && (
+                        <div className="mt-6 text-center">
+                            <p className="text-xs text-[#565959]">
+                                Purchased from{' '}
+                                <Image
+                                    src="/images/Amazon_logo.svg.webp"
+                                    alt="Amazon"
+                                    width={60}
+                                    height={18}
+                                    className="inline-block align-middle mx-1"
+                                />
+                                ? Enter your Order ID above.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

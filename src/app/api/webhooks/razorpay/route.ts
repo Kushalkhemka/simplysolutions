@@ -122,6 +122,24 @@ export async function POST(request: NextRequest) {
                     .delete()
                     .eq('user_id', order.user_id);
 
+                // Update product sold counts
+                if (orderItems) {
+                    for (const item of orderItems) {
+                        const { data: product } = await adminClient
+                            .from('products')
+                            .select('sold_count')
+                            .eq('id', item.product_id)
+                            .single();
+
+                        if (product) {
+                            await adminClient
+                                .from('products')
+                                .update({ sold_count: (product.sold_count || 0) + item.quantity })
+                                .eq('id', item.product_id);
+                        }
+                    }
+                }
+
                 console.log('Payment captured and processed:', orderId);
                 break;
             }

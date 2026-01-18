@@ -60,4 +60,4 @@ FOR INSTALLER.PKG
 
 ![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img12.png)
 
-**In case of any error or query, feel free to reach out to us at +91-9711397918 or mail us at support@simplysolutions.co.in**
+**In case of any error or query, feel free to reach out to us at +91-8595899215 or mail us at support@simplysolutions.co.in**

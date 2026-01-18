@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 
 export default function GetCIDTestPage() {
     const [identifier, setIdentifier] = useState('');
-    const [identifierType, setIdentifierType] = useState<'secret_code' | 'order_id'>('secret_code');
     const [installationId, setInstallationId] = useState('');
     const [result, setResult] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +38,6 @@ export default function GetCIDTestPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     identifier: identifier.trim(),
-                    identifierType,
                     installationId: cleanIid
                 }),
             });
@@ -47,10 +45,12 @@ export default function GetCIDTestPage() {
             const data = await response.json();
             setResult(data);
 
-            // Add to history
+            // Detect type for history display
+            const type = /^\d{15,17}$/.test(identifier.trim()) ? 'Secret Code' : 'Order ID';
+
             setHistory(prev => [{
                 identifier: identifier.trim(),
-                identifierType,
+                type,
                 iid: cleanIid.slice(0, 10) + '...',
                 success: data.success,
                 cid: data.confirmationId?.slice(0, 12) + '...' || data.error,
@@ -82,7 +82,7 @@ export default function GetCIDTestPage() {
                     <Terminal className="h-6 w-6" />
                     GetCID API Test
                 </h1>
-                <p className="text-muted-foreground">Test the GetCID API integration with real Installation IDs</p>
+                <p className="text-muted-foreground">Test the GetCID API with Order IDs or Secret Codes</p>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-6">
@@ -91,42 +91,19 @@ export default function GetCIDTestPage() {
                     <h2 className="font-semibold">API Test Console</h2>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Identifier Type</label>
-                        <div className="flex gap-4">
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="type"
-                                    checked={identifierType === 'secret_code'}
-                                    onChange={() => setIdentifierType('secret_code')}
-                                    className="rounded"
-                                />
-                                <span className="text-sm">Secret Code (15 digits)</span>
-                            </label>
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="type"
-                                    checked={identifierType === 'order_id'}
-                                    onChange={() => setIdentifierType('order_id')}
-                                    className="rounded"
-                                />
-                                <span className="text-sm">Order ID (FBA)</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
                         <label className="block text-sm font-medium mb-2">
-                            {identifierType === 'secret_code' ? 'Secret Code' : 'Amazon Order ID'}
+                            Order ID or Secret Code
                         </label>
                         <input
                             type="text"
                             value={identifier}
                             onChange={(e) => setIdentifier(e.target.value)}
-                            placeholder={identifierType === 'secret_code' ? '123456789012345' : 'XXX-XXXXXXX-XXXXXXX'}
+                            placeholder="XXX-XXXXXXX-XXXXXXX or 123456789012345"
                             className="w-full px-4 py-2 border rounded-lg font-mono"
                         />
+                        <p className="text-xs text-muted-foreground mt-1">
+                            FBA: Order ID format | Digital: 15-digit secret code
+                        </p>
                     </div>
 
                     <div>
@@ -233,11 +210,9 @@ export default function GetCIDTestPage() {
 
             {/* API Info */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-900 mb-2">API Endpoint Info</h3>
+                <h3 className="font-semibold text-blue-900 mb-2">API Info</h3>
                 <div className="text-sm text-blue-800 space-y-1">
-                    <p><strong>External API:</strong> <code>GET https://getcid.info/api/{'{'}&nbsp;IID&nbsp;{'}'}/{'{'}&nbsp;TOKEN&nbsp;{'}'}</code></p>
-                    <p><strong>Token:</strong> <code>4aiw4hbq5da</code></p>
-                    <p><strong>Note:</strong> Each identifier can only be used once for GetCID generation.</p>
+                    <p><strong>Note:</strong> Each order ID or secret code can only be used once for GetCID generation.</p>
                 </div>
             </div>
         </div>

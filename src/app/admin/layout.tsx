@@ -14,7 +14,10 @@ import {
     ShoppingBag,
     Shield,
     Mail,
-    Terminal
+    Terminal,
+    AlertTriangle,
+    Plus,
+    ShieldX
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -30,6 +33,10 @@ const sidebarLinks = [
 
 const amazonLinks = [
     { name: 'Amazon Orders', href: '/admin/amazon/orders', icon: ShoppingBag },
+    { name: 'License Keys', href: '/admin/amazon/keys', icon: Key },
+    { name: 'Manual Order', href: '/admin/amazon/manual-order', icon: Plus },
+    { name: 'Activation Issues', href: '/admin/amazon/issues', icon: AlertTriangle },
+    { name: 'Fraud Orders', href: '/admin/amazon/fraud', icon: ShieldX },
     { name: 'Warranty Claims', href: '/admin/amazon/warranty', icon: Shield },
     { name: 'Product Requests', href: '/admin/amazon/requests', icon: Mail },
     { name: 'GetCID Test', href: '/admin/amazon/getcid', icon: Terminal },

@@ -9,7 +9,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface GetCidRequest {
     identifier: string;
-    identifierType: 'secret_code' | 'order_id';
     installationId: string;
 }
 
@@ -31,63 +30,34 @@ function parseApiStatus(response: string): string {
 export async function POST(request: NextRequest) {
     try {
         const body: GetCidRequest = await request.json();
-        const { identifier, identifierType, installationId } = body;
+        const { identifier, installationId } = body;
 
-        // Validate inputs
-        if (!identifier || !identifierType || !installationId) {
-            return NextResponse.json(
-                { error: 'Missing required fields' },
-                { status: 400 }
-            );
+        if (!identifier || !installationId) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Validate Installation ID format (should be 63 digits)
+        // Validate Installation ID format (63 digits)
         const cleanIid = installationId.replace(/\s/g, '');
         if (!/^\d{63}$/.test(cleanIid)) {
-            return NextResponse.json(
-                { error: 'Invalid Installation ID. Must be 63 digits.' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Invalid Installation ID. Must be 63 digits.' }, { status: 400 });
         }
 
-        // Check if identifier has already been used for GetCID
-        let alreadyUsed = false;
+        // Check if order exists and if GetCID was already used
+        // Identifier can be either order_id (FBA: XXX-XXXXXXX-XXXXXXX) or secret code (Digital: 15 digits)
+        const { data: order } = await supabase
+            .from('amazon_orders')
+            .select('id, getcid_used')
+            .eq('order_id', identifier)
+            .single();
 
-        if (identifierType === 'secret_code') {
-            const { data: secretCode } = await supabase
-                .from('amazon_secret_codes')
-                .select('id, getcid_used')
-                .eq('secret_code', identifier)
-                .single();
-
-            if (!secretCode) {
-                return NextResponse.json(
-                    { error: 'Invalid secret code' },
-                    { status: 404 }
-                );
-            }
-            alreadyUsed = secretCode.getcid_used || false;
-        } else {
-            const { data: order } = await supabase
-                .from('amazon_orders')
-                .select('id, getcid_used')
-                .eq('order_id', identifier)
-                .single();
-
-            if (!order) {
-                return NextResponse.json(
-                    { error: 'Invalid order ID' },
-                    { status: 404 }
-                );
-            }
-            alreadyUsed = order.getcid_used || false;
+        if (!order) {
+            return NextResponse.json({ error: 'Invalid order ID or secret code' }, { status: 404 });
         }
 
-        if (alreadyUsed) {
-            return NextResponse.json(
-                { error: 'This code has already been used for Confirmation ID generation. Please contact support if you need assistance.' },
-                { status: 403 }
-            );
+        if (order.getcid_used) {
+            return NextResponse.json({
+                error: 'This code has already been used for Confirmation ID generation. Please contact support if you need assistance.'
+            }, { status: 403 });
         }
 
         // Call GetCID API
@@ -101,13 +71,12 @@ export async function POST(request: NextRequest) {
 
         // Get client IP
         const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
-            request.headers.get('x-real-ip') ||
-            'unknown';
+            request.headers.get('x-real-ip') || 'unknown';
 
         // Log the usage
         await supabase.from('getcid_usage').insert({
             identifier,
-            identifier_type: identifierType,
+            identifier_type: /^\d{15,17}$/.test(identifier) ? 'secret_code' : 'order_id',
             installation_id: cleanIid,
             confirmation_id: isSuccess ? trimmedResponse : null,
             api_response: trimmedResponse,
@@ -118,17 +87,10 @@ export async function POST(request: NextRequest) {
 
         // Mark as used ONLY on success
         if (isSuccess) {
-            if (identifierType === 'secret_code') {
-                await supabase
-                    .from('amazon_secret_codes')
-                    .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
-                    .eq('secret_code', identifier);
-            } else {
-                await supabase
-                    .from('amazon_orders')
-                    .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
-                    .eq('order_id', identifier);
-            }
+            await supabase
+                .from('amazon_orders')
+                .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
+                .eq('order_id', identifier);
 
             return NextResponse.json({
                 success: true,
@@ -159,9 +121,6 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         console.error('GetCID API error:', error);
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

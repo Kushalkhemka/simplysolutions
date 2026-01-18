@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Download, AlertCircle, CheckCircle, Key } from 'lucide-react';
+import { ArrowLeft, Download, AlertCircle, CheckCircle, Key, Phone, ExternalLink, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const metadata = {
@@ -10,167 +10,550 @@ export const metadata = {
 
 export default function Office2024WinGuidePage() {
     return (
-        <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-            <div className="container max-w-4xl py-8">
+        <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/30 dark:via-orange-950/10 to-background">
+            <div className="container max-w-5xl py-10 px-4 mx-auto">
                 {/* Header */}
-                <div className="mb-8">
-                    <Link href="/installation-docs" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-4">
+                <div className="mb-10">
+                    <Link href="/installation-docs" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-6">
                         <ArrowLeft className="h-4 w-4" />
                         Back to Installation Docs
                     </Link>
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                        MS OFFICE 2024 LTSC PROFESSIONAL PLUS
-                    </h1>
-                    <p className="text-lg text-muted-foreground">Complete Installation Tutorial for Windows</p>
+                    <div className="text-center">
+                        <div className="inline-block px-4 py-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-medium rounded-full mb-4">
+                            Complete Guide
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                            MS OFFICE 2024 LTSC PROFESSIONAL PLUS
+                        </h1>
+                        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                            Follow these simple instructions for a smooth installation and activation on Windows.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Important Notice */}
-                <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900 rounded-lg p-4 mb-8 flex gap-3">
-                    <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-950/40 border border-orange-200 dark:border-orange-800 rounded-2xl p-6 mb-10 flex gap-4">
+                    <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
                     <div>
-                        <p className="font-semibold text-orange-800 dark:text-orange-200">Before You Begin</p>
-                        <p className="text-sm text-orange-700 dark:text-orange-300">Ensure all previous versions of Office are fully uninstalled before starting to avoid activation errors.</p>
+                        <p className="font-bold text-orange-800 dark:text-orange-200 text-lg">Before You Begin</p>
+                        <p className="text-orange-700 dark:text-orange-300">You must uninstall all old office versions using the official removal tool. This ensures a clean installation without conflicts.</p>
                     </div>
                 </div>
 
                 {/* Steps */}
                 <div className="space-y-8">
                     {/* Step 1: Uninstall */}
-                    <div className="bg-card border rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">1</div>
-                            <h2 className="text-xl font-semibold">Uninstall Previous Office Versions</h2>
-                        </div>
-                        <p className="text-muted-foreground mb-4">Use the official Office removal tool to ensure a clean installation.</p>
-                        <a href="https://bit.ly/uninstallmsoffice" target="_blank" rel="noopener noreferrer">
-                            <Button variant="outline" className="gap-2">
-                                <Download className="h-4 w-4" />
-                                Download Removal Tool
-                            </Button>
-                        </a>
-                    </div>
-
-                    {/* Step 2: Download */}
-                    <div className="bg-card border rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">2</div>
-                            <h2 className="text-xl font-semibold">Download Office 2024 LTSC</h2>
-                        </div>
-                        <p className="text-muted-foreground mb-4">Click the button below to download the Office 2024 Professional Plus LTSC setup files.</p>
-                        <a href="https://tinyurl.com/office2024ltsc" target="_blank" rel="noopener noreferrer">
-                            <Button className="gap-2">
-                                <Download className="h-4 w-4" />
-                                Download Office 2024 LTSC
-                            </Button>
-                        </a>
-                    </div>
-
-                    {/* Step 3: Extract ZIP */}
-                    <div className="bg-card border rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">3</div>
-                            <h2 className="text-xl font-semibold">Extract the ZIP File</h2>
-                        </div>
-                        <p className="text-muted-foreground mb-4">Double-click the downloaded <strong>"OFFICE 2024 Professional Plus LTSC_EN_64Bits"</strong> zip file to extract its contents.</p>
-                    </div>
-
-                    {/* Step 4: Run Setup */}
-                    <div className="bg-card border rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">4</div>
-                            <h2 className="text-xl font-semibold">Run Setup</h2>
-                        </div>
-                        <p className="text-muted-foreground mb-4">Open the extracted folder and run the <strong>"Setup"</strong> file.</p>
-                        <div className="relative w-full max-w-xl aspect-video rounded-lg overflow-hidden border">
-                            <Image
-                                src="https://8a834f89d81d2df0f6b3ac6599cc874b.cdn.bubble.io/f1725885331690x103980992318859150/image.png"
-                                alt="Setup File in Folder"
-                                fill
-                                className="object-contain bg-white"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Step 5: Installation */}
-                    <div className="bg-card border rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">5</div>
-                            <h2 className="text-xl font-semibold">Wait for Installation</h2>
-                        </div>
-                        <p className="text-muted-foreground mb-4">Wait for the installation to complete. You'll see <strong>"You're all set! Office is installed now"</strong> when done. Close the window.</p>
-                        <div className="relative w-full max-w-xl aspect-video rounded-lg overflow-hidden border">
-                            <Image
-                                src="https://8a834f89d81d2df0f6b3ac6599cc874b.cdn.bubble.io/f1725885368305x709033327653556400/image.png"
-                                alt="Installation Complete Screen"
-                                fill
-                                className="object-contain bg-white"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Step 6: Open App */}
-                    <div className="bg-card border rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">6</div>
-                            <h2 className="text-xl font-semibold">Open Office Application</h2>
-                        </div>
-                        <p className="text-muted-foreground mb-4">Launch any Office application (Word or Excel) and accept the license agreement.</p>
-                        <div className="relative w-full max-w-xl aspect-video rounded-lg overflow-hidden border">
-                            <Image
-                                src="https://8a834f89d81d2df0f6b3ac6599cc874b.cdn.bubble.io/f1725886111100x803525287515569400/image.png"
-                                alt="License Agreement Screen"
-                                fill
-                                className="object-contain bg-white"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Step 7: Activate */}
-                    <div className="bg-card border rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">7</div>
-                            <h2 className="text-xl font-semibold">Navigate to Activation</h2>
-                        </div>
-                        <p className="text-muted-foreground">Go to: <strong>File → Account → Change Product Key</strong></p>
-                    </div>
-
-                    {/* Step 8: Enter Key */}
-                    <div className="bg-card border rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-sm">
-                                <Key className="h-4 w-4" />
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">1</div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Uninstall Previous Office Versions</h2>
+                                <p className="text-muted-foreground">Download and run the official Microsoft Office removal tool</p>
                             </div>
-                            <h2 className="text-xl font-semibold">Enter Your License Key</h2>
                         </div>
-                        <p className="text-muted-foreground mb-4">Input the 25-digit license key provided with your purchase.</p>
-                        <div className="relative w-full max-w-xl aspect-video rounded-lg overflow-hidden border">
-                            <Image
-                                src="https://8a834f89d81d2df0f6b3ac6599cc874b.cdn.bubble.io/f1725886131491x714578964344446300/image.png"
-                                alt="Product Key Entry Screen"
-                                fill
-                                className="object-contain bg-white"
-                            />
+                        <div className="ml-14">
+                            <a href="https://bit.ly/uninstallmsoffice" target="_blank" rel="noopener noreferrer">
+                                <Button size="lg" className="gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg">
+                                    <Download className="h-5 w-5" />
+                                    Download Removal Tool
+                                </Button>
+                            </a>
+                            <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-200 dark:border-orange-800 flex gap-3">
+                                <Info className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                                <p className="text-sm text-orange-700 dark:text-orange-300">If you face issues downloading, try using <strong>Incognito Mode</strong> or a different browser.</p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Success */}
-                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl p-6 flex gap-3">
-                        <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+                    {/* Step 2: Run Removal Tool */}
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">2</div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Run the Removal Tool</h2>
+                                <p className="text-muted-foreground">Select "All Office Version" and wait 30-45 minutes for completion</p>
+                            </div>
+                        </div>
+                        <div className="ml-14">
+                            <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/C528KdGR/Screenshot-2024-07-15-175830.png"
+                                    alt="Office Removal Tool - Select All Office Version"
+                                    width={350}
+                                    height={250}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 3: Download Office 2024 */}
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">3</div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Download Office 2024 LTSC</h2>
+                                <p className="text-muted-foreground">Download the Office 2024 Professional Plus LTSC setup files (~2.7MB ZIP)</p>
+                            </div>
+                        </div>
+                        <div className="ml-14">
+                            <a href="https://tinyurl.com/office2024ltsc" target="_blank" rel="noopener noreferrer">
+                                <Button size="lg" className="gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg">
+                                    <Download className="h-5 w-5" />
+                                    Download Office 2024 LTSC
+                                </Button>
+                            </a>
+                            <div className="mt-4 relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/QM2Jyms7/Screenshot-2024-12-04-095117.png"
+                                    alt="Download ZIP File"
+                                    width={300}
+                                    height={75}
+                                    className="w-full h-auto bg-white"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 4: Open ZIP */}
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">4</div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Open the Downloaded ZIP File</h2>
+                                <p className="text-muted-foreground">Double-click on the "Office 2024 Professional Plus LTSC_EN_64Bits" zip file</p>
+                            </div>
+                        </div>
+                        <div className="ml-14">
+                            <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/5NpdWYXy/Screenshot-2024-12-04-095249.png"
+                                    alt="ZIP File in Downloads"
+                                    width={350}
+                                    height={150}
+                                    className="w-full h-auto bg-white"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 5: Run Application */}
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">5</div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Run the Application</h2>
+                                <p className="text-muted-foreground">Double-click on the application file to run it</p>
+                            </div>
+                        </div>
+                        <div className="ml-14">
+                            <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/P5kKXhR7/Screenshot-2024-12-04-095442.png"
+                                    alt="Application File"
+                                    width={350}
+                                    height={75}
+                                    className="w-full h-auto bg-white"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 6: Self Extracting */}
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">6</div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Click Next on Self-Extracting ZIP</h2>
+                                <p className="text-muted-foreground">Click "Next" on the self-extracting dialog, then "Yes" when prompted</p>
+                            </div>
+                        </div>
+                        <div className="ml-14 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/G2yn0dNp/Capture2.png"
+                                    alt="Self Extracting ZIP Dialog"
+                                    width={350}
+                                    height={250}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/vHzFwPP5/Capture3.png"
+                                    alt="Windows UAC Prompt"
+                                    width={350}
+                                    height={250}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 7: Wait for Installation */}
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">7</div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Wait for Installation</h2>
+                                <p className="text-muted-foreground">Stay online while it downloads and installs (approx. 15-30 mins)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 8: Open Office App */}
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">8</div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Open Office Application</h2>
+                                <p className="text-muted-foreground">Launch Word or Excel and accept the License Agreement</p>
+                            </div>
+                        </div>
+                        <div className="ml-14 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/wjfC71Yv/Capture4.png"
+                                    alt="Office Application"
+                                    width={350}
+                                    height={250}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/DZsHj5JJ/Capture5.png"
+                                    alt="License Agreement"
+                                    width={350}
+                                    height={225}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 9: Navigate to Account */}
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">9</div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Navigate to Account Settings</h2>
+                                <p className="text-muted-foreground">Click File Menu → Accounts (bottom left corner)</p>
+                            </div>
+                        </div>
+                        <div className="ml-14">
+                            <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/jdv9FD5X/Capture6.png"
+                                    alt="File Menu - Accounts"
+                                    width={350}
+                                    height={300}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 10: Enter Product Key */}
+                    <div className="bg-card border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+                                <Key className="h-5 w.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold">Enter Your License Key</h2>
+                                <p className="text-muted-foreground">Click "Change Product Key" and enter your 25-digit license key</p>
+                            </div>
+                        </div>
+                        <div className="ml-14 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/65DRJ26S/Screenshot-2024-07-15-182859.png"
+                                    alt="Change Product Key"
+                                    width={350}
+                                    height={250}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/tRNmZtf3/Capture.png"
+                                    alt="Enter Product Key"
+                                    width={350}
+                                    height={200}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Step 11: Activate */}
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40 border-2 border-green-300 dark:border-green-700 rounded-2xl p-6 shadow-lg">
+                        <div className="flex items-start gap-4 mb-5">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+                                <CheckCircle className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-green-800 dark:text-green-200">Click "Activate Office"</h2>
+                                <p className="text-green-700 dark:text-green-300">Your Office 2024 LTSC will be activated for lifetime!</p>
+                            </div>
+                        </div>
+                        <div className="ml-14 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/VNFbCK9Q/Capture5.png"
+                                    alt="Activate Office Button"
+                                    width={350}
+                                    height={250}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="https://i.postimg.cc/TPTKfnzk/Screenshot-2024-07-15-182751.png"
+                                    alt="Office Activated"
+                                    width={350}
+                                    height={100}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Troubleshooting Section */}
+                    <div className="border-t-4 border-red-400 pt-8 mt-8">
+                        <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 border border-red-200 dark:border-red-800 rounded-2xl p-6 mb-6">
+                            <div className="flex gap-4">
+                                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <h2 className="text-2xl font-bold text-red-800 dark:text-red-200 mb-2">Troubleshooting: Phone Activation</h2>
+                                    <p className="text-red-700 dark:text-red-300">If you encounter an activation error, follow these steps to activate via telephone.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            {/* Error Screenshot */}
+                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
+                                <p className="text-lg mb-4"><strong>You may see this error message:</strong></p>
+                                <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                    <Image
+                                        src="https://i.postimg.cc/NfGC12qW/Capture0.png"
+                                        alt="Activation Error Message"
+                                        width={350}
+                                        height={250}
+                                        className="w-full h-auto"
+                                        unoptimized
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">1</div>
+                                    <p className="text-lg">Click "OK" and select <strong>"I want to activate this software over the telephone"</strong></p>
+                                </div>
+                                <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                    <Image
+                                        src="https://i.postimg.cc/Kv9qQcm4/Capture2.png"
+                                        alt="Telephone Activation Option"
+                                        width={350}
+                                        height={300}
+                                        className="w-full h-auto"
+                                        unoptimized
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">2</div>
+                                    <div>
+                                        <p className="text-lg mb-2">Choose region as <strong>India</strong></p>
+                                        <p className="text-lg flex items-center gap-2">
+                                            <Phone className="h-5 w-5 text-green-600" />
+                                            Dial: <strong className="text-green-600 text-xl">0008000404453</strong>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                    <Image
+                                        src="https://i.postimg.cc/K8w9S9k2/Capture4.png"
+                                        alt="Region Selection"
+                                        width={350}
+                                        height={300}
+                                        className="w-full h-auto"
+                                        unoptimized
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">3</div>
+                                    <p className="text-lg">You will receive a <strong>link via SMS</strong> to continue with product activation</p>
+                                </div>
+                                <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                    <Image
+                                        src="https://i.postimg.cc/0Q8DLmfv/Whats-App-Image-2024-12-12-at-22-45-41-2e8cb64d.jpg"
+                                        alt="SMS Link"
+                                        width={350}
+                                        height={300}
+                                        className="w-full h-auto"
+                                        unoptimized
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">4</div>
+                                    <p className="text-lg">Open the link → Select <strong>Microsoft Office</strong> → <strong>Office 2024</strong></p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                        <Image
+                                            src="https://i.postimg.cc/tT2WyTSx/capture1.png"
+                                            alt="Select Microsoft Office"
+                                            width={350}
+                                            height={300}
+                                            className="w-full h-auto"
+                                            unoptimized
+                                        />
+                                    </div>
+                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                        <Image
+                                            src="https://i.postimg.cc/GttYpCVS/capture2.png"
+                                            alt="Select Office Version"
+                                            width={350}
+                                            height={300}
+                                            className="w-full h-auto"
+                                            unoptimized
+                                        />
+                                    </div>
+                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                        <Image
+                                            src="https://i.postimg.cc/KjWTkWyc/capture3.png"
+                                            alt="Office 2024 Selected"
+                                            width={350}
+                                            height={350}
+                                            className="w-full h-auto"
+                                            unoptimized
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">5</div>
+                                    <p className="text-lg">Enter the <strong>Installation ID</strong> column by column and click Submit</p>
+                                </div>
+                                <div className="relative w-full max-w-sm mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                    <Image
+                                        src="https://i.postimg.cc/2j9hK1Bp/capture4.png"
+                                        alt="Enter Installation ID"
+                                        width={300}
+                                        height={350}
+                                        className="w-full h-auto"
+                                        unoptimized
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">6</div>
+                                    <p className="text-lg">A <strong>Confirmation ID</strong> will be displayed - enter it into Microsoft application</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                        <Image
+                                            src="https://i.postimg.cc/xTkMD9KX/capture5.png"
+                                            alt="Confirmation ID Displayed"
+                                            width={300}
+                                            height={350}
+                                            className="w-full h-auto"
+                                            unoptimized
+                                        />
+                                    </div>
+                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                        <Image
+                                            src="https://i.postimg.cc/j5dn8Txd/Capture6.png"
+                                            alt="Enter Confirmation ID"
+                                            width={350}
+                                            height={300}
+                                            className="w-full h-auto"
+                                            unoptimized
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Final Success after Phone Activation */}
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40 border border-green-200 dark:border-green-700 rounded-2xl p-6">
+                                <div className="flex items-center gap-4">
+                                    <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+                                    <p className="text-lg font-semibold text-green-800 dark:text-green-200">Your Office 2024 is now activated for lifetime!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Warranty Registration */}
+                <div className="mt-8 bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-950/30 dark:to-teal-950/30 border-2 border-green-300 dark:border-green-700 rounded-2xl p-6">
+                    <div className="flex gap-4">
+                        <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                         <div>
-                            <p className="font-semibold text-green-800 dark:text-green-200">Installation Complete!</p>
-                            <p className="text-sm text-green-700 dark:text-green-300">Your Microsoft Office 2024 LTSC Professional Plus is now activated and ready to use.</p>
+                            <p className="font-bold text-green-800 dark:text-green-200 text-lg mb-2">Register Your Warranty</p>
+                            <p className="text-green-700 dark:text-green-300 mb-3">Register your warranty to receive <strong>lifetime technical and reinstallation support</strong>. We also offer <strong>remote desktop support via AnyDesk</strong> if you face issues!</p>
+                            <a href="/digital-warranty" className="inline-block">
+                                <Button variant="outline" className="gap-2 border-green-400 text-green-700 hover:bg-green-100 dark:border-green-600 dark:text-green-300 dark:hover:bg-green-900/50">
+                                    <ExternalLink className="h-4 w-4" />
+                                    Register Warranty
+                                </Button>
+                            </a>
                         </div>
                     </div>
                 </div>
 
                 {/* Support */}
-                <div className="mt-8 text-center">
-                    <p className="text-muted-foreground mb-3">Need help with installation?</p>
-                    <a href="https://wa.me/919953994557" target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" className="gap-2">
-                            Contact Support on WhatsApp
-                        </Button>
-                    </a>
+                <div className="mt-8 text-center bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-2xl p-8 border">
+                    <p className="text-lg text-muted-foreground mb-4">In case of any error or query, feel free to reach out to us!</p>
+                    <div className="flex flex-wrap justify-center gap-4">
+                        <a href="https://wa.me/917011787948" target="_blank" rel="noopener noreferrer">
+                            <Button size="lg" className="gap-2 bg-green-600 hover:bg-green-700 text-white">
+                                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+                                WhatsApp: +91-7011787948
+                            </Button>
+                        </a>
+                        <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer">
+                            <Button size="lg" variant="outline" className="gap-2 border-2 border-orange-400 text-orange-700 hover:bg-orange-50 dark:border-orange-600 dark:text-orange-300">
+                                <Phone className="h-5 w-5" />
+                                Escalations: +91-8595899215
+                            </Button>
+                        </a>
+                        <a href="mailto:support@simplysolutions.co.in">
+                            <Button size="lg" variant="outline" className="gap-2 border-2">
+                                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                                support@simplysolutions.co.in
+                            </Button>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

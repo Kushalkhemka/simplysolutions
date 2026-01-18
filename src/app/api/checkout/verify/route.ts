@@ -181,13 +181,18 @@ export async function POST(request: NextRequest) {
         // Update product sold counts
         if (orderItems) {
             for (const item of orderItems) {
-                try {
-                    await adminClient.rpc('increment_sold_count', {
-                        product_id: item.product_id,
-                        qty: item.quantity,
-                    });
-                } catch {
-                    // Ignore if RPC doesn't exist
+                // Get current sold_count and increment it
+                const { data: product } = await adminClient
+                    .from('products')
+                    .select('sold_count')
+                    .eq('id', item.product_id)
+                    .single();
+
+                if (product) {
+                    await adminClient
+                        .from('products')
+                        .update({ sold_count: (product.sold_count || 0) + item.quantity })
+                        .eq('id', item.product_id);
                 }
             }
         }

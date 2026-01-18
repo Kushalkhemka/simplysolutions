@@ -69,7 +69,7 @@ If you face error with error code **0xc004c008**, then you can follow the below 
 
 
 
-*CUSTOMER SUPPORT DETAILS - **9711397918** (only whatsapp) please do not call. Please wait for our revert. We usually replies and resolve most of the concerns within 12-24 working hours.
+*CUSTOMER SUPPORT DETAILS - **8595899215** (only whatsapp) please do not call. Please wait for our revert. We usually replies and resolve most of the concerns within 12-24 working hours.
 
 **Thank You Again For Your Recent Purchase ! Please Share About Your Shopping Experience **
 **Click Here:##  **[## **https://amazon.in/hz/feedback**](https://amazon.in/hz/feedback)

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ChevronDown, ChevronUp, ExternalLink, AlertTriangle, CheckCircle, BookOpen } from 'lucide-react';
 
@@ -44,7 +44,7 @@ export default function InstallationGuide({ guideFile, productName, downloadLink
     // Parse markdown to React elements
     const renderMarkdown = (md: string) => {
         const lines = md.split('\n');
-        const elements: JSX.Element[] = [];
+        const elements: React.ReactElement[] = [];
         let key = 0;
 
         for (let i = 0; i < lines.length; i++) {
@@ -107,7 +107,7 @@ export default function InstallationGuide({ guideFile, productName, downloadLink
             // Links
             let processedLine = line;
             const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-            const parts: (string | JSX.Element)[] = [];
+            const parts: (string | React.ReactElement)[] = [];
             let lastIndex = 0;
             let match;
 
