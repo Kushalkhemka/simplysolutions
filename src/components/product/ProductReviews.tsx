@@ -87,7 +87,7 @@ function getProductType(productName: string): 'office' | 'windows' | 'default' {
 
 export default function ProductReviews({ productId, productName, productType }: ProductReviewsProps) {
     const reviews = useMemo(() => {
-        const type = productType || getProductType(productName);
+        const type = (productType || getProductType(productName)) as keyof typeof REVIEW_TEMPLATES;
         const templates = REVIEW_TEMPLATES[type] || REVIEW_TEMPLATES.default;
         const hash = getHash(productId);
 
@@ -157,8 +157,8 @@ export default function ProductReviews({ productId, productName, productType }: 
                                 <Star
                                     key={star}
                                     className={`w-5 h-5 ${star <= Math.round(parseFloat(avgRating))
-                                            ? 'fill-[#FFA41C] text-[#FFA41C]'
-                                            : 'fill-[#E7E9EC] text-[#E7E9EC]'
+                                        ? 'fill-[#FFA41C] text-[#FFA41C]'
+                                        : 'fill-[#E7E9EC] text-[#E7E9EC]'
                                         }`}
                                 />
                             ))}
@@ -208,8 +208,8 @@ export default function ProductReviews({ productId, productName, productType }: 
                                         <Star
                                             key={star}
                                             className={`w-4 h-4 ${star <= review.rating
-                                                    ? 'fill-[#FFA41C] text-[#FFA41C]'
-                                                    : 'fill-[#E7E9EC] text-[#E7E9EC]'
+                                                ? 'fill-[#FFA41C] text-[#FFA41C]'
+                                                : 'fill-[#E7E9EC] text-[#E7E9EC]'
                                                 }`}
                                         />
                                     ))}
