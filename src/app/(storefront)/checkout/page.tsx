@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Image from 'next/image';
-import { Loader2, CreditCard, Shield, Lock } from 'lucide-react';
+import { Loader2, CreditCard, Shield, Lock, Gift, Percent, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +26,13 @@ declare global {
 const checkoutSchema = z.object({
     name: z.string().min(2, 'Name is required'),
     email: z.string().email('Valid email is required'),
-    phone: z.string().optional(),
+    phone: z.string().min(10, 'Phone number is required (min 10 digits)'),
+    addressLine1: z.string().min(5, 'Address is required'),
+    addressLine2: z.string().optional(),
+    city: z.string().min(2, 'City is required'),
+    state: z.string().min(2, 'State is required'),
+    postalCode: z.string().regex(/^[1-9][0-9]{5}$/, 'Invalid PIN code (6 digits)'),
+    gstn: z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid GSTN format').optional().or(z.literal('')),
     couponCode: z.string().optional(),
 });
 
@@ -42,6 +48,7 @@ export default function CheckoutPage() {
     const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
     const [isGift, setIsGift] = useState(false);
     const [giftDetails, setGiftDetails] = useState<GiftDetails | null>(null);
+    const [activeOffers, setActiveOffers] = useState<{ priceSlash: any; bogo: any } | null>(null);
 
     const { register, handleSubmit, formState: { errors }, setValue } = useForm<CheckoutForm>({
         resolver: zodResolver(checkoutSchema),
@@ -50,6 +57,22 @@ export default function CheckoutPage() {
     useEffect(() => {
         fetchCart();
         fetchUser();
+        // Fetch active offers
+        const fetchOffers = async () => {
+            try {
+                const res = await fetch('/api/offers');
+                const data = await res.json();
+                if (data.success) {
+                    setActiveOffers({
+                        priceSlash: data.data.priceSlash,
+                        bogo: data.data.bogo,
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch offers:', error);
+            }
+        };
+        fetchOffers();
     }, [fetchCart, fetchUser]);
 
     useEffect(() => {
@@ -71,7 +94,33 @@ export default function CheckoutPage() {
         };
     }, []);
 
-    const total = subtotal - (couponApplied?.discount || 0) - loyaltyDiscount;
+    // Calculate offer discount (BOGO or 50% OFF)
+    const calculateOfferDiscount = () => {
+        if (!activeOffers || items.length === 0) return { type: null, discount: 0 };
+
+        // Get item prices sorted ascending (cheapest first)
+        const itemPrices = items
+            .map(item => item.product?.price || 0)
+            .sort((a, b) => a - b);
+
+        // BOGO requires 2+ items - cheapest item is FREE
+        if (activeOffers.bogo && items.length >= 2) {
+            return { type: 'bogo', discount: itemPrices[0] };
+        }
+
+        // 50% OFF the cheapest item
+        if (activeOffers.priceSlash) {
+            return { type: 'price_slash', discount: itemPrices[0] * 0.5 };
+        }
+
+        return { type: null, discount: 0 };
+    };
+
+    const offerResult = calculateOfferDiscount();
+    const offerDiscount = offerResult.discount;
+    const offerType = offerResult.type;
+
+    const total = subtotal - (couponApplied?.discount || 0) - loyaltyDiscount - offerDiscount;
 
     const handleLoyaltyPointsChange = (points: number, discount: number) => {
         setLoyaltyPoints(points);
@@ -96,6 +145,15 @@ export default function CheckoutPage() {
                         name: data.name,
                         email: data.email,
                         phone: data.phone,
+                        gstn: data.gstn || undefined,
+                        address: {
+                            line1: data.addressLine1,
+                            line2: data.addressLine2,
+                            city: data.city,
+                            state: data.state,
+                            postalCode: data.postalCode,
+                            country: 'IN',
+                        },
                     },
                     couponCode: data.couponCode,
                     loyaltyPointsToUse: loyaltyPoints,
@@ -215,12 +273,102 @@ export default function CheckoutPage() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="phone">Phone Number (Optional)</Label>
+                                    <Label htmlFor="phone">Phone Number *</Label>
                                     <Input
                                         id="phone"
                                         type="tel"
+                                        placeholder="10-digit mobile number"
                                         {...register('phone')}
+                                        className={errors.phone ? 'border-destructive' : ''}
                                     />
+                                    {errors.phone && (
+                                        <p className="text-sm text-destructive mt-1">{errors.phone.message}</p>
+                                    )}
+                                </div>
+
+                                <div className="border-t pt-4 mt-4">
+                                    <h3 className="font-medium mb-3">Billing Address *</h3>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <Label htmlFor="addressLine1">Address Line 1 *</Label>
+                                            <Input
+                                                id="addressLine1"
+                                                placeholder="House/Flat No., Building, Street"
+                                                {...register('addressLine1')}
+                                                className={errors.addressLine1 ? 'border-destructive' : ''}
+                                            />
+                                            {errors.addressLine1 && (
+                                                <p className="text-sm text-destructive mt-1">{errors.addressLine1.message}</p>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
+                                            <Input
+                                                id="addressLine2"
+                                                placeholder="Landmark, Area"
+                                                {...register('addressLine2')}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <Label htmlFor="city">City *</Label>
+                                                <Input
+                                                    id="city"
+                                                    placeholder="City"
+                                                    {...register('city')}
+                                                    className={errors.city ? 'border-destructive' : ''}
+                                                />
+                                                {errors.city && (
+                                                    <p className="text-sm text-destructive mt-1">{errors.city.message}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="state">State *</Label>
+                                                <Input
+                                                    id="state"
+                                                    placeholder="State"
+                                                    {...register('state')}
+                                                    className={errors.state ? 'border-destructive' : ''}
+                                                />
+                                                {errors.state && (
+                                                    <p className="text-sm text-destructive mt-1">{errors.state.message}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="postalCode">PIN Code *</Label>
+                                            <Input
+                                                id="postalCode"
+                                                placeholder="6-digit PIN code"
+                                                maxLength={6}
+                                                {...register('postalCode')}
+                                                className={errors.postalCode ? 'border-destructive' : ''}
+                                            />
+                                            {errors.postalCode && (
+                                                <p className="text-sm text-destructive mt-1">{errors.postalCode.message}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="border-t pt-4 mt-4">
+                                    <h3 className="font-medium mb-3">GSTN (Optional - for Business)</h3>
+                                    <div>
+                                        <Label htmlFor="gstn">GSTN Number</Label>
+                                        <Input
+                                            id="gstn"
+                                            placeholder="15-character GSTN (e.g., 22AAAAA0000A1Z5)"
+                                            maxLength={15}
+                                            {...register('gstn')}
+                                            className={errors.gstn ? 'border-destructive' : ''}
+                                        />
+                                        {errors.gstn && (
+                                            <p className="text-sm text-destructive mt-1">{errors.gstn.message}</p>
+                                        )}
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Enter GSTN for GST invoice
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -294,9 +442,16 @@ export default function CheckoutPage() {
                                         <p className="text-sm font-medium line-clamp-2">{item.product?.name}</p>
                                         <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                                     </div>
-                                    <p className="font-medium">
-                                        ₹{((item.product?.price || 0) * item.quantity).toLocaleString('en-IN')}
-                                    </p>
+                                    <div className="text-right">
+                                        {item.product?.mrp && item.product.mrp > (item.product?.price || 0) && (
+                                            <p className="text-xs text-muted-foreground line-through">
+                                                ₹{((item.product?.mrp || 0) * item.quantity).toLocaleString('en-IN')}
+                                            </p>
+                                        )}
+                                        <p className="font-medium text-orange-600">
+                                            ₹{((item.product?.price || 0) * item.quantity).toLocaleString('en-IN')}
+                                        </p>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -307,13 +462,13 @@ export default function CheckoutPage() {
                                 <span>₹{subtotal.toLocaleString('en-IN')}</span>
                             </div>
                             {discount > 0 && (
-                                <div className="flex justify-between text-green-600">
+                                <div className="flex justify-between text-orange-600">
                                     <span>Savings</span>
                                     <span>-₹{discount.toLocaleString('en-IN')}</span>
                                 </div>
                             )}
                             {couponApplied && (
-                                <div className="flex justify-between text-green-600">
+                                <div className="flex justify-between text-orange-600">
                                     <span>Coupon ({couponApplied.code})</span>
                                     <span>-₹{couponApplied.discount.toLocaleString('en-IN')}</span>
                                 </div>
@@ -322,6 +477,18 @@ export default function CheckoutPage() {
                                 <div className="flex justify-between text-orange-600">
                                     <span>Loyalty Points ({loyaltyPoints} pts)</span>
                                     <span>-₹{loyaltyDiscount.toLocaleString('en-IN')}</span>
+                                </div>
+                            )}
+                            {offerDiscount > 0 && (
+                                <div className="flex justify-between text-purple-600">
+                                    <span className="flex items-center gap-1">
+                                        {offerType === 'bogo' ? (
+                                            <><Gift className="h-3.5 w-3.5" /> BOGO - Free Item!</>
+                                        ) : (
+                                            <><Percent className="h-3.5 w-3.5" /> 50% OFF First Purchase!</>
+                                        )}
+                                    </span>
+                                    <span>-₹{Math.round(offerDiscount).toLocaleString('en-IN')}</span>
                                 </div>
                             )}
                             <div className="flex justify-between">
@@ -337,9 +504,17 @@ export default function CheckoutPage() {
                             </div>
                         </div>
 
-                        <p className="text-xs text-muted-foreground mt-4 text-center">
-                            🔒 Powered by Razorpay • 256-bit SSL encryption
-                        </p>
+                        <div className="flex flex-col items-center gap-2 mt-4">
+                            <a href="https://razorpay.com/" target="_blank" rel="noopener noreferrer">
+                                <img
+                                    referrerPolicy="origin"
+                                    src="https://badges.razorpay.com/badge-dark.png"
+                                    style={{ height: '45px', width: '113px' }}
+                                    alt="Razorpay | Payment Gateway | Neobank"
+                                />
+                            </a>
+                            <p className="text-xs text-muted-foreground text-center">256-bit SSL encryption</p>
+                        </div>
                     </div>
                 </div>
             </div>

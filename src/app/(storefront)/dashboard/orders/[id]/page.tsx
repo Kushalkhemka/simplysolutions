@@ -4,7 +4,8 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Copy, Check, Download, Mail, Package } from 'lucide-react';
+import { ArrowLeft, Check, Download, Mail, Package } from 'lucide-react';
+import { CopyButton } from '@/components/ui/copy-button';
 
 interface OrderDetailPageProps {
     params: Promise<{ id: string }>;
@@ -121,35 +122,40 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                                         {/* Price */}
                                         <div className="text-right">
                                             <p className="font-bold">₹{item.total_price?.toLocaleString('en-IN')}</p>
-                                            <Badge variant="outline" className="mt-1">
-                                                {item.status || 'pending'}
+                                            <Badge
+                                                variant="outline"
+                                                className={`mt-1 ${item.license_keys?.length > 0
+                                                    ? 'bg-green-100 text-green-700 border-green-200 dark:bg-orange-500/10 dark:text-orange-500 dark:border-orange-500/30'
+                                                    : order.payment_status === 'completed'
+                                                        ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-500 dark:border-yellow-500/30'
+                                                        : 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/30'
+                                                    }`}
+                                            >
+                                                {item.license_keys?.length > 0
+                                                    ? 'Delivered'
+                                                    : order.payment_status === 'completed'
+                                                        ? 'Awaiting Fulfillment'
+                                                        : 'Payment Pending'}
                                             </Badge>
                                         </div>
                                     </div>
 
                                     {/* License Keys */}
                                     {item.license_keys && item.license_keys.length > 0 && (
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-                                            <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+                                        <div className="bg-green-50 dark:bg-gray-900/50 border border-green-200 dark:border-gray-700 rounded-lg p-4 mt-4">
+                                            <h4 className="font-medium text-green-700 dark:text-orange-500 mb-3 flex items-center gap-2">
                                                 <Check className="h-4 w-4" />
                                                 License Key(s)
                                             </h4>
                                             <div className="space-y-2">
                                                 {item.license_keys.map((key: string, idx: number) => (
-                                                    <div key={idx} className="flex items-center gap-2 bg-white rounded p-2 border">
-                                                        <code className="flex-1 font-mono text-sm break-all">{key}</code>
-                                                        <Button
-                                                            size="icon"
-                                                            variant="ghost"
-                                                            className="flex-shrink-0"
-                                                            onClick={() => navigator.clipboard.writeText(key)}
-                                                        >
-                                                            <Copy className="h-4 w-4" />
-                                                        </Button>
+                                                    <div key={idx} className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-3 border border-green-100 dark:border-gray-700">
+                                                        <code className="flex-1 font-mono text-sm break-all text-gray-800 dark:text-gray-100">{key}</code>
+                                                        <CopyButton text={key} className="flex-shrink-0 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-orange-500" />
                                                     </div>
                                                 ))}
                                             </div>
-                                            <p className="text-xs text-green-700 mt-2">
+                                            <p className="text-xs text-green-700 dark:text-gray-400 mt-3">
                                                 💡 Tip: Copy and save your license keys in a safe place
                                             </p>
                                         </div>
@@ -213,6 +219,22 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                                 {order.billing_phone && (
                                     <p><strong>Phone:</strong> {order.billing_phone}</p>
                                 )}
+                                {order.billing_address && (
+                                    <div className="pt-2 mt-2 border-t">
+                                        <p className="font-medium mb-1">Address:</p>
+                                        <p className="text-muted-foreground">
+                                            {order.billing_address.line1}
+                                            {order.billing_address.line2 && <><br />{order.billing_address.line2}</>}
+                                            <br />
+                                            {order.billing_address.city}, {order.billing_address.state} {order.billing_address.postalCode}
+                                        </p>
+                                    </div>
+                                )}
+                                {order.billing_gstn && (
+                                    <div className="pt-2 mt-2 border-t">
+                                        <p><strong>GSTN:</strong> {order.billing_gstn}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -235,10 +257,22 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                         )}
 
                         {/* Download Invoice */}
-                        <Button variant="outline" className="w-full gap-2">
-                            <Download className="h-4 w-4" />
-                            Download Invoice
-                        </Button>
+                        <a
+                            href={`/api/orders/${order.id}/invoice`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={order.payment_status !== 'completed' ? 'pointer-events-none opacity-50' : ''}
+                        >
+                            <Button variant="outline" className="w-full gap-2" disabled={order.payment_status !== 'completed'}>
+                                <Download className="h-4 w-4" />
+                                Download Invoice
+                            </Button>
+                        </a>
+                        {order.payment_status !== 'completed' && (
+                            <p className="text-xs text-muted-foreground text-center">
+                                Invoice available after payment is completed
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

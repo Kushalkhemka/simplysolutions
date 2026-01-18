@@ -127,7 +127,44 @@ export async function POST(request: NextRequest) {
             loyaltyDiscount = pointsToRedeem; // 1 point = ₹1
         }
 
-        const totalAmount = Math.round((subtotal - couponDiscount - loyaltyDiscount) * 100) / 100;
+        // Handle user offers (50% OFF, BOGO)
+        let offerDiscount = 0;
+        let appliedOfferId: string | null = null;
+        let appliedOfferType: string | null = null;
+
+        const { data: userOffers } = await supabase
+            .from('user_offers')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('is_used', false)
+            .gt('expires_at', new Date().toISOString());
+
+        if (userOffers && userOffers.length > 0) {
+            // Get item prices sorted ascending
+            const itemPrices = (validItems as any[])
+                .map((item: any) => item.product?.price || 0)
+                .sort((a, b) => a - b);
+
+            // Check for BOGO first (higher value typically)
+            const bogoOffer = userOffers.find(o => o.offer_type === 'bogo');
+            if (bogoOffer && validItems.length >= 2) {
+                // BOGO: Cheapest item is FREE
+                offerDiscount = itemPrices[0];
+                appliedOfferId = bogoOffer.id;
+                appliedOfferType = 'bogo';
+            } else {
+                // Check for 50% off (priceSlash)
+                const priceSlashOffer = userOffers.find(o => o.offer_type === 'price_slash');
+                if (priceSlashOffer) {
+                    // 50% OFF the cheapest item
+                    offerDiscount = itemPrices[0] * 0.5;
+                    appliedOfferId = priceSlashOffer.id;
+                    appliedOfferType = 'price_slash';
+                }
+            }
+        }
+
+        const totalAmount = Math.round((subtotal - couponDiscount - loyaltyDiscount - offerDiscount) * 100) / 100;
 
         // Create order in database
         const adminClient = getAdminClient();
@@ -149,6 +186,7 @@ export async function POST(request: NextRequest) {
                 billing_email: billing.email,
                 billing_phone: billing.phone || null,
                 billing_address: billing.address || null,
+                billing_gstn: billing.gstn || null,
                 customer_notes: customerNotes || null,
             })
             .select('id, order_number')
@@ -180,6 +218,14 @@ export async function POST(request: NextRequest) {
             // Rollback order
             await adminClient.from('orders').delete().eq('id', order.id);
             return errorResponse('Failed to create order items', 500);
+        }
+
+        // Mark offer as used if applied
+        if (appliedOfferId) {
+            await adminClient
+                .from('user_offers')
+                .update({ is_used: true, used_at: new Date().toISOString() })
+                .eq('id', appliedOfferId);
         }
 
         // Create Razorpay order

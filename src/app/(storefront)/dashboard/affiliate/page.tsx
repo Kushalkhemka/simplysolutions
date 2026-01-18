@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import {
     DollarSign, Link as LinkIcon, MousePointerClick, TrendingUp,
-    Copy, Check, Loader2, AlertCircle
+    Copy, Check, Loader2, AlertCircle, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,46 +82,53 @@ export default function AffiliatePage() {
     // Not an affiliate - show application form
     if (!data?.isAffiliate) {
         return (
-            <div className="max-w-2xl mx-auto space-y-8">
-                {/* Hero Section */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 p-8 text-white">
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSI0Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
-                    <div className="relative text-center">
-                        <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm mb-4">
-                            <DollarSign className="h-4 w-4" />
-                            <span>Earn 10% Commission</span>
+            <div className="container-dense py-8">
+                <h1 className="text-2xl md:text-3xl font-bold mb-8">Affiliate Program</h1>
+
+                {/* Hero Section - Matching orange theme */}
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-8 text-white mb-8 shadow-lg">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <DollarSign className="h-6 w-6" />
+                                <p className="text-white/90 font-medium">Earn 10% Commission</p>
+                            </div>
+                            <h2 className="text-3xl sm:text-4xl font-bold mb-3">Become an Affiliate</h2>
+                            <p className="text-white/80 max-w-md">
+                                Join our affiliate program and earn money for every sale you refer!
+                            </p>
                         </div>
-                        <h1 className="text-3xl sm:text-4xl font-bold mb-3">Become an Affiliate</h1>
-                        <p className="text-white/80 max-w-md mx-auto">
-                            Join our affiliate program and earn money for every sale you refer!
-                        </p>
+                        <div className="hidden md:block">
+                            <Users className="h-32 w-32 text-white/20" />
+                        </div>
                     </div>
                 </div>
 
-                <div className="bg-card border rounded-xl p-6">
+                {/* Benefits Section - Unified design */}
+                <div className="border rounded-xl p-6 mb-8 bg-card">
                     <h2 className="font-semibold mb-4 text-lg">Why Join Our Affiliate Program?</h2>
                     <div className="grid gap-4">
-                        <div className="flex items-start gap-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
-                            <div className="p-2 bg-green-500 rounded-lg">
-                                <DollarSign className="h-5 w-5 text-white" />
+                        <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                            <div className="p-2 bg-orange-100 dark:bg-orange-950/30 rounded-lg">
+                                <DollarSign className="h-5 w-5 text-orange-600" />
                             </div>
                             <div>
                                 <p className="font-medium">10% Commission on Every Sale</p>
                                 <p className="text-sm text-muted-foreground">Earn real money for each successful referral</p>
                             </div>
                         </div>
-                        <div className="flex items-start gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
-                            <div className="p-2 bg-blue-500 rounded-lg">
-                                <TrendingUp className="h-5 w-5 text-white" />
+                        <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                            <div className="p-2 bg-orange-100 dark:bg-orange-950/30 rounded-lg">
+                                <TrendingUp className="h-5 w-5 text-orange-600" />
                             </div>
                             <div>
                                 <p className="font-medium">Real-time Analytics</p>
                                 <p className="text-sm text-muted-foreground">Track your clicks and conversions instantly</p>
                             </div>
                         </div>
-                        <div className="flex items-start gap-4 p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-900">
-                            <div className="p-2 bg-purple-500 rounded-lg">
-                                <LinkIcon className="h-5 w-5 text-white" />
+                        <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                            <div className="p-2 bg-orange-100 dark:bg-orange-950/30 rounded-lg">
+                                <LinkIcon className="h-5 w-5 text-orange-600" />
                             </div>
                             <div>
                                 <p className="font-medium">Unique Affiliate Link</p>
@@ -131,8 +138,9 @@ export default function AffiliatePage() {
                     </div>
                 </div>
 
-                <form onSubmit={applyAsAffiliate} className="bg-card border rounded-lg p-6 space-y-4">
-                    <h2 className="font-semibold">Apply Now</h2>
+                {/* Application Form */}
+                <form onSubmit={applyAsAffiliate} className="bg-card border rounded-xl p-6 space-y-4">
+                    <h2 className="font-semibold text-lg">Apply Now</h2>
                     <div>
                         <Label>Payout Email *</Label>
                         <Input
@@ -141,8 +149,9 @@ export default function AffiliatePage() {
                             value={payoutEmail}
                             onChange={(e) => setPayoutEmail(e.target.value)}
                             placeholder="your@email.com"
+                            className="mt-1.5"
                         />
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1.5">
                             We'll send commission payouts to this email
                         </p>
                     </div>
@@ -171,13 +180,12 @@ export default function AffiliatePage() {
 
     // Approved - show dashboard
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container-dense py-8">
             <h1 className="text-2xl md:text-3xl font-bold mb-8">Affiliate Dashboard</h1>
 
-            {/* Hero Stats */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 p-8 text-white shadow-lg mb-8">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBfiWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSI0Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
-                <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Hero Stats - Orange theme */}
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-8 text-white shadow-lg mb-8">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                         <div className="flex items-center gap-2 mb-2 text-white/90">
                             <DollarSign className="h-5 w-5" />
@@ -202,9 +210,9 @@ export default function AffiliatePage() {
             </div>
 
             {/* Affiliate Link */}
-            <div className="bg-card border rounded-lg p-6 mb-8 shadow-sm">
+            <div className="bg-card border rounded-xl p-6 mb-8 shadow-sm">
                 <h2 className="font-semibold mb-4 flex items-center gap-2">
-                    <LinkIcon className="h-5 w-5 text-primary" />
+                    <LinkIcon className="h-5 w-5 text-orange-600" />
                     Your Affiliate Link
                 </h2>
                 <div className="flex gap-2">
@@ -216,12 +224,12 @@ export default function AffiliatePage() {
                 </div>
                 <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
                     <span>Code: <code className="bg-muted px-2 py-0.5 rounded font-bold text-foreground">{affiliate.affiliate_code}</code></span>
-                    <span>Commission Rate: <span className="font-bold text-green-600">{affiliate.commission_rate}%</span></span>
+                    <span>Commission Rate: <span className="font-bold text-orange-600">{affiliate.commission_rate}%</span></span>
                 </div>
             </div>
 
             {/* Recent Commissions */}
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border rounded-xl overflow-hidden">
                 <div className="p-4 border-b bg-muted/30">
                     <h2 className="font-semibold">Recent Commissions</h2>
                 </div>
@@ -231,8 +239,8 @@ export default function AffiliatePage() {
                             <div key={com.id} className="p-4 sm:p-6 hover:bg-muted/30 transition-colors">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full">
-                                            <DollarSign className="h-5 w-5 text-green-600" />
+                                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                                            <DollarSign className="h-5 w-5 text-orange-600" />
                                         </div>
                                         <div>
                                             <p className="font-medium">Order #{com.order?.order_number}</p>
@@ -246,7 +254,7 @@ export default function AffiliatePage() {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-green-600">+₹{com.commission_amount}</p>
+                                        <p className="font-bold text-orange-600">+₹{com.commission_amount}</p>
                                         <p className={`text-xs px-2 py-0.5 rounded inline-block mt-1 ${com.status === 'paid'
                                             ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                             : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'

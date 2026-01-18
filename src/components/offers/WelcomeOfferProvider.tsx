@@ -64,9 +64,20 @@ export function WelcomeOfferProvider({ children }: { children: ReactNode }) {
     // Check for welcome offers on mount
     useEffect(() => {
         const checkWelcomeOffers = async () => {
-            // Check if we already showed the modal in this session
-            const modalShown = sessionStorage.getItem('welcomeOfferModalShown');
-            if (modalShown || hasChecked) return;
+            // Check if we already showed the modal today (once per 24 hours)
+            const lastShown = localStorage.getItem('welcomeOfferModalLastShown');
+            if (lastShown) {
+                const lastShownTime = parseInt(lastShown, 10);
+                const now = Date.now();
+                const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+                // If less than 24 hours have passed, don't show the modal
+                if (now - lastShownTime < oneDayInMs) {
+                    return;
+                }
+            }
+
+            if (hasChecked) return;
 
             setHasChecked(true);
 
@@ -81,9 +92,9 @@ export function WelcomeOfferProvider({ children }: { children: ReactNode }) {
                     setBogo(data.data.bogo);
                     setIsFirstLogin(data.data.isFirstLogin);
 
-                    // Show modal
+                    // Show modal and store the timestamp
                     setShowModal(true);
-                    sessionStorage.setItem('welcomeOfferModalShown', 'true');
+                    localStorage.setItem('welcomeOfferModalLastShown', Date.now().toString());
 
                     // Also refresh offers list
                     await refreshOffers();

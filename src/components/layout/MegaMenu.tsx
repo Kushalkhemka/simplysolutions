@@ -61,7 +61,7 @@ export function TopUtilityBar() {
                             Hot
                         </span>
                         <span className="font-medium text-white/90 tracking-wide">
-                            Get <span className="text-orange-400 font-bold">10% Cashback</span> on Every Order!
+                            Get <span className="text-orange-400 font-bold">100% Cashback</span> on Every Order!
                         </span>
                     </div>
                 </div>

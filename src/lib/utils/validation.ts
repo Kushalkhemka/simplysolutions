@@ -33,15 +33,16 @@ export const updateCartItemSchema = z.object({
 export const billingInfoSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
-    phone: z.string().optional(),
+    phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+    gstn: z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid GSTN format').optional().or(z.literal('')),
     address: z.object({
-        line1: z.string().optional(),
+        line1: z.string().min(5, 'Address line 1 is required'),
         line2: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        postalCode: z.string().optional(),
+        city: z.string().min(2, 'City is required'),
+        state: z.string().min(2, 'State is required'),
+        postalCode: z.string().regex(/^[1-9][0-9]{5}$/, 'Invalid PIN code'),
         country: z.string().default('IN'),
-    }).optional(),
+    }),
 });
 
 export const checkoutSchema = z.object({

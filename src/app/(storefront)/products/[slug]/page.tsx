@@ -26,6 +26,7 @@ import { ProductGallery } from '@/components/product/ProductGallery';
 import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 import { AIRecommendations } from '@/components/product/AIRecommendations';
 import { ProductFAQ } from '@/components/product/ProductFAQ';
+import { RazorpayAffordabilityWidget } from '@/components/razorpay/RazorpayAffordabilityWidget';
 
 interface ProductPageProps {
     params: Promise<{ slug: string }>;
@@ -207,6 +208,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
                                 )}
                             </div>
                             <p className="text-sm text-muted-foreground">Inclusive of all taxes</p>
+
+                            {/* Razorpay Affordability Widget - Shows EMI options */}
+                            <RazorpayAffordabilityWidget amount={product.price} />
                         </div>
 
                         {/* Flash Deal Countdown */}

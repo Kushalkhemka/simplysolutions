@@ -82,12 +82,31 @@ Thank you for your purchase!
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container-dense py-8">
             <h1 className="text-2xl md:text-3xl font-bold mb-8">Invoices</h1>
+
+            {/* Hero Card */}
+            <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-8 text-white mb-8 shadow-lg">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Receipt className="h-6 w-6" />
+                            <p className="text-white/90 font-medium">Invoice History</p>
+                        </div>
+                        <p className="text-5xl font-black mb-4">
+                            {orders.length}
+                        </p>
+                        <p className="text-white/80 text-sm">Total invoices generated</p>
+                    </div>
+                    <div className="hidden md:block">
+                        <FileText className="h-32 w-32 text-white/20" />
+                    </div>
+                </div>
+            </div>
 
             {orders.length === 0 ? (
                 <div className="border rounded-lg p-12 text-center bg-muted/30">
-                    <Receipt className="h-16 w-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+                    <Receipt className="h-16 w-16 mx-auto text-emerald-500 mb-4" />
                     <h3 className="text-xl font-bold mb-2">No Invoices Yet</h3>
                     <p className="text-muted-foreground mb-6">
                         Invoices will appear here after you complete an order.

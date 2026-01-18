@@ -79,7 +79,7 @@ export default function SupportPage() {
     const resolvedCount = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container-dense py-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold">Support Tickets</h1>
@@ -93,32 +93,57 @@ export default function SupportPage() {
                 </Link>
             </div>
 
-            {/* Stats */}
+            {/* Hero Stats Card */}
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-8 text-white mb-8 shadow-lg">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <MessageSquare className="h-6 w-6" />
+                            <p className="text-white/90 font-medium">Support Center</p>
+                        </div>
+                        <p className="text-5xl font-black mb-4">
+                            {tickets.length}
+                        </p>
+                        <p className="text-white/80 text-sm">Total tickets created</p>
+                    </div>
+                    <div className="hidden md:block">
+                        <MessageSquare className="h-32 w-32 text-white/20" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Stats Cards - Consistent styling */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="border rounded-lg p-6 bg-blue-50 dark:bg-blue-950/20">
-                    <div className="flex items-center gap-2 mb-2">
-                        <AlertCircle className="h-5 w-5 text-blue-600" />
+                <div className="border rounded-lg p-6 bg-muted/30">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <AlertCircle className="h-5 w-5 text-blue-600" />
+                        </div>
                         <h3 className="font-semibold">Open Tickets</h3>
                     </div>
-                    <p className="text-3xl font-bold text-blue-600 mb-1">{openCount}</p>
+                    <p className="text-3xl font-bold mb-1">{openCount}</p>
                     <p className="text-sm text-muted-foreground">Waiting for response</p>
                 </div>
 
-                <div className="border rounded-lg p-6 bg-purple-50 dark:bg-purple-950/20">
-                    <div className="flex items-center gap-2 mb-2">
-                        <MessageSquare className="h-5 w-5 text-purple-600" />
+                <div className="border rounded-lg p-6 bg-muted/30">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                            <Clock className="h-5 w-5 text-orange-600" />
+                        </div>
                         <h3 className="font-semibold">Awaiting Reply</h3>
                     </div>
-                    <p className="text-3xl font-bold text-purple-600 mb-1">{awaitingCount}</p>
+                    <p className="text-3xl font-bold mb-1">{awaitingCount}</p>
                     <p className="text-sm text-muted-foreground">Action required</p>
                 </div>
 
-                <div className="border rounded-lg p-6 bg-green-50 dark:bg-green-950/20">
-                    <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                <div className="border rounded-lg p-6 bg-muted/30">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                        </div>
                         <h3 className="font-semibold">Resolved</h3>
                     </div>
-                    <p className="text-3xl font-bold text-green-600 mb-1">{resolvedCount}</p>
+                    <p className="text-3xl font-bold mb-1">{resolvedCount}</p>
                     <p className="text-sm text-muted-foreground">Successfully closed</p>
                 </div>
             </div>

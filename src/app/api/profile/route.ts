@@ -73,3 +73,34 @@ export async function PATCH(request: NextRequest) {
         return errorResponse('Internal server error', 500);
     }
 }
+
+// DELETE /api/profile - Delete current user account
+export async function DELETE() {
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return unauthorizedResponse();
+        }
+
+        // Delete profile first (this will cascade delete related data if configured)
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', user.id);
+
+        if (profileError) {
+            console.error('Profile delete error:', profileError);
+            return errorResponse('Failed to delete profile', 500);
+        }
+
+        // Sign out the user
+        await supabase.auth.signOut();
+
+        return successResponse({ message: 'Account deleted successfully' });
+    } catch (error) {
+        console.error('Account delete error:', error);
+        return errorResponse('Internal server error', 500);
+    }
+}

@@ -136,14 +136,14 @@ export default function CartPage() {
                                 <span>₹{mrpTotal.toLocaleString('en-IN')}</span>
                             </div>
                             {discount > 0 && (
-                                <div className="flex justify-between text-green-600">
+                                <div className="flex justify-between text-orange-600">
                                     <span>Discount</span>
                                     <span>-₹{discount.toLocaleString('en-IN')}</span>
                                 </div>
                             )}
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Delivery</span>
-                                <span className="text-green-600">FREE</span>
+                                <span className="text-orange-600">FREE</span>
                             </div>
                         </div>
 
@@ -153,7 +153,7 @@ export default function CartPage() {
                                 <span>₹{subtotal.toLocaleString('en-IN')}</span>
                             </div>
                             {discount > 0 && (
-                                <p className="text-sm text-green-600 mt-1">
+                                <p className="text-sm text-orange-600 mt-1">
                                     You save ₹{discount.toLocaleString('en-IN')} on this order
                                 </p>
                             )}

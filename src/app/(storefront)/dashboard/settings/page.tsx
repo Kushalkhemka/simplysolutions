@@ -48,6 +48,9 @@ export default function SettingsPage() {
     const { user, isAuthenticated, fetchUser, isLoading: authLoading } = useAuthStore();
     const [isSaving, setIsSaving] = useState(false);
     const [showBusinessFields, setShowBusinessFields] = useState(false);
+    const [isSendingReset, setIsSendingReset] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<ProfileForm>({
         resolver: zodResolver(profileSchema),
@@ -106,6 +109,51 @@ export default function SettingsPage() {
             toast.error('An error occurred');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handlePasswordReset = async () => {
+        if (!user?.email) return;
+        setIsSendingReset(true);
+        try {
+            const res = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email }),
+            });
+            if (res.ok) {
+                toast.success('Password reset email sent! Check your inbox.');
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'Failed to send reset email');
+            }
+        } catch (error) {
+            console.error('Password reset error:', error);
+            toast.error('An error occurred');
+        } finally {
+            setIsSendingReset(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        setIsDeleting(true);
+        try {
+            const res = await fetch('/api/profile', {
+                method: 'DELETE',
+            });
+            if (res.ok) {
+                toast.success('Account deleted successfully');
+                router.push('/');
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'Failed to delete account');
+            }
+        } catch (error) {
+            console.error('Delete account error:', error);
+            toast.error('An error occurred');
+        } finally {
+            setIsDeleting(false);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -340,7 +388,17 @@ export default function SettingsPage() {
                     <p className="text-sm text-muted-foreground mb-4">
                         To change your password, you'll receive a reset link via email.
                     </p>
-                    <Button variant="outline">Send Password Reset Email</Button>
+                    <Button
+                        variant="outline"
+                        onClick={handlePasswordReset}
+                        disabled={isSendingReset}
+                    >
+                        {isSendingReset ? (
+                            <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Sending...</>
+                        ) : (
+                            'Send Password Reset Email'
+                        )}
+                    </Button>
                 </div>
 
                 {/* Danger Zone */}
@@ -349,9 +407,40 @@ export default function SettingsPage() {
                     <p className="text-sm text-muted-foreground mb-4">
                         Once you delete your account, there is no going back. Please be certain.
                     </p>
-                    <Button variant="destructive" disabled>
-                        Delete Account
-                    </Button>
+                    {!showDeleteConfirm ? (
+                        <Button
+                            variant="destructive"
+                            onClick={() => setShowDeleteConfirm(true)}
+                        >
+                            Delete Account
+                        </Button>
+                    ) : (
+                        <div className="space-y-3">
+                            <p className="text-sm font-medium text-destructive">
+                                Are you sure? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="destructive"
+                                    onClick={handleDeleteAccount}
+                                    disabled={isDeleting}
+                                >
+                                    {isDeleting ? (
+                                        <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Deleting...</>
+                                    ) : (
+                                        'Yes, Delete My Account'
+                                    )}
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                    disabled={isDeleting}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

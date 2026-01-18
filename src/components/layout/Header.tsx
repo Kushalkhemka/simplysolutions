@@ -295,7 +295,59 @@ export function Header() {
                                 </Link>
                             ))}
                             <div className="border-t my-2"></div>
-                            {!isAuthenticated && (
+                            {isAuthenticated ? (
+                                <div className="space-y-2">
+                                    {/* User Info */}
+                                    <div className="flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-950/40 rounded-lg border border-orange-200/60 dark:border-orange-800/40">
+                                        <div className="relative">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 via-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-md">
+                                                <User className="h-5 w-5 text-white" />
+                                            </div>
+                                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-medium text-orange-600/70 dark:text-orange-400/70 uppercase tracking-wider">Welcome back</span>
+                                            <span className="text-sm font-bold text-gray-800 dark:text-gray-100">{user?.full_name?.split(' ')[0]}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Account Links */}
+                                    <div className="font-semibold text-sm text-muted-foreground px-2 py-1 uppercase tracking-wider">My Account</div>
+                                    <Link href="/dashboard" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                        <User className="h-4 w-4" /> Dashboard
+                                    </Link>
+                                    <Link href="/dashboard/orders" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                        <Package className="h-4 w-4" /> My Orders
+                                    </Link>
+                                    <Link href="/dashboard/licenses" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                        <ShieldCheck className="h-4 w-4" /> My Licenses
+                                    </Link>
+                                    <Link href="/dashboard/referral" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                        <Users className="h-4 w-4" /> Refer a Friend
+                                    </Link>
+                                    <Link href="/dashboard/loyalty" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                        <Coins className="h-4 w-4" /> Loyalty Points
+                                    </Link>
+                                    <Link href="/dashboard/invoices" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                        <FileText className="h-4 w-4" /> Invoices
+                                    </Link>
+                                    <Link href="/dashboard/support" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                        <LifeBuoy className="h-4 w-4" /> Support Tickets
+                                    </Link>
+                                    <Link href="/wishlist" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                        <Heart className="h-4 w-4" /> Wishlist
+                                    </Link>
+                                    <Link href="/dashboard/settings" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                        <Settings className="h-4 w-4" /> Settings
+                                    </Link>
+                                    <button
+                                        onClick={() => { logout(); setIsMenuOpen(false); }}
+                                        className="w-full px-2 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-md flex items-center gap-2"
+                                    >
+                                        <LogOut className="h-4 w-4" /> Logout
+                                    </button>
+                                </div>
+                            ) : (
                                 <div className="grid grid-cols-2 gap-2">
                                     <Link href="/login" onClick={() => setIsMenuOpen(false)}>
                                         <Button variant="outline" className="w-full">Login</Button>
