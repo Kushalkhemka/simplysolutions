@@ -72,48 +72,48 @@ export const megaMenuCategories: MegaMenuCategory[] = [
         subCategories: [
             {
                 name: 'Windows 11',
-                href: '/products?category=windows-11',
+                href: '/products?search=Windows+11',
                 items: [
-                    { name: 'Windows 11 Pro', href: '/products/windows-11-pro' },
-                    { name: 'Windows 11 Home', href: '/products/windows-11-home' },
-                    { name: 'Windows 11 Pro N', href: '/products/windows-11-pro-n' },
-                    { name: 'Windows 11 Enterprise', href: '/products/windows-11-enterprise' },
-                    { name: 'Windows 11 Education', href: '/products/windows-11-education' },
+                    { name: 'Windows 11 Pro', href: '/products?search=Windows+11+Pro' },
+                    { name: 'Windows 11 Home', href: '/products?search=Windows+11+Home' },
+                    { name: 'Windows 11 Pro N', href: '/products?search=Windows+11+Pro+N' },
+                    { name: 'Windows 11 Enterprise', href: '/products?search=Windows+11+Enterprise' },
+                    { name: 'Windows 11 Education', href: '/products?search=Windows+11+Education' },
                 ]
             },
             {
                 name: 'Windows 10',
-                href: '/products?category=windows-10',
+                href: '/products?search=Windows+10',
                 items: [
-                    { name: 'Windows 10 Pro', href: '/products/windows-10-pro' },
-                    { name: 'Windows 10 Home', href: '/products/windows-10-home' },
-                    { name: 'Windows 10 Pro N', href: '/products/windows-10-pro-n' },
-                    { name: 'Windows 10 Enterprise', href: '/products/windows-10-enterprise' },
-                    { name: 'Windows 10 Education', href: '/products/windows-10-education' },
+                    { name: 'Windows 10 Pro', href: '/products?search=Windows+10+Pro' },
+                    { name: 'Windows 10 Home', href: '/products?search=Windows+10+Home' },
+                    { name: 'Windows 10 Pro N', href: '/products?search=Windows+10+Pro+N' },
+                    { name: 'Windows 10 Enterprise', href: '/products?search=Windows+10+Enterprise' },
+                    { name: 'Windows 10 Education', href: '/products?search=Windows+10+Education' },
                 ]
             },
             {
                 name: 'Windows 8',
-                href: '/products?category=windows-8',
+                href: '/products?search=Windows+8',
                 items: [
-                    { name: 'Windows 8.1 Pro', href: '/products/windows-8-pro' },
-                    { name: 'Windows 8.1 Home', href: '/products/windows-8-home' },
+                    { name: 'Windows 8.1 Pro', href: '/products?search=Windows+8+Pro' },
+                    { name: 'Windows 8.1 Home', href: '/products?search=Windows+8+Home' },
                 ]
             },
             {
                 name: 'Windows 7',
-                href: '/products?category=windows-7',
+                href: '/products?search=Windows+7',
                 items: [
-                    { name: 'Windows 7 Professional', href: '/products/windows-7-pro' },
-                    { name: 'Windows 7 Ultimate', href: '/products/windows-7-ultimate' },
-                    { name: 'Windows 7 Home Premium', href: '/products/windows-7-home' },
+                    { name: 'Windows 7 Professional', href: '/products?search=Windows+7+Professional' },
+                    { name: 'Windows 7 Ultimate', href: '/products?search=Windows+7+Ultimate' },
+                    { name: 'Windows 7 Home', href: '/products?search=Windows+7+Home' },
                 ]
             },
         ],
         topSellers: [
-            { name: 'Windows 11 Pro', image: '/assets/products/win11-pro.png', price: '₹1,499', href: '/products/windows-11-pro' },
-            { name: 'Windows 11 Home', image: '/assets/products/win11-home.png', price: '₹1,499', href: '/products/windows-11-home' },
-            { name: 'Windows 10 Pro', image: '/assets/products/win10-pro.png', price: '₹999', href: '/products/windows-10-pro' },
+            { name: 'Windows 11 Pro', image: '/assets/products/win11-pro.png', price: '₹1,499', href: '/products?search=Windows+11+Pro' },
+            { name: 'Windows 11 Home', image: '/assets/products/win11-home.png', price: '₹1,499', href: '/products?search=Windows+11+Home' },
+            { name: 'Windows 10 Pro', image: '/assets/products/win10-pro.png', price: '₹999', href: '/products?search=Windows+10+Pro' },
         ],
         footerLink: { label: 'Shop Windows Licenses', href: '/products?category=operating-systems' }
     },
@@ -126,49 +126,49 @@ export const megaMenuCategories: MegaMenuCategory[] = [
         subCategories: [
             {
                 name: 'Office Suites',
-                href: '/products?category=office-suites',
+                href: '/products?search=Office',
                 items: [
-                    { name: 'Microsoft Office 2024', href: '/products?category=office-2024' },
-                    { name: 'Microsoft Office 2021', href: '/products?category=office-2021' },
-                    { name: 'Microsoft Office 2019', href: '/products?category=office-2019' },
-                    { name: 'Microsoft Office 2016', href: '/products?category=office-2016' },
-                    { name: 'Microsoft Office 365', href: '/products?category=office-365' },
+                    { name: 'Microsoft Office 2024', href: '/products?search=Office+2024' },
+                    { name: 'Microsoft Office 2021', href: '/products?search=Office+2021' },
+                    { name: 'Microsoft Office 2019', href: '/products?search=Office+2019' },
+                    { name: 'Microsoft Office 2016', href: '/products?search=Office+2016' },
+                    { name: 'Microsoft Office 365', href: '/products?search=Office+365' },
                 ]
             },
             {
                 name: 'Office for Mac',
-                href: '/products?category=office-mac',
+                href: '/products?search=Office+Mac',
                 items: [
-                    { name: 'Office 2024 Mac', href: '/products/office-2024-mac' },
-                    { name: 'Office 2021 Home & Business Mac', href: '/products/office-2021-mac' },
-                    { name: 'Office 2019 Home & Business Mac', href: '/products/office-2019-mac' },
+                    { name: 'Office 2024 Mac', href: '/products?search=Office+2024+Mac' },
+                    { name: 'Office 2021 Home & Business Mac', href: '/products?search=Office+2021+Mac' },
+                    { name: 'Office 2019 Home & Business Mac', href: '/products?search=Office+2019+Mac' },
                 ]
             },
             {
                 name: 'Office Programs',
-                href: '/products?category=office-programs',
+                href: '/products?search=Office',
                 items: [
-                    { name: 'Microsoft Word', href: '/products?category=microsoft-word' },
-                    { name: 'Microsoft Excel', href: '/products?category=microsoft-excel' },
-                    { name: 'Microsoft Outlook', href: '/products?category=microsoft-outlook' },
-                    { name: 'Microsoft PowerPoint', href: '/products?category=microsoft-powerpoint' },
-                    { name: 'Microsoft Access', href: '/products?category=microsoft-access' },
+                    { name: 'Microsoft Word', href: '/products?search=Word' },
+                    { name: 'Microsoft Excel', href: '/products?search=Excel' },
+                    { name: 'Microsoft Outlook', href: '/products?search=Outlook' },
+                    { name: 'Microsoft PowerPoint', href: '/products?search=PowerPoint' },
+                    { name: 'Microsoft Access', href: '/products?search=Access' },
                 ]
             },
             {
                 name: 'Visual Studio',
-                href: '/products?category=visual-studio',
+                href: '/products?search=Visual+Studio',
                 items: [
-                    { name: 'Visual Studio 2022', href: '/products?category=vs-2022' },
-                    { name: 'Visual Studio 2019', href: '/products?category=vs-2019' },
-                    { name: 'Visual Studio 2017', href: '/products?category=vs-2017' },
+                    { name: 'Visual Studio 2022', href: '/products?search=Visual+Studio+2022' },
+                    { name: 'Visual Studio 2019', href: '/products?search=Visual+Studio+2019' },
+                    { name: 'Visual Studio 2017', href: '/products?search=Visual+Studio+2017' },
                 ]
             },
         ],
         topSellers: [
-            { name: 'Office 2024 Professional Plus', image: '/assets/products/office-2024.png', price: '₹2,099', originalPrice: '₹21,999', href: '/products/office-2024-pro-plus' },
-            { name: 'Office 2021 Professional Plus', image: '/assets/products/office-2021.png', price: '₹1,899', href: '/products/office-2021-pro-plus' },
-            { name: 'Office 2024 Standard', image: '/assets/products/office-2024-std.png', price: '₹1,899', originalPrice: '₹20,999', href: '/products/office-2024-standard' },
+            { name: 'Office 2024 Professional Plus', image: '/assets/products/office-2024.png', price: '₹2,099', originalPrice: '₹21,999', href: '/products?search=Office+2024+Professional' },
+            { name: 'Office 2021 Professional Plus', image: '/assets/products/office-2021.png', price: '₹1,899', href: '/products?search=Office+2021+Professional' },
+            { name: 'Office 2024 Standard', image: '/assets/products/office-2024-std.png', price: '₹1,899', originalPrice: '₹20,999', href: '/products?search=Office+2024+Standard' },
         ],
         footerLink: { label: 'Microsoft Office Licenses', href: '/products?category=office-suites' }
     },
@@ -181,45 +181,45 @@ export const megaMenuCategories: MegaMenuCategory[] = [
         subCategories: [
             {
                 name: 'Windows Server',
-                href: '/products?category=windows-server',
+                href: '/products?search=Windows+Server',
                 items: [
-                    { name: 'Windows Server 2025', href: '/products?category=server-2025' },
-                    { name: 'Windows Server 2022', href: '/products?category=server-2022' },
-                    { name: 'Windows Server 2019', href: '/products?category=server-2019' },
-                    { name: 'Windows Server 2016', href: '/products?category=server-2016' },
+                    { name: 'Windows Server 2025', href: '/products?search=Server+2025' },
+                    { name: 'Windows Server 2022', href: '/products?search=Server+2022' },
+                    { name: 'Windows Server 2019', href: '/products?search=Server+2019' },
+                    { name: 'Windows Server 2016', href: '/products?search=Server+2016' },
                 ]
             },
             {
                 name: 'Windows Server RDS',
-                href: '/products?category=server-rds',
+                href: '/products?search=RDS',
                 items: [
-                    { name: 'Server RDS 2025', href: '/products?category=rds-2025' },
-                    { name: 'Server RDS 2022', href: '/products?category=rds-2022' },
-                    { name: 'Server RDS 2019', href: '/products?category=rds-2019' },
+                    { name: 'Server RDS 2025', href: '/products?search=RDS+2025' },
+                    { name: 'Server RDS 2022', href: '/products?search=RDS+2022' },
+                    { name: 'Server RDS 2019', href: '/products?search=RDS+2019' },
                 ]
             },
             {
                 name: 'SQL Server',
-                href: '/products?category=sql-server',
+                href: '/products?search=SQL+Server',
                 items: [
-                    { name: 'SQL Server 2022', href: '/products?category=sql-2022' },
-                    { name: 'SQL Server 2019', href: '/products?category=sql-2019' },
-                    { name: 'SQL Server 2017', href: '/products?category=sql-2017' },
+                    { name: 'SQL Server 2022', href: '/products?search=SQL+Server+2022' },
+                    { name: 'SQL Server 2019', href: '/products?search=SQL+Server+2019' },
+                    { name: 'SQL Server 2017', href: '/products?search=SQL+Server+2017' },
                 ]
             },
             {
                 name: 'Exchange Server',
-                href: '/products?category=exchange-server',
+                href: '/products?search=Exchange+Server',
                 items: [
-                    { name: 'Exchange Server 2019', href: '/products?category=exchange-2019' },
-                    { name: 'Exchange Server 2016', href: '/products?category=exchange-2016' },
+                    { name: 'Exchange Server 2019', href: '/products?search=Exchange+2019' },
+                    { name: 'Exchange Server 2016', href: '/products?search=Exchange+2016' },
                 ]
             },
         ],
         topSellers: [
-            { name: 'SQL Server 2022 Standard', image: '/assets/products/sql-2022.png', price: '₹6,299', originalPrice: '₹84,999', href: '/products/sql-server-2022' },
-            { name: 'Windows Server 2025 Standard', image: '/assets/products/server-2025.png', price: '₹3,299', href: '/products/server-2025-standard' },
-            { name: 'Windows Server 2022 Standard', image: '/assets/products/server-2022.png', price: '₹2,499', href: '/products/server-2022-standard' },
+            { name: 'SQL Server 2022 Standard', image: '/assets/products/sql-2022.png', price: '₹6,299', originalPrice: '₹84,999', href: '/products?search=SQL+Server+2022' },
+            { name: 'Windows Server 2025 Standard', image: '/assets/products/server-2025.png', price: '₹3,299', href: '/products?search=Server+2025' },
+            { name: 'Windows Server 2022 Standard', image: '/assets/products/server-2022.png', price: '₹2,499', href: '/products?search=Server+2022' },
         ],
         footerLink: { label: 'Shop Microsoft Server Licenses', href: '/products?category=servers' }
     },
@@ -232,45 +232,45 @@ export const megaMenuCategories: MegaMenuCategory[] = [
         subCategories: [
             {
                 name: 'Kaspersky',
-                href: '/products?category=kaspersky',
+                href: '/products?search=Kaspersky',
                 items: [
-                    { name: 'Kaspersky Premium', href: '/products/kaspersky-premium' },
-                    { name: 'Kaspersky Plus', href: '/products/kaspersky-plus' },
-                    { name: 'Kaspersky Standard', href: '/products/kaspersky-standard' },
+                    { name: 'Kaspersky Premium', href: '/products?search=Kaspersky+Premium' },
+                    { name: 'Kaspersky Plus', href: '/products?search=Kaspersky+Plus' },
+                    { name: 'Kaspersky Standard', href: '/products?search=Kaspersky+Standard' },
                 ]
             },
             {
                 name: 'Norton',
-                href: '/products?category=norton',
+                href: '/products?search=Norton',
                 items: [
-                    { name: 'Norton 360 Premium', href: '/products/norton-360-premium' },
-                    { name: 'Norton 360 Deluxe', href: '/products/norton-360-deluxe' },
-                    { name: 'Norton 360 Standard', href: '/products/norton-360-standard' },
+                    { name: 'Norton 360 Premium', href: '/products?search=Norton+360+Premium' },
+                    { name: 'Norton 360 Deluxe', href: '/products?search=Norton+360+Deluxe' },
+                    { name: 'Norton 360 Standard', href: '/products?search=Norton+360+Standard' },
                 ]
             },
             {
                 name: 'Bitdefender',
-                href: '/products?category=bitdefender',
+                href: '/products?search=Bitdefender',
                 items: [
-                    { name: 'Bitdefender Total Security', href: '/products/bitdefender-total' },
-                    { name: 'Bitdefender Internet Security', href: '/products/bitdefender-internet' },
+                    { name: 'Bitdefender Total Security', href: '/products?search=Bitdefender+Total' },
+                    { name: 'Bitdefender Internet Security', href: '/products?search=Bitdefender+Internet' },
                 ]
             },
             {
                 name: 'Other Brands',
-                href: '/products?category=antivirus',
+                href: '/products?search=Antivirus',
                 items: [
-                    { name: 'Avast', href: '/products?category=avast' },
-                    { name: 'AVG', href: '/products?category=avg' },
-                    { name: 'ESET', href: '/products?category=eset' },
-                    { name: 'McAfee', href: '/products?category=mcafee' },
+                    { name: 'Avast', href: '/products?search=Avast' },
+                    { name: 'AVG', href: '/products?search=AVG' },
+                    { name: 'ESET', href: '/products?search=ESET' },
+                    { name: 'McAfee', href: '/products?search=McAfee' },
                 ]
             },
         ],
         topSellers: [
-            { name: 'Avast Ultimate Suite', image: '/assets/products/avast.png', price: '₹2,499 – ₹8,399', href: '/products/avast-ultimate' },
-            { name: 'Kaspersky Premium', image: '/assets/products/kaspersky.png', price: '₹3,749 – ₹7,499', href: '/products/kaspersky-premium' },
-            { name: 'Norton 360 Premium', image: '/assets/products/norton.png', price: '₹3,299', originalPrice: '₹10,899', href: '/products/norton-360-premium' },
+            { name: 'Avast Ultimate Suite', image: '/assets/products/avast.png', price: '₹2,499 – ₹8,399', href: '/products?search=Avast+Ultimate' },
+            { name: 'Kaspersky Premium', image: '/assets/products/kaspersky.png', price: '₹3,749 – ₹7,499', href: '/products?search=Kaspersky+Premium' },
+            { name: 'Norton 360 Premium', image: '/assets/products/norton.png', price: '₹3,299', originalPrice: '₹10,899', href: '/products?search=Norton+360+Premium' },
         ],
         footerLink: { label: 'Shop Antivirus Licenses', href: '/products?category=antivirus' }
     },
@@ -283,44 +283,44 @@ export const megaMenuCategories: MegaMenuCategory[] = [
         subCategories: [
             {
                 name: 'Autodesk',
-                href: '/products?category=autodesk',
+                href: '/products?search=Autodesk',
                 items: [
-                    { name: 'AutoCAD', href: '/products/autocad' },
-                    { name: 'Revit', href: '/products/revit' },
-                    { name: '3ds Max', href: '/products/3ds-max' },
+                    { name: 'AutoCAD', href: '/products?search=AutoCAD' },
+                    { name: 'Revit', href: '/products?search=Revit' },
+                    { name: '3ds Max', href: '/products?search=3ds+Max' },
                 ]
             },
             {
                 name: 'Corel',
-                href: '/products?category=corel',
+                href: '/products?search=Corel',
                 items: [
-                    { name: 'CorelDRAW', href: '/products/coreldraw' },
-                    { name: 'Corel Painter', href: '/products/corel-painter' },
+                    { name: 'CorelDRAW', href: '/products?search=CorelDRAW' },
+                    { name: 'Corel Painter', href: '/products?search=Corel+Painter' },
                 ]
             },
             {
                 name: 'VMware',
-                href: '/products?category=vmware',
+                href: '/products?search=VMware',
                 items: [
-                    { name: 'VMware Workstation Pro', href: '/products/vmware-workstation' },
-                    { name: 'VMware Fusion', href: '/products/vmware-fusion' },
+                    { name: 'VMware Workstation Pro', href: '/products?search=VMware+Workstation' },
+                    { name: 'VMware Fusion', href: '/products?search=VMware+Fusion' },
                 ]
             },
             {
                 name: 'Utilities',
-                href: '/products?category=utilities',
+                href: '/products?search=Utilities',
                 items: [
-                    { name: 'Parallels Desktop', href: '/products/parallels' },
-                    { name: 'AOMEI Backupper', href: '/products/aomei' },
-                    { name: 'EaseUS', href: '/products/easeus' },
-                    { name: 'Ashampoo', href: '/products/ashampoo' },
+                    { name: 'Parallels Desktop', href: '/products?search=Parallels' },
+                    { name: 'AOMEI Backupper', href: '/products?search=AOMEI' },
+                    { name: 'EaseUS', href: '/products?search=EaseUS' },
+                    { name: 'Ashampoo', href: '/products?search=Ashampoo' },
                 ]
             },
         ],
         topSellers: [
-            { name: 'Ashampoo 3D CAD Professional', image: '/assets/products/ashampoo-cad.png', price: '₹4,199', originalPrice: '₹8,399', href: '/products/ashampoo-3d-cad' },
-            { name: 'CorelDRAW 2021 Standard', image: '/assets/products/coreldraw.png', price: '₹4,199', originalPrice: '₹16,799', href: '/products/coreldraw-2021' },
-            { name: 'VMware Workstation 17.5 Pro', image: '/assets/products/vmware.png', price: '₹1,249 – ₹2,899', href: '/products/vmware-workstation' },
+            { name: 'Ashampoo 3D CAD Professional', image: '/assets/products/ashampoo-cad.png', price: '₹4,199', originalPrice: '₹8,399', href: '/products?search=Ashampoo+CAD' },
+            { name: 'CorelDRAW 2021 Standard', image: '/assets/products/coreldraw.png', price: '₹4,199', originalPrice: '₹16,799', href: '/products?search=CorelDRAW' },
+            { name: 'VMware Workstation 17.5 Pro', image: '/assets/products/vmware.png', price: '₹1,249 – ₹2,899', href: '/products?search=VMware+Workstation' },
         ],
         footerLink: { label: 'Shop Computer Programs', href: '/products?category=design-software' }
     },

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight } from '@phosphor-icons/react/dist/ssr'; // Using SSR import for server component
+import { ArrowRight } from 'lucide-react';
 import { ProductCard } from '@/components/product/ProductCard';
 import { HeroGrid } from '@/components/home/HeroGrid';
 import { BannerSlider } from '@/components/home/BannerSlider';
@@ -14,6 +14,7 @@ import { FeaturesStrip } from '@/components/home/FeaturesStrip';
 import { PopularCategories } from '@/components/home/PopularCategories';
 import { TrustpilotWidget } from '@/components/home/TrustpilotWidget';
 import { TestimonialsSection } from '@/components/home/TestimonialsSection';
+import { AmazonActivationBanner } from '@/components/home/AmazonActivationBanner';
 import { createClient } from '@/lib/supabase/server';
 import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/JsonLd';
 
@@ -51,6 +52,9 @@ export default async function HomePage() {
                 {/* 0. Trustpilot Widget (Top Strip) */}
                 <TrustpilotWidget />
 
+                {/* Amazon Activation Banner - For Amazon customers */}
+                <AmazonActivationBanner />
+
                 {/* 1. Hero Grid Section */}
                 <HeroGrid />
 
@@ -84,7 +88,7 @@ export default async function HomePage() {
                                 Top Selling Software
                             </h3>
                             <Link href="/products?sortBy=bestseller" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
-                                View All <ArrowRight size={16} weight="bold" />
+                                View All <ArrowRight className="w-4 h-4" />
                             </Link>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -132,7 +136,7 @@ export default async function HomePage() {
                                 New Arrivals
                             </h3>
                             <Link href="/products?sortBy=newest" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
-                                View All <ArrowRight size={16} weight="bold" />
+                                View All <ArrowRight className="w-4 h-4" />
                             </Link>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

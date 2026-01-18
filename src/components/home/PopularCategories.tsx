@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const popularCategories = [
@@ -109,7 +109,7 @@ export function PopularCategories() {
                         disabled={!canScrollPrev}
                         aria-label="Previous slide"
                     >
-                        <CaretLeft size={16} weight="bold" />
+                        <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                         onClick={scrollNext}
@@ -120,7 +120,7 @@ export function PopularCategories() {
                         disabled={!canScrollNext}
                         aria-label="Next slide"
                     >
-                        <CaretRight size={16} weight="bold" />
+                        <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>
             </div>

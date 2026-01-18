@@ -24,7 +24,7 @@ export default function ShippingPolicyPage() {
                 <div className="container-dense py-16 md:py-24 relative">
                     <div className="max-w-3xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                            <Lightning size={18} weight="fill" />
+                            <Lightning className="w-4.5 h-4.5" />
                             <span>Instant Digital Delivery</span>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
@@ -44,7 +44,7 @@ export default function ShippingPolicyPage() {
                 <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl p-8 md:p-12 border border-primary/20 mb-12">
                     <div className="flex flex-col md:flex-row items-center gap-8">
                         <div className="w-20 h-20 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                            <CloudArrowDown size={40} weight="duotone" className="text-primary" />
+                            <CloudArrowDown className="w-10 h-10 text-primary" />
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-foreground mb-3">100% Digital Delivery</h2>
@@ -64,7 +64,7 @@ export default function ShippingPolicyPage() {
                         <div className="relative bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10">
                             <div className="absolute -top-4 left-8 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">1</div>
                             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mt-2">
-                                <ShieldCheck size={24} weight="duotone" className="text-primary" />
+                                <ShieldCheck className="w-6 h-6 text-primary" />
                             </div>
                             <h3 className="text-lg font-bold text-foreground mb-2">Complete Payment</h3>
                             <p className="text-muted-foreground text-sm">
@@ -75,7 +75,7 @@ export default function ShippingPolicyPage() {
                         <div className="relative bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10">
                             <div className="absolute -top-4 left-8 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">2</div>
                             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mt-2">
-                                <Lightning size={24} weight="fill" className="text-primary" />
+                                <Lightning className="w-6 h-6 text-primary" />
                             </div>
                             <h3 className="text-lg font-bold text-foreground mb-2">Instant Processing</h3>
                             <p className="text-muted-foreground text-sm">
@@ -86,7 +86,7 @@ export default function ShippingPolicyPage() {
                         <div className="relative bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10">
                             <div className="absolute -top-4 left-8 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">3</div>
                             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 mt-2">
-                                <Envelope size={24} weight="duotone" className="text-primary" />
+                                <Envelope className="w-6 h-6 text-primary" />
                             </div>
                             <h3 className="text-lg font-bold text-foreground mb-2">Email Delivery</h3>
                             <p className="text-muted-foreground text-sm">
@@ -103,7 +103,7 @@ export default function ShippingPolicyPage() {
                     <div className="space-y-8">
                         <div className="flex gap-4">
                             <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                                <CheckCircle size={20} weight="fill" className="text-green-500" />
+                                <CheckCircle className="w-5 h-5 text-green-500" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-foreground mb-2">Delivery Time</h3>
@@ -117,7 +117,7 @@ export default function ShippingPolicyPage() {
 
                         <div className="flex gap-4">
                             <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                                <CheckCircle size={20} weight="fill" className="text-green-500" />
+                                <CheckCircle className="w-5 h-5 text-green-500" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-foreground mb-2">Delivery Method</h3>
@@ -131,7 +131,7 @@ export default function ShippingPolicyPage() {
 
                         <div className="flex gap-4">
                             <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                                <CheckCircle size={20} weight="fill" className="text-green-500" />
+                                <CheckCircle className="w-5 h-5 text-green-500" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-foreground mb-2">No Physical Shipping</h3>
@@ -145,7 +145,7 @@ export default function ShippingPolicyPage() {
 
                         <div className="flex gap-4">
                             <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                                <Info size={20} weight="fill" className="text-blue-500" />
+                                <Info className="w-5 h-5 text-blue-500" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-foreground mb-2">Download Instructions</h3>
@@ -159,7 +159,7 @@ export default function ShippingPolicyPage() {
 
                         <div className="flex gap-4">
                             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <Clock size={20} weight="duotone" className="text-primary" />
+                                <Clock className="w-5 h-5 text-primary" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-foreground mb-2">Support Available 24/7</h3>

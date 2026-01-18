@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowRight, CheckCircle, ShieldCheck, Clock, Globe, CreditCard, Headset, FileText } from '@phosphor-icons/react/dist/ssr';
+import { ArrowRight, CheckCircle2, CheckCircle2 as CheckCircle, ShieldCheck, Clock, Globe, CreditCard, Headphones, FileText } from 'lucide-react';
 
 export function WhyChooseUs() {
     return (
@@ -91,7 +91,7 @@ export function WhyChooseUs() {
                                                 <span><strong>Instant digital delivery:</strong> receive your activation key by email immediately after checkout.</span>
                                             </li>
                                             <li className="flex items-start gap-3">
-                                                <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-1" />
+                                                <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />
                                                 <span><strong>Lifetime activation:</strong> pay once and use your software for life, with reactivation rights.</span>
                                             </li>
                                             <li className="flex items-start gap-3">
@@ -103,7 +103,7 @@ export function WhyChooseUs() {
                                                 <span><strong>Secure payments:</strong> all transactions are encrypted and processed via trusted gateways.</span>
                                             </li>
                                             <li className="flex items-start gap-3">
-                                                <Headset className="w-5 h-5 text-primary shrink-0 mt-1" />
+                                                <Headphones className="w-5 h-5 text-primary shrink-0 mt-1" />
                                                 <span><strong>Dedicated support:</strong> our multilingual team assists with installation and activation.</span>
                                             </li>
                                             <li className="flex items-start gap-3">
@@ -118,9 +118,9 @@ export function WhyChooseUs() {
 
                                         <div className="flex flex-wrap gap-4 pt-4 border-t">
                                             <h4 className="w-full text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-1">Relevant Links</h4>
-                                            <Link href="/" className="text-primary hover:underline flex items-center gap-1 font-medium">Home <ArrowRight size={14} /></Link>
-                                            <Link href="/about" className="text-primary hover:underline flex items-center gap-1 font-medium">About Us <ArrowRight size={14} /></Link>
-                                            <Link href="/faq" className="text-primary hover:underline flex items-center gap-1 font-medium">FAQ <ArrowRight size={14} /></Link>
+                                            <Link href="/" className="text-primary hover:underline flex items-center gap-1 font-medium">Home <ArrowRight className="w-3.5 h-3.5" /></Link>
+                                            <Link href="/about" className="text-primary hover:underline flex items-center gap-1 font-medium">About Us <ArrowRight className="w-3.5 h-3.5" /></Link>
+                                            <Link href="/faq" className="text-primary hover:underline flex items-center gap-1 font-medium">FAQ <ArrowRight className="w-3.5 h-3.5" /></Link>
                                         </div>
                                     </div>
                                 </div>
@@ -142,31 +142,31 @@ export function WhyChooseUs() {
                                     <h4 className="text-xl font-bold text-foreground mb-4">Why Choose a Windows License from SimplySolutions?</h4>
                                     <ul className="grid sm:grid-cols-2 gap-3 mb-8 list-none pl-0">
                                         <li className="flex items-start gap-3">
-                                            <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-1" />
+                                            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />
                                             <span><strong>Official and verified keys:</strong> sourced directly from authorised Microsoft partners.</span>
                                         </li>
                                         <li className="flex items-start gap-3">
-                                            <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-1" />
+                                            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />
                                             <span><strong>Lifetime activation:</strong> one-time payment with permanent use—no subscriptions required.</span>
                                         </li>
                                         <li className="flex items-start gap-3">
-                                            <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-1" />
+                                            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />
                                             <span><strong>Instant email delivery:</strong> activation key and setup guide sent immediately after purchase.</span>
                                         </li>
                                         <li className="flex items-start gap-3">
-                                            <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-1" />
+                                            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />
                                             <span><strong>All editions available:</strong> Home, Pro, Enterprise, Education, and LTSC supported.</span>
                                         </li>
                                         <li className="flex items-start gap-3">
-                                            <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-1" />
+                                            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />
                                             <span><strong>Multilingual installation:</strong> choose your preferred language during setup.</span>
                                         </li>
                                         <li className="flex items-start gap-3">
-                                            <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-1" />
+                                            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />
                                             <span><strong>Secure and compliant:</strong> every key verified through Microsoft activation servers.</span>
                                         </li>
                                         <li className="flex items-start gap-3">
-                                            <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-1" />
+                                            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />
                                             <span><strong>Dedicated assistance:</strong> professional support for installation and activation guidance.</span>
                                         </li>
                                     </ul>

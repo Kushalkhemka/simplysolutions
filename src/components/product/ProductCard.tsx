@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingCart, Star, Lightning, Check, Package as PackageIcon } from '@phosphor-icons/react';
+import { Heart, ShoppingCart, Star, Zap, Check, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/stores/cart-store';
@@ -13,15 +13,26 @@ import { toast } from 'sonner';
 // Array of rating values to pick from
 const RATINGS = [5.0, 4.9, 4.5, 4.7];
 
-// Generate a deterministic rating based on product ID for consistency
-function getProductRating(productId: string): number {
+// Generate a deterministic hash based on product ID
+function getProductHash(productId: string): number {
     let hash = 0;
     for (let i = 0; i < productId.length; i++) {
         const char = productId.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
         hash = hash & hash; // Convert to 32-bit integer
     }
-    return RATINGS[Math.abs(hash) % RATINGS.length];
+    return Math.abs(hash);
+}
+
+// Generate a deterministic rating based on product ID for consistency
+function getProductRating(productId: string): number {
+    return RATINGS[getProductHash(productId) % RATINGS.length];
+}
+
+// Generate a deterministic review count between 50-600 based on product ID
+function getProductReviewCount(productId: string): number {
+    const hash = getProductHash(productId);
+    return 50 + (hash % 551); // 50 to 600
 }
 
 import { useRouter } from 'next/navigation';
@@ -75,14 +86,14 @@ export function ProductCard({ product, showQuickAdd = true, variant = 'default' 
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
-                                <PackageIcon size={24} weight="duotone" className="opacity-50" />
+                                <Package className="w-6 h-6 opacity-50" />
                             </div>
                         )}
                     </div>
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">{product.name}</h3>
                         <div className="flex items-center gap-1 mb-2">
-                            <Star size={12} weight="fill" className="text-yellow-400" />
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                             <span className="text-xs font-medium">{rating.toFixed(1)}</span>
                         </div>
                         <div className="flex items-baseline gap-2">
@@ -118,7 +129,7 @@ export function ProductCard({ product, showQuickAdd = true, variant = 'default' 
                     <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5 items-end">
                         {product.is_bestseller && (
                             <Badge className="bg-orange-500 hover:bg-orange-600 text-white border-0 px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
-                                <Lightning size={12} weight="fill" className="text-white" /> Bestseller
+                                <Zap className="w-3 h-3 fill-current text-white" /> Bestseller
                             </Badge>
                         )}
                     </div>
@@ -134,14 +145,14 @@ export function ProductCard({ product, showQuickAdd = true, variant = 'default' 
                         />
                     ) : (
                         <div className="flex flex-col items-center justify-center text-muted-foreground">
-                            <PackageIcon size={32} weight="duotone" className="opacity-20 mb-2" />
+                            <Package className="w-8 h-8 opacity-20 mb-2" />
                             <span className="text-xs">No Image</span>
                         </div>
                     )}
 
                     {/* Instant Badge Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm py-1 px-3 border-t translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center gap-2 text-[10px] font-medium text-emerald-600">
-                        <Lightning size={12} weight="fill" className="text-yellow-500" />
+                        <Zap className="w-3 h-3 fill-yellow-500 text-yellow-500" />
                         Instant Digital Delivery
                     </div>
                 </div>
@@ -152,7 +163,7 @@ export function ProductCard({ product, showQuickAdd = true, variant = 'default' 
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">{product.brand}</span>
                         <div className="flex items-center gap-1 text-xs font-medium">
-                            <Star size={12} weight="fill" className="text-yellow-400" />
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                             <span>{rating.toFixed(1)}</span>
                             <span className="text-muted-foreground">({product.review_count || 124})</span>
                         </div>
@@ -196,7 +207,7 @@ export function ProductCard({ product, showQuickAdd = true, variant = 'default' 
                                         : "hover:shadow-md active:scale-95 bg-primary hover:bg-primary/90"
                                 )}
                             >
-                                <ShoppingCart size={16} weight="bold" className="mr-2" />
+                                <ShoppingCart className="w-4 h-4 mr-2" />
                                 {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
                             </Button>
                         )}

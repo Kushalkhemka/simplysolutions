@@ -27,6 +27,7 @@ import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 import { AIRecommendations } from '@/components/product/AIRecommendations';
 import { ProductFAQ } from '@/components/product/ProductFAQ';
 import { RazorpayAffordabilityWidget } from '@/components/razorpay/RazorpayAffordabilityWidget';
+import ProductReviews from '@/components/product/ProductReviews';
 
 interface ProductPageProps {
     params: Promise<{ slug: string }>;
@@ -364,28 +365,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     <ProductFAQ productName={product.name} />
                 </div>
 
-                {/* Reviews */}
-                {reviews && reviews.length > 0 && (
-                    <div className="mb-12">
-                        <h2 className="text-xl font-bold mb-4">Customer Reviews</h2>
-                        <div className="space-y-4">
-                            {reviews.map((review) => (
-                                <div key={review.id} className="border rounded-lg p-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="flex items-center gap-1 bg-green-600 text-white text-sm px-2 py-0.5 rounded">
-                                            {review.rating} <Star className="h-3 w-3 fill-current" />
-                                        </div>
-                                        {review.title && <span className="font-medium">{review.title}</span>}
-                                    </div>
-                                    {review.content && <p className="text-sm text-muted-foreground mb-2">{review.content}</p>}
-                                    <p className="text-xs text-muted-foreground">
-                                        By {(review.user as any)?.full_name || 'Anonymous'} • {new Date(review.created_at).toLocaleDateString()}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {/* Customer Reviews - Amazon Style */}
+                <div className="mb-12">
+                    <ProductReviews
+                        productId={product.id}
+                        productName={product.name}
+                    />
+                </div>
 
                 {/* Related Products */}
                 {relatedProducts && relatedProducts.length > 0 && (

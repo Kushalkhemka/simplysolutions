@@ -14,10 +14,22 @@ export function PushPermission({ showBanner = true }: PushPermissionProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [isDismissed, setIsDismissed] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
         checkPermissionStatus();
+        checkAuthStatus();
     }, []);
+
+    const checkAuthStatus = async () => {
+        try {
+            const res = await fetch('/api/auth/me');
+            const data = await res.json();
+            setIsLoggedIn(!!data.user);
+        } catch {
+            setIsLoggedIn(false);
+        }
+    };
 
     const checkPermissionStatus = async () => {
         if (!('Notification' in window) || !('serviceWorker' in navigator)) {
@@ -123,8 +135,8 @@ export function PushPermission({ showBanner = true }: PushPermissionProps) {
         localStorage.setItem('push_permission_dismissed', 'true');
     };
 
-    // Don't show if unsupported, already subscribed, or dismissed
-    if (permission === 'unsupported' || isSubscribed || isDismissed || permission === 'denied') {
+    // Don't show if unsupported, already subscribed, dismissed, or not logged in
+    if (permission === 'unsupported' || isSubscribed || isDismissed || permission === 'denied' || !isLoggedIn) {
         return null;
     }
 

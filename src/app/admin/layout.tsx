@@ -10,7 +10,11 @@ import {
     Tag,
     BarChart3,
     Settings,
-    LogOut
+    LogOut,
+    ShoppingBag,
+    Shield,
+    Mail,
+    Terminal
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -22,6 +26,13 @@ const sidebarLinks = [
     { name: 'Coupons', href: '/admin/coupons', icon: Tag },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
+];
+
+const amazonLinks = [
+    { name: 'Amazon Orders', href: '/admin/amazon/orders', icon: ShoppingBag },
+    { name: 'Warranty Claims', href: '/admin/amazon/warranty', icon: Shield },
+    { name: 'Product Requests', href: '/admin/amazon/requests', icon: Mail },
+    { name: 'GetCID Test', href: '/admin/amazon/getcid', icon: Terminal },
 ];
 
 export default async function AdminLayout({
@@ -62,7 +73,7 @@ export default async function AdminLayout({
                     </div>
 
                     {/* Navigation */}
-                    <nav className="flex-1 p-4 space-y-1">
+                    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                         {sidebarLinks.map((link) => (
                             <Link
                                 key={link.href}
@@ -73,6 +84,21 @@ export default async function AdminLayout({
                                 {link.name}
                             </Link>
                         ))}
+
+                        {/* Amazon Section */}
+                        <div className="pt-4 mt-4 border-t">
+                            <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase">Amazon Activation</p>
+                            {amazonLinks.map((link) => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-accent"
+                                >
+                                    <link.icon className="h-5 w-5" />
+                                    {link.name}
+                                </Link>
+                            ))}
+                        </div>
                     </nav>
 
                     {/* Footer */}

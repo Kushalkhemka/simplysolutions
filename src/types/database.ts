@@ -1157,6 +1157,76 @@ export interface Database {
                     sent_at?: string
                 }
             }
+            amazon_secret_codes: {
+                Row: {
+                    id: string
+                    secret_code: string
+                    sku: string
+                    license_key_id: string | null
+                    is_redeemed: boolean
+                    redeemed_at: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    secret_code: string
+                    sku: string
+                    license_key_id?: string | null
+                    is_redeemed?: boolean
+                    redeemed_at?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    secret_code?: string
+                    sku?: string
+                    license_key_id?: string | null
+                    is_redeemed?: boolean
+                    redeemed_at?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+            amazon_activation_license_keys: {
+                Row: {
+                    id: string
+                    license_key: string
+                    sku: string
+                    product_name: string | null
+                    product_image: string | null
+                    download_url: string | null
+                    is_redeemed: boolean
+                    redeemed_at: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    license_key: string
+                    sku: string
+                    product_name?: string | null
+                    product_image?: string | null
+                    download_url?: string | null
+                    is_redeemed?: boolean
+                    redeemed_at?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    license_key?: string
+                    sku?: string
+                    product_name?: string | null
+                    product_image?: string | null
+                    download_url?: string | null
+                    is_redeemed?: boolean
+                    redeemed_at?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
         }
         Views: {
             [_ in never]: never

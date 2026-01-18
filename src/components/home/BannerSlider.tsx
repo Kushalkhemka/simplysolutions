@@ -4,7 +4,7 @@ import React, { useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ArrowRight, CaretLeft, CaretRight, Sparkle } from '@phosphor-icons/react';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Autoplay from 'embla-carousel-autoplay';
@@ -90,7 +90,7 @@ export function BannerSlider({ products = [] }: BannerSliderProps) {
 
                                         <div className="mb-6 space-y-2 animate-fadeIn">
                                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider w-fit">
-                                                <Sparkle weight="fill" />
+                                                <Sparkles className="w-4 h-4 fill-current" />
                                                 New Deals Just Dropped
                                             </div>
                                             <h2 className="text-4xl md:text-6xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight">
@@ -154,12 +154,12 @@ export function BannerSlider({ products = [] }: BannerSliderProps) {
             {/* Navigation Buttons */}
             <div className="absolute top-1/2 -translate-y-1/2 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
                 <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full shadow-lg bg-white/80 hover:bg-white dark:bg-black/50 backdrop-blur-sm" onClick={scrollPrev}>
-                    <CaretLeft size={24} />
+                    <ChevronLeft className="w-6 h-6" />
                 </Button>
             </div>
             <div className="absolute top-1/2 -translate-y-1/2 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
                 <Button variant="secondary" size="icon" className="h-12 w-12 rounded-full shadow-lg bg-white/80 hover:bg-white dark:bg-black/50 backdrop-blur-sm" onClick={scrollNext}>
-                    <CaretRight size={24} />
+                    <ChevronRight className="w-6 h-6" />
                 </Button>
             </div>
 

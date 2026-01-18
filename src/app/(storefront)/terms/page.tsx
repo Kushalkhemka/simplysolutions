@@ -25,7 +25,7 @@ export default function TermsPage() {
                 <div className="container-dense py-16 md:py-24 relative">
                     <div className="max-w-3xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                            <FileText size={18} weight="duotone" />
+                            <FileText className="w-4.5 h-4.5" />
                             <span>Legal Agreement</span>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
@@ -44,7 +44,7 @@ export default function TermsPage() {
                     {/* Introduction */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <Info size={24} className="text-primary" />
+                            <Info className="w-6 h-6 text-primary" />
                             Introduction
                         </h2>
                         <p className="text-muted-foreground mb-4">
@@ -61,7 +61,7 @@ export default function TermsPage() {
                     {/* Definitions */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <FileText size={24} className="text-primary" />
+                            <FileText className="w-6 h-6 text-primary" />
                             Definitions
                         </h2>
                         <ul className="space-y-3 text-muted-foreground">
@@ -75,7 +75,7 @@ export default function TermsPage() {
                     {/* Account Registration */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <UserCircle size={24} className="text-primary" />
+                            <UserCircle className="w-6 h-6 text-primary" />
                             Account Registration
                         </h2>
                         <ul className="space-y-3 text-muted-foreground list-disc list-inside">
@@ -90,7 +90,7 @@ export default function TermsPage() {
                     {/* Products and Licenses */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <ShieldCheck size={24} className="text-primary" />
+                            <ShieldCheck className="w-6 h-6 text-primary" />
                             Products and Licenses
                         </h2>
                         <ul className="space-y-3 text-muted-foreground list-disc list-inside">
@@ -105,7 +105,7 @@ export default function TermsPage() {
                     {/* Pricing and Payment */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <CreditCard size={24} className="text-primary" />
+                            <CreditCard className="w-6 h-6 text-primary" />
                             Pricing and Payment
                         </h2>
                         <ul className="space-y-3 text-muted-foreground list-disc list-inside">
@@ -120,7 +120,7 @@ export default function TermsPage() {
                     {/* Delivery */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <FileText size={24} className="text-primary" />
+                            <FileText className="w-6 h-6 text-primary" />
                             Delivery
                         </h2>
                         <ul className="space-y-3 text-muted-foreground list-disc list-inside">
@@ -134,7 +134,7 @@ export default function TermsPage() {
                     {/* Prohibited Uses */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <Warning size={24} className="text-red-500" />
+                            <Warning className="w-6 h-6 text-red-500" />
                             Prohibited Uses
                         </h2>
                         <p className="text-muted-foreground mb-4">You agree NOT to:</p>
@@ -151,7 +151,7 @@ export default function TermsPage() {
                     {/* Intellectual Property */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <Scales size={24} className="text-primary" />
+                            <Scales className="w-6 h-6 text-primary" />
                             Intellectual Property
                         </h2>
                         <ul className="space-y-3 text-muted-foreground list-disc list-inside">
@@ -164,7 +164,7 @@ export default function TermsPage() {
                     {/* Limitation of Liability */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <Warning size={24} className="text-amber-500" />
+                            <Warning className="w-6 h-6 text-amber-500" />
                             Limitation of Liability
                         </h2>
                         <ul className="space-y-3 text-muted-foreground list-disc list-inside">
@@ -178,7 +178,7 @@ export default function TermsPage() {
                     {/* Governing Law */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <Gavel size={24} className="text-primary" />
+                            <Gavel className="w-6 h-6 text-primary" />
                             Governing Law
                         </h2>
                         <p className="text-muted-foreground">
@@ -191,7 +191,7 @@ export default function TermsPage() {
                     {/* Changes to Terms */}
                     <div className="bg-white dark:bg-white/5 rounded-3xl p-8 md:p-10 border border-gray-200 dark:border-white/10 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <FileText size={24} className="text-primary" />
+                            <FileText className="w-6 h-6 text-primary" />
                             Changes to Terms
                         </h2>
                         <p className="text-muted-foreground">

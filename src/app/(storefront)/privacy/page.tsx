@@ -14,7 +14,7 @@ export default function PrivacyPolicyPage() {
                 <div className="container-dense py-16 md:py-24 relative">
                     <div className="max-w-3xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                            <ShieldCheck size={18} weight="duotone" />
+                            <ShieldCheck className="w-4.5 h-4.5" />
                             <span>Your Privacy Matters</span>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
                     {/* Information We Collect */}
                     <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10">
                         <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <Database size={24} className="text-primary" /> Information We Collect
+                            <Database className="w-6 h-6 text-primary" /> Information We Collect
                         </h2>
                         <ul className="space-y-3 text-muted-foreground list-disc list-inside">
                             <li><strong className="text-foreground">Personal Information:</strong> Name, email address, phone number when you create an account</li>
@@ -43,7 +43,7 @@ export default function PrivacyPolicyPage() {
                     {/* How We Use Information */}
                     <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10">
                         <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <Eye size={24} className="text-primary" /> How We Use Your Information
+                            <Eye className="w-6 h-6 text-primary" /> How We Use Your Information
                         </h2>
                         <ul className="space-y-3 text-muted-foreground list-disc list-inside">
                             <li>To process and deliver your orders</li>
@@ -58,7 +58,7 @@ export default function PrivacyPolicyPage() {
                     {/* Data Protection */}
                     <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10">
                         <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <Lock size={24} className="text-primary" /> Data Protection
+                            <Lock className="w-6 h-6 text-primary" /> Data Protection
                         </h2>
                         <ul className="space-y-3 text-muted-foreground list-disc list-inside">
                             <li>All data transmitted is encrypted using SSL/TLS technology</li>
@@ -72,7 +72,7 @@ export default function PrivacyPolicyPage() {
                     {/* Cookies */}
                     <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10">
                         <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <Cookie size={24} className="text-primary" /> Cookies
+                            <Cookie className="w-6 h-6 text-primary" /> Cookies
                         </h2>
                         <p className="text-muted-foreground mb-4">We use cookies and similar technologies to:</p>
                         <ul className="space-y-2 text-muted-foreground list-disc list-inside">
@@ -87,7 +87,7 @@ export default function PrivacyPolicyPage() {
                     {/* Third-Party Sharing */}
                     <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-gray-200 dark:border-white/10">
                         <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <UserCircle size={24} className="text-primary" /> Third-Party Sharing
+                            <UserCircle className="w-6 h-6 text-primary" /> Third-Party Sharing
                         </h2>
                         <p className="text-muted-foreground mb-4">We do not sell your personal information. We may share data with:</p>
                         <ul className="space-y-2 text-muted-foreground list-disc list-inside">
@@ -101,7 +101,7 @@ export default function PrivacyPolicyPage() {
                     {/* Your Rights */}
                     <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-8 border border-primary/20">
                         <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <ShieldCheck size={24} className="text-primary" /> Your Rights
+                            <ShieldCheck className="w-6 h-6 text-primary" /> Your Rights
                         </h2>
                         <ul className="space-y-2 text-muted-foreground list-disc list-inside">
                             <li>Access, update, or delete your personal information</li>
@@ -114,7 +114,7 @@ export default function PrivacyPolicyPage() {
 
                     {/* Contact */}
                     <div className="text-center p-8 bg-white dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/10">
-                        <Envelope size={40} className="text-primary mx-auto mb-4" />
+                        <Envelope className="w-10 h-10 text-primary mx-auto mb-4" />
                         <h2 className="text-xl font-bold text-foreground mb-2">Questions About Privacy?</h2>
                         <p className="text-muted-foreground mb-4">Contact our Data Protection team:</p>
                         <a href="mailto:support@simplysolutions.co.in" className="text-primary hover:underline">support@simplysolutions.co.in</a>

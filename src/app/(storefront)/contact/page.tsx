@@ -26,7 +26,7 @@ export default function ContactPage() {
                 <div className="container-dense py-16 md:py-24 relative">
                     <div className="max-w-3xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                            <Headset size={18} weight="duotone" />
+                            <Headset className="w-4.5 h-4.5" />
                             <span>24/7 Customer Support</span>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
@@ -48,7 +48,7 @@ export default function ContactPage() {
                         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-[100px]" />
                         <div className="relative">
                             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <Envelope size={28} weight="duotone" className="text-primary" />
+                                <Envelope className="w-7 h-7 text-primary" />
                             </div>
                             <h3 className="text-xl font-bold text-foreground mb-2">Email Us</h3>
                             <p className="text-muted-foreground text-sm mb-4">
@@ -59,7 +59,7 @@ export default function ContactPage() {
                                 className="text-primary font-medium hover:underline inline-flex items-center gap-2"
                             >
                                 support@simplysolutions.co.in
-                                <PaperPlaneTilt size={16} weight="bold" />
+                                <PaperPlaneTilt className="w-4 h-4" />
                             </a>
                         </div>
                     </div>
@@ -69,7 +69,7 @@ export default function ContactPage() {
                         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#25D366]/10 to-transparent rounded-bl-[100px]" />
                         <div className="relative">
                             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#25D366]/20 to-[#25D366]/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <WhatsappLogo size={28} weight="fill" className="text-[#25D366]" />
+                                <WhatsappLogo className="w-7 h-7 text-[#25D366]" />
                             </div>
                             <h3 className="text-xl font-bold text-foreground mb-2">WhatsApp Support</h3>
                             <p className="text-muted-foreground text-sm mb-4">
@@ -101,7 +101,7 @@ export default function ContactPage() {
                         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-[100px]" />
                         <div className="relative">
                             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                <ChatCircle size={28} weight="duotone" className="text-blue-500" />
+                                <ChatCircle className="w-7 h-7 text-blue-500" />
                             </div>
                             <h3 className="text-xl font-bold text-foreground mb-2">Live Chat</h3>
                             <p className="text-muted-foreground text-sm mb-4">
@@ -122,7 +122,7 @@ export default function ContactPage() {
                             <div className="space-y-6">
                                 <div className="flex items-start gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                        <MapPin size={20} weight="fill" className="text-primary" />
+                                        <MapPin className="w-5 h-5 text-primary" />
                                     </div>
                                     <div>
                                         <h4 className="font-semibold text-foreground mb-1">Address</h4>
@@ -131,7 +131,7 @@ export default function ContactPage() {
                                 </div>
                                 <div className="flex items-start gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                        <Clock size={20} weight="duotone" className="text-primary" />
+                                        <Clock className="w-5 h-5 text-primary" />
                                     </div>
                                     <div>
                                         <h4 className="font-semibold text-foreground mb-1">Business Hours</h4>
@@ -145,19 +145,19 @@ export default function ContactPage() {
                             <h2 className="text-2xl font-bold text-foreground mb-6">Quick Links</h2>
                             <div className="grid grid-cols-2 gap-4">
                                 <Link href="/dashboard/support/new" className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-primary/50 transition-colors">
-                                    <Headset size={20} className="text-primary" />
+                                    <Headset className="w-5 h-5 text-primary" />
                                     <span className="text-sm font-medium text-foreground">Submit Ticket</span>
                                 </Link>
                                 <Link href="/dashboard/orders" className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-primary/50 transition-colors">
-                                    <Clock size={20} className="text-primary" />
+                                    <Clock className="w-5 h-5 text-primary" />
                                     <span className="text-sm font-medium text-foreground">Track Order</span>
                                 </Link>
                                 <Link href="/refund" className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-primary/50 transition-colors">
-                                    <Envelope size={20} className="text-primary" />
+                                    <Envelope className="w-5 h-5 text-primary" />
                                     <span className="text-sm font-medium text-foreground">Refund Policy</span>
                                 </Link>
                                 <Link href="/faq" className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-primary/50 transition-colors">
-                                    <ChatCircle size={20} className="text-primary" />
+                                    <ChatCircle className="w-5 h-5 text-primary" />
                                     <span className="text-sm font-medium text-foreground">FAQs</span>
                                 </Link>
                             </div>

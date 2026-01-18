@@ -24,6 +24,7 @@ export function HeroGrid() {
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                         priority
+                        fetchPriority="high"
                     />
                     <div className="absolute inset-0 z-20 flex flex-col justify-center p-8 md:p-12">
                         <span className="inline-block px-3 py-1 bg-blue-500 text-white font-bold text-xs rounded-full mb-4 w-fit animate-fadeIn uppercase tracking-wider">
@@ -67,7 +68,7 @@ export function HeroGrid() {
                             <p className="text-gray-200 text-sm mb-3 font-medium">Maximize productivity with classic apps.</p>
                             <Link href="/products/microsoft-office-2021-professional-plus-global">
                                 <span className="inline-flex items-center text-orange-400 font-bold hover:underline gap-1">
-                                    Shop Now <ArrowRight size={16} weight="bold" />
+                                    Shop Now <ArrowRight className="w-4 h-4" />
                                 </span>
                             </Link>
                         </div>
@@ -88,7 +89,7 @@ export function HeroGrid() {
                             <p className="text-gray-200 text-sm mb-3 font-medium">Unlock your potential with premium tools.</p>
                             <Link href="/products?category=ai-tools">
                                 <span className="inline-flex items-center text-purple-400 font-bold hover:underline gap-1">
-                                    Explore <ArrowRight size={16} weight="bold" />
+                                    Explore <ArrowRight className="w-4 h-4" />
                                 </span>
                             </Link>
                         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Star, CheckCircle, CaretLeft, CaretRight, Quotes } from '@phosphor-icons/react';
+import { Star, CheckCircle2, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import Link from 'next/link';
 
 const testimonials = [
@@ -124,11 +124,7 @@ function StarRating({ rating }: { rating: number }) {
                     className={`w-5 h-5 flex items-center justify-center ${star <= rating ? 'bg-[#00b67a]' : 'bg-gray-200'
                         }`}
                 >
-                    <Star
-                        size={14}
-                        weight="fill"
-                        className="text-white"
-                    />
+                    <Star className="w-3.5 h-3.5 text-white" />
                 </div>
             ))}
         </div>
@@ -140,7 +136,7 @@ function TestimonialCard({ testimonial }: { testimonial: typeof testimonials[0] 
         <div className="relative bg-card border rounded-xl p-5 min-w-[320px] max-w-[320px] flex-shrink-0 transition-all duration-300 hover:shadow-lg hover:border-primary/30 group">
             {/* Quote Icon */}
             <div className="absolute -top-3 right-4 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                <Quotes size={16} weight="fill" className="text-primary" />
+                <Quote className="w-4 h-4 text-primary fill-primary" />
             </div>
 
             {/* Header with stars and verified badge */}
@@ -148,7 +144,7 @@ function TestimonialCard({ testimonial }: { testimonial: typeof testimonials[0] 
                 <StarRating rating={testimonial.rating} />
                 {testimonial.verified && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <CheckCircle size={14} weight="fill" className="text-[#00b67a]" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#00b67a] fill-[#00b67a]" />
                         <span>Verified</span>
                     </div>
                 )}
@@ -229,7 +225,7 @@ export function TestimonialsSection() {
                                         className={`w-4 h-4 flex items-center justify-center ${star <= 4 ? 'bg-[#00b67a]' : 'bg-[#00b67a]/60'
                                             }`}
                                     >
-                                        <Star size={10} weight="fill" className="text-white" />
+                                        <Star className="w-2.5 h-2.5 fill-white text-white" />
                                     </div>
                                 ))}
                             </div>
@@ -261,7 +257,7 @@ export function TestimonialsSection() {
                         disabled={currentIndex === 0}
                         aria-label="Previous reviews"
                     >
-                        <CaretLeft size={20} weight="bold" />
+                        <ChevronLeft className="w-5 h-5" />
                     </button>
                     <button
                         onClick={nextSlide}
@@ -269,7 +265,7 @@ export function TestimonialsSection() {
                         disabled={currentIndex >= maxIndex}
                         aria-label="Next reviews"
                     >
-                        <CaretRight size={20} weight="bold" />
+                        <ChevronRight className="w-5 h-5" />
                     </button>
 
                     {/* Cards Container */}
@@ -310,7 +306,7 @@ export function TestimonialsSection() {
                         className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
                     >
                         Read all reviews on Trustpilot
-                        <CaretRight size={16} weight="bold" />
+                        <ChevronRight className="w-4 h-4" />
                     </Link>
                 </div>
             </div>

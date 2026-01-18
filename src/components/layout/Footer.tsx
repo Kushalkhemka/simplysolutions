@@ -53,7 +53,7 @@ export function Footer() {
                 <div className="flex flex-col lg:flex-row gap-8 items-center justify-between">
                     <div className="flex-1 w-full lg:max-w-xl">
                         <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-foreground">
-                            <PaperPlaneRight size={24} weight="fill" className="text-primary" />
+                            <PaperPlaneRight className="w-6 h-6 text-primary" />
                             Subscribe to our Newsletter
                         </h3>
                         <p className="text-muted-foreground text-sm mb-4">Get the latest updates on new products and upcoming sales.</p>
@@ -68,7 +68,7 @@ export function Footer() {
                     <div className="flex gap-8 lg:gap-12 flex-wrap justify-center lg:justify-end">
                         <div className="flex gap-3 items-center">
                             <div className="p-3 rounded-full bg-primary/10 text-primary">
-                                <ShieldCheck size={24} weight="duotone" />
+                                <ShieldCheck className="w-6 h-6" />
                             </div>
                             <div>
                                 <div className="font-bold text-sm text-foreground">100% Secure</div>
@@ -77,7 +77,7 @@ export function Footer() {
                         </div>
                         <div className="flex gap-3 items-center">
                             <div className="p-3 rounded-full bg-primary/10 text-primary">
-                                <Clock size={24} weight="duotone" />
+                                <Clock className="w-6 h-6" />
                             </div>
                             <div>
                                 <div className="font-bold text-sm text-foreground">Instant Delivery</div>
@@ -86,7 +86,7 @@ export function Footer() {
                         </div>
                         <div className="flex gap-3 items-center">
                             <div className="p-3 rounded-full bg-primary/10 text-primary">
-                                <Headset size={24} weight="duotone" />
+                                <Headset className="w-6 h-6" />
                             </div>
                             <div>
                                 <div className="font-bold text-sm text-foreground">24/7 Support</div>
@@ -127,7 +127,7 @@ export function Footer() {
                                 { Icon: YoutubeLogo, href: '#' }
                             ].map(({ Icon, href }, i) => (
                                 <Link key={i} href={href} className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-muted-foreground">
-                                    <Icon size={20} weight="fill" />
+                                    <Icon className="w-5 h-5" />
                                 </Link>
                             ))}
                         </div>
@@ -163,15 +163,15 @@ export function Footer() {
                         <h4 className="font-bold text-lg mb-6 text-foreground">Contact Us</h4>
                         <ul className="space-y-4">
                             <li className="flex gap-3 text-sm text-muted-foreground">
-                                <MapPin size={20} weight="fill" className="text-primary flex-shrink-0" />
+                                <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
                                 <span>Delhi, India</span>
                             </li>
                             <li className="flex gap-3 text-sm text-muted-foreground">
-                                <Envelope size={20} weight="fill" className="text-primary flex-shrink-0" />
+                                <Envelope className="w-5 h-5 text-primary flex-shrink-0" />
                                 <a href="mailto:support@simplysolutions.co.in" className="hover:text-foreground transition-colors">support@simplysolutions.co.in</a>
                             </li>
                             <li className="flex gap-3 text-sm text-muted-foreground">
-                                <WhatsappLogo size={20} weight="fill" className="text-[#25D366] flex-shrink-0 mt-0.5" />
+                                <WhatsappLogo className="w-5 h-5 text-[#25D366] flex-shrink-0 mt-0.5" />
                                 <div>
                                     <span className="block font-medium text-foreground text-xs mb-0.5">Escalations</span>
                                     <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
@@ -180,7 +180,7 @@ export function Footer() {
                                 </div>
                             </li>
                             <li className="flex gap-3 text-sm text-muted-foreground">
-                                <WhatsappLogo size={20} weight="fill" className="text-[#25D366] flex-shrink-0 mt-0.5" />
+                                <WhatsappLogo className="w-5 h-5 text-[#25D366] flex-shrink-0 mt-0.5" />
                                 <div>
                                     <span className="block font-medium text-foreground text-xs mb-0.5">24/7 AI Tech Support</span>
                                     <a href="https://wa.me/919953994557" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">

@@ -118,6 +118,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
             group-[.toast]:hover:text-foreground
             group-[.toast]:transition-colors
             group-[.toast]:duration-200
+            group-[.toast]:!left-auto
+            group-[.toast]:!right-2
+            group-[.toast]:!top-2
           `,
           success: `
             group-[.toaster]:!border-emerald-500/30
