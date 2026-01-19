@@ -1,6 +1,7 @@
 /**
  * Cron endpoint to sync FBA (Amazon Fulfilled) orders
  * Schedule: Every 24 hours at 2 AM
+ * Uses ASIN mapping to get product_type (FSN)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -18,10 +19,7 @@ const SP_API_CONFIG = {
 function verifyCronAuth(request: NextRequest): boolean {
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
-
-    // Allow if no secret configured (dev mode) or if header matches
     if (!cronSecret) return true;
-
     return authHeader === `Bearer ${cronSecret}`;
 }
 
@@ -75,7 +73,6 @@ async function fetchOrderItems(accessToken: string, orderId: string): Promise<an
 }
 
 export async function GET(request: NextRequest) {
-    // Verify authorization
     if (!verifyCronAuth(request)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -92,7 +89,6 @@ export async function GET(request: NextRequest) {
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
 
-        // Get access token
         const accessToken = await getAccessToken();
 
         // Fetch FBA orders from last 30 days
@@ -111,7 +107,7 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Check existing
+        // Check existing orders
         const orderIds = orders.map((o: any) => o.AmazonOrderId);
         const { data: existingOrders } = await supabase
             .from('amazon_orders')
@@ -131,18 +127,47 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Prepare and insert
+        // Fetch ASIN mapping for product_type lookup
+        const { data: asinMappings } = await supabase
+            .from('amazon_asin_mapping')
+            .select('asin, product_type');
+
+        const asinToProductType = new Map<string, string>();
+        (asinMappings || []).forEach((m: any) => {
+            asinToProductType.set(m.asin, m.product_type);
+        });
+
+        // Prepare orders with ALL fields
         const ordersToInsert = [];
         for (const order of newOrders) {
             const items = await fetchOrderItems(accessToken, order.AmazonOrderId);
             const firstItem = items[0];
+            const asin = firstItem?.ASIN;
+
+            // Use ASIN mapping to get product_type (FSN)
+            const productType = asin ? asinToProductType.get(asin) : null;
 
             ordersToInsert.push({
                 order_id: order.AmazonOrderId,
                 fulfillment_type: 'amazon_fba',
-                fsn: firstItem?.SellerSKU || null,
+                // Use product_type from ASIN mapping, fallback to SellerSKU
+                fsn: productType || firstItem?.SellerSKU || null,
+                // Order details
+                order_date: order.PurchaseDate || null,
+                order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
+                currency: order.OrderTotal?.CurrencyCode || 'INR',
+                quantity: firstItem?.QuantityOrdered || 1,
+                // Buyer info
+                buyer_email: order.BuyerInfo?.BuyerEmail || null,
                 contact_email: order.BuyerInfo?.BuyerEmail || null,
-                warranty_status: 'PENDING'
+                // Shipping address
+                city: order.ShippingAddress?.City || null,
+                state: order.ShippingAddress?.StateOrRegion || null,
+                postal_code: order.ShippingAddress?.PostalCode || null,
+                country: order.ShippingAddress?.CountryCode || 'IN',
+                // Status
+                warranty_status: 'PENDING',
+                synced_at: new Date().toISOString()
             });
         }
 
