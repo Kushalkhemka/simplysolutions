@@ -111,12 +111,22 @@ async function importOrders() {
         return;
     }
 
+    // Deduplicate newOrders by order_id (keep first occurrence)
+    const uniqueOrders = new Map<string, typeof newOrders[0]>();
+    for (const order of newOrders) {
+        if (!uniqueOrders.has(order.orderId)) {
+            uniqueOrders.set(order.orderId, order);
+        }
+    }
+    const dedupedOrders = Array.from(uniqueOrders.values());
+    console.log(`After deduplication: ${dedupedOrders.length} unique orders`);
+
     // Import in batches
     const BATCH_SIZE = 500;
     let imported = 0;
 
-    for (let i = 0; i < newOrders.length; i += BATCH_SIZE) {
-        const batch = newOrders.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < dedupedOrders.length; i += BATCH_SIZE) {
+        const batch = dedupedOrders.slice(i, i + BATCH_SIZE);
 
         const ordersToInsert = batch.map(o => ({
             order_id: o.orderId,
@@ -128,7 +138,7 @@ async function importOrders() {
 
         const { error } = await supabase
             .from('amazon_orders')
-            .upsert(ordersToInsert, { onConflict: 'order_id' });
+            .insert(ordersToInsert);
 
         if (error) {
             console.error(`Batch ${i / BATCH_SIZE + 1} error:`, error.message);
