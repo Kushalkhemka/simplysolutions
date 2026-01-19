@@ -1,6 +1,6 @@
 /**
  * Import Missing Unredeemed Keys from CSV
- * Imports keys from CSV that have empty is_redeemed field
+ * Fixed CSV parsing
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -21,6 +21,26 @@ interface CsvKey {
     isRedeemed: boolean;
 }
 
+function parseCSVLine(line: string): string[] {
+    const parts: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            parts.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    parts.push(current);
+    return parts;
+}
+
 function parseCSV(csvPath: string): CsvKey[] {
     const content = fs.readFileSync(csvPath, 'utf-8');
     const lines = content.split('\n').slice(1); // Skip header
@@ -29,20 +49,18 @@ function parseCSV(csvPath: string): CsvKey[] {
     for (const line of lines) {
         if (!line.trim()) continue;
 
-        // Parse CSV line (simple parsing for this format)
-        const match = line.match(/^"([^"]*)"(?:,"([^"]*)")*$/);
-        if (!match) continue;
-
-        // Split by ","
-        const parts = line.match(/"([^"]*)"/g)?.map(p => p.replace(/"/g, '')) || [];
+        const parts = parseCSVLine(line);
         if (parts.length < 3) continue;
 
-        const licenseKey = parts[0];
-        const fsn = parts[1];
-        const isRedeemedStr = parts[2];
+        const licenseKey = parts[0].trim();
+        const fsn = parts[1].trim();
+        const isRedeemedStr = parts[2].trim();
+
+        // Skip if license key is empty or a placeholder
+        if (!licenseKey || licenseKey.startsWith('#')) continue;
 
         // Only get keys with empty is_redeemed (unredeemed)
-        if (isRedeemedStr === '') {
+        if (isRedeemedStr === '' && fsn !== '') {
             keys.push({
                 licenseKey,
                 fsn,
@@ -61,12 +79,18 @@ async function importMissingKeys() {
     console.log(`Reading CSV: ${csvPath}`);
 
     const csvKeys = parseCSV(csvPath);
-    console.log(`Found ${csvKeys.length} unredeemed keys in CSV`);
+    console.log(`Found ${csvKeys.length} unredeemed keys with valid FSN in CSV`);
 
     if (csvKeys.length === 0) {
         console.log('No unredeemed keys to import');
         return;
     }
+
+    // Show sample
+    console.log('\nSample keys:');
+    csvKeys.slice(0, 5).forEach((k, i) => {
+        console.log(`  ${i + 1}. ${k.licenseKey.substring(0, 40)}... | FSN: ${k.fsn}`);
+    });
 
     // Check which keys already exist in database
     const licenseKeys = csvKeys.map(k => k.licenseKey);
@@ -78,7 +102,7 @@ async function importMissingKeys() {
     const existingSet = new Set((existingKeys || []).map(k => k.license_key));
     const newKeys = csvKeys.filter(k => !existingSet.has(k.licenseKey));
 
-    console.log(`Existing in DB: ${existingSet.size}`);
+    console.log(`\nExisting in DB: ${existingSet.size}`);
     console.log(`New to import: ${newKeys.length}`);
 
     if (newKeys.length === 0) {
