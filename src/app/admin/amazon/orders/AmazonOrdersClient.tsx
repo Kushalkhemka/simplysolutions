@@ -43,6 +43,13 @@ export default function AmazonOrdersClient() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
+    // Filter state
+    const [filterFsn, setFilterFsn] = useState<string>('all');
+    const [filterType, setFilterType] = useState<string>('all');
+    const [filterGetcid, setFilterGetcid] = useState<string>('all');
+    const [showFilters, setShowFilters] = useState(false);
+    const [uniqueFsns, setUniqueFsns] = useState<string[]>([]);
+
     const pageSize = 50;
     const supabase = createClient();
 
@@ -60,6 +67,17 @@ export default function AmazonOrdersClient() {
             query = query.or(`order_id.ilike.%${searchQuery}%,fsn.ilike.%${searchQuery}%`);
         }
 
+        // Apply filters
+        if (filterFsn !== 'all') {
+            query = query.eq('fsn', filterFsn);
+        }
+        if (filterType !== 'all') {
+            query = query.eq('fulfillment_type', filterType);
+        }
+        if (filterGetcid !== 'all') {
+            query = query.eq('getcid_used', filterGetcid === 'used');
+        }
+
         const { data, count, error } = await query.range(from, to);
 
         if (error) {
@@ -69,11 +87,28 @@ export default function AmazonOrdersClient() {
             setTotalCount(count || 0);
         }
         setIsLoading(false);
-    }, [currentPage, searchQuery, supabase]);
+    }, [currentPage, searchQuery, filterFsn, filterType, filterGetcid, supabase]);
+
+    // Fetch unique FSNs for filter dropdown
+    const fetchUniqueFsns = useCallback(async () => {
+        const { data } = await supabase
+            .from('amazon_orders')
+            .select('fsn')
+            .not('fsn', 'is', null);
+
+        if (data) {
+            const fsns = [...new Set(data.map(d => d.fsn).filter(Boolean))].sort();
+            setUniqueFsns(fsns as string[]);
+        }
+    }, [supabase]);
 
     useEffect(() => {
         fetchOrders();
     }, [fetchOrders]);
+
+    useEffect(() => {
+        fetchUniqueFsns();
+    }, [fetchUniqueFsns]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -143,8 +178,8 @@ export default function AmazonOrdersClient() {
             </div>
 
             {/* Search and Filter */}
-            <form onSubmit={handleSearch} className="flex gap-4">
-                <div className="relative flex-1 max-w-md">
+            <form onSubmit={handleSearch} className="flex flex-wrap gap-4">
+                <div className="relative flex-1 min-w-[200px] max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                         type="text"
@@ -157,11 +192,72 @@ export default function AmazonOrdersClient() {
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
                     Search
                 </button>
-                <button type="button" className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-accent">
+                <button
+                    type="button"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-accent ${showFilters ? 'bg-accent' : ''}`}
+                >
                     <Filter className="h-4 w-4" />
                     Filter
                 </button>
+                {(filterFsn !== 'all' || filterType !== 'all' || filterGetcid !== 'all') && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setFilterFsn('all');
+                            setFilterType('all');
+                            setFilterGetcid('all');
+                            setCurrentPage(1);
+                        }}
+                        className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+                    >
+                        Clear Filters
+                    </button>
+                )}
             </form>
+
+            {/* Filter Dropdowns */}
+            {showFilters && (
+                <div className="flex flex-wrap gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">FSN</label>
+                        <select
+                            value={filterFsn}
+                            onChange={(e) => { setFilterFsn(e.target.value); setCurrentPage(1); }}
+                            className="px-3 py-2 border rounded-lg bg-background min-w-[200px]"
+                        >
+                            <option value="all">All FSNs</option>
+                            {uniqueFsns.map(fsn => (
+                                <option key={fsn} value={fsn}>{fsn}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Fulfillment Type</label>
+                        <select
+                            value={filterType}
+                            onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}
+                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                        >
+                            <option value="all">All Types</option>
+                            <option value="amazon_fba">FBA</option>
+                            <option value="amazon_mfn">Digital/MFN</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">GetCID Status</label>
+                        <select
+                            value={filterGetcid}
+                            onChange={(e) => { setFilterGetcid(e.target.value); setCurrentPage(1); }}
+                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                        >
+                            <option value="all">All</option>
+                            <option value="used">Used</option>
+                            <option value="not_used">Not Used</option>
+                        </select>
+                    </div>
+                </div>
+            )}
 
             {/* Orders Table */}
             <div className="bg-card border rounded-lg overflow-hidden">
