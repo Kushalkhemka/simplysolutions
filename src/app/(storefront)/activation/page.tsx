@@ -37,6 +37,9 @@ export default function FBAActivatePage() {
     const [error, setError] = useState<string | null>(null);
     const [installationIds, setInstallationIds] = useState<string[]>(Array(9).fill(''));
     const installationRef = useRef<HTMLDivElement>(null);
+    const [confirmationId, setConfirmationId] = useState<string | null>(null);
+    const [getcidLoading, setGetcidLoading] = useState(false);
+    const [getcidError, setGetcidError] = useState<string | null>(null);
 
     const handleVerifyOrder = async () => {
         if (!orderId.trim()) {
@@ -149,19 +152,53 @@ export default function FBAActivatePage() {
         newIds[index] = cleanValue;
         setInstallationIds(newIds);
 
-        if (cleanValue.length === 6 && index < 8) {
+        if (cleanValue.length === 7 && index < 8) {
             const nextInput = document.getElementById(`install-id-${index + 1}`);
             nextInput?.focus();
         }
     };
 
-    const handlePhoneActivation = () => {
+    const handlePhoneActivation = async () => {
         const fullInstallationId = installationIds.join('');
         if (fullInstallationId.length < 54) {
-            toast.error('Please enter all 9 installation ID blocks');
+            toast.error('Please enter all 9 installation ID blocks (54 digits total)');
             return;
         }
-        toast.info('For phone activation, please contact support on WhatsApp: +91 8595899215');
+
+        if (fullInstallationId.length < 63) {
+            toast.error('Please enter the complete Installation ID (63 digits)');
+            return;
+        }
+
+        setGetcidLoading(true);
+        setGetcidError(null);
+
+        try {
+            const response = await fetch('/api/getcid', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    identifier: orderId.trim(),
+                    installationId: fullInstallationId
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.confirmationId) {
+                setConfirmationId(data.confirmationId);
+                toast.success('Confirmation ID generated successfully!');
+            } else {
+                setGetcidError(data.error || 'Failed to generate Confirmation ID');
+                toast.error(data.error || 'Failed to generate Confirmation ID');
+            }
+        } catch (err) {
+            console.error('GetCID error:', err);
+            setGetcidError('Network error. Please try again.');
+            toast.error('Network error. Please try again.');
+        } finally {
+            setGetcidLoading(false);
+        }
     };
 
     return (
@@ -311,7 +348,7 @@ export default function FBAActivatePage() {
                                     <div ref={installationRef} className="pt-6 mt-6 border-t border-[#DDD]">
                                         <div className="flex items-center justify-between mb-3">
                                             <h3 className="font-bold text-[#0F1111] text-sm uppercase">
-                                                Phone Activation
+                                                Get Confirmation ID
                                             </h3>
                                             <button onClick={scrollToInstallation} className="text-xs text-[#007185] hover:underline hover:text-[#C7511F]">
                                                 Learn more ↓
@@ -319,8 +356,35 @@ export default function FBAActivatePage() {
                                         </div>
 
                                         <p className="text-xs text-[#565959] mb-3">
-                                            Enter your 63-digit Installation ID below for phone activation:
+                                            Enter your 63-digit Installation ID below to get your Confirmation ID:
                                         </p>
+
+                                        {/* Confirmation ID Result */}
+                                        {confirmationId && (
+                                            <div className="mb-4 p-4 bg-[#067D62] text-white rounded-lg">
+                                                <p className="text-sm font-bold mb-2">✓ Confirmation ID Generated!</p>
+                                                <div className="bg-white/20 p-2 rounded">
+                                                    <code className="font-mono text-sm break-all">{confirmationId}</code>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(confirmationId);
+                                                        toast.success('Confirmation ID copied!');
+                                                    }}
+                                                    className="mt-2 px-3 py-1 bg-white text-[#067D62] text-xs font-bold rounded hover:bg-gray-100"
+                                                >
+                                                    Copy Confirmation ID
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* GetCID Error */}
+                                        {getcidError && (
+                                            <div className="mb-4 p-3 bg-[#FCF4F4] border border-[#CC0C39] rounded flex items-center gap-2">
+                                                <AlertTriangle className="w-4 h-4 text-[#CC0C39] flex-shrink-0" />
+                                                <span className="text-[#CC0C39] text-sm">{getcidError}</span>
+                                            </div>
+                                        )}
 
                                         <div className="grid grid-cols-3 sm:grid-cols-9 gap-1 mb-4">
                                             {installationIds.map((id, index) => (
@@ -339,11 +403,26 @@ export default function FBAActivatePage() {
 
                                         <button
                                             onClick={handlePhoneActivation}
-                                            className="w-full py-2 bg-gradient-to-b from-[#FF9900] to-[#E47911] hover:from-[#FA8900] hover:to-[#D07910] text-white font-bold rounded border border-[#D07910] flex items-center justify-center gap-2 text-sm"
+                                            disabled={getcidLoading || !orderId.trim()}
+                                            className="w-full py-2 bg-gradient-to-b from-[#FF9900] to-[#E47911] hover:from-[#FA8900] hover:to-[#D07910] text-white font-bold rounded border border-[#D07910] flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            <Phone className="w-4 h-4" />
-                                            ACTIVATE VIA PHONE
+                                            {getcidLoading ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    Generating...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Phone className="w-4 h-4" />
+                                                    GET CONFIRMATION ID
+                                                </>
+                                            )}
                                         </button>
+
+                                        <p className="text-xs text-[#565959] mt-2 text-center">
+                                            Need help? Contact us on WhatsApp:{' '}
+                                            <a href="https://wa.me/918595899215" className="text-[#007185] hover:underline font-medium">8595899215</a>
+                                        </p>
                                     </div>
 
                                     {/* Dynamic Installation Guide */}
