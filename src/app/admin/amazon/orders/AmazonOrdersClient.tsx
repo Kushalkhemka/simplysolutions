@@ -122,7 +122,17 @@ export default function AmazonOrdersClient() {
 
         let licenseKey: LicenseKey | null = null;
 
-        if (order.license_key_id) {
+        // Try to find license key by order_id first (for imported orders)
+        const { data: keyByOrderId } = await supabase
+            .from('amazon_activation_license_keys')
+            .select('id, license_key, fsn, is_redeemed, created_at')
+            .eq('order_id', order.order_id)
+            .maybeSingle();
+
+        if (keyByOrderId) {
+            licenseKey = keyByOrderId;
+        } else if (order.license_key_id) {
+            // Fallback to license_key_id lookup
             const { data } = await supabase
                 .from('amazon_activation_license_keys')
                 .select('id, license_key, fsn, is_redeemed, created_at')
