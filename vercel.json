@@ -1,0 +1,12 @@
+{
+    "crons": [
+        {
+            "path": "/api/cron/sync-mfn",
+            "schedule": "*/15 * * * *"
+        },
+        {
+            "path": "/api/cron/sync-fba",
+            "schedule": "0 2 * * *"
+        }
+    ]
+}
