@@ -1,5 +1,6 @@
 /**
- * Amazon SP-API Orders Sync Script (Updated - No AWS Required)
+ * Amazon SP-API Orders Sync Script
+ * Fixed: Properly maps ASIN → FSN using amazon_asin_mapping table
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -52,7 +53,6 @@ async function fetchOrders(accessToken: string, createdAfter: string): Promise<a
     url.searchParams.set('MaxResultsPerPage', '100');
 
     console.log(`Fetching orders created after ${createdAfter}...`);
-    console.log(`URL: ${url.toString()}`);
 
     const headers = {
         'x-amz-access-token': accessToken,
@@ -63,18 +63,9 @@ async function fetchOrders(accessToken: string, createdAfter: string): Promise<a
 
     const response = await fetch(url.toString(), { headers });
 
-    console.log(`Response status: ${response.status}`);
-
     if (!response.ok) {
         const error = await response.text();
         console.error('SP-API Error Response:', error);
-
-        // Try to parse error for more details
-        try {
-            const errorJson = JSON.parse(error);
-            console.error('Error details:', JSON.stringify(errorJson, null, 2));
-        } catch { }
-
         throw new Error(`SP-API error: ${response.status}`);
     }
 
@@ -82,9 +73,55 @@ async function fetchOrders(accessToken: string, createdAfter: string): Promise<a
     return data.payload?.Orders || [];
 }
 
+// Fetch order items to get ASIN
+async function fetchOrderItems(accessToken: string, orderId: string): Promise<any[]> {
+    const url = `${SP_API_CONFIG.endpoint}/orders/v0/orders/${orderId}/orderItems`;
+
+    const headers = {
+        'x-amz-access-token': accessToken,
+        'x-amz-date': new Date().toISOString().replace(/[:-]|\.\d{3}/g, ''),
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    };
+
+    const response = await fetch(url, { headers });
+
+    if (!response.ok) {
+        console.error(`Failed to fetch items for order ${orderId}`);
+        return [];
+    }
+
+    const data = await response.json();
+    return data.payload?.OrderItems || [];
+}
+
+// Lookup FSN by ASIN from amazon_asin_mapping table
+async function lookupFsnByAsin(asin: string): Promise<{ fsn: string; productTitle: string } | null> {
+    const { data, error } = await supabase
+        .from('amazon_asin_mapping')
+        .select('fsn, product_title')
+        .eq('asin', asin)
+        .single();
+
+    if (error || !data) {
+        console.warn(`   ⚠ No FSN mapping found for ASIN: ${asin}`);
+        return null;
+    }
+
+    return { fsn: data.fsn, productTitle: data.product_title };
+}
+
+// Determine fulfillment type
+function getFulfillmentType(order: any): string {
+    const channel = order.FulfillmentChannel;
+    if (channel === 'AFN') return 'amazon_fba';       // Amazon Fulfilled Network (FBA)
+    if (channel === 'MFN') return 'amazon_merchant';  // Merchant Fulfilled Network
+    return 'amazon_fba'; // Default
+}
+
 // Sync orders
 async function syncOrders() {
-    console.log('=== Amazon SP-API Orders Sync ===\n');
+    console.log('=== Amazon SP-API Orders Sync (ASIN → FSN) ===\n');
 
     if (!SP_API_CONFIG.clientId || !SP_API_CONFIG.refreshToken) {
         throw new Error('Missing SP-API credentials in environment');
@@ -93,7 +130,6 @@ async function syncOrders() {
     console.log('1. Getting access token...');
     const accessToken = await getAccessToken();
     console.log('   ✓ Access token obtained');
-    console.log(`   Token preview: ${accessToken.substring(0, 30)}...`);
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -108,7 +144,7 @@ async function syncOrders() {
         return;
     }
 
-    // Check existing
+    // Check existing orders
     console.log('\n3. Checking existing orders...');
     const orderIds = orders.map((o: any) => o.AmazonOrderId);
     const { data: existingOrders } = await supabase
@@ -125,29 +161,81 @@ async function syncOrders() {
         return;
     }
 
-    // Insert
-    console.log('\n4. Inserting new orders...');
-    const ordersToInsert = newOrders.map((o: any) => ({
-        order_id: o.AmazonOrderId,
-        order_date: o.PurchaseDate,
-        order_total: o.OrderTotal?.Amount ? parseFloat(o.OrderTotal.Amount) : null,
-        currency: o.OrderTotal?.CurrencyCode || 'INR',
-        fulfillment_type: 'amazon_fba',
-        buyer_email: o.BuyerEmail || null,
-        city: o.ShippingAddress?.City || null,
-        state: o.ShippingAddress?.StateOrRegion || null,
-        postal_code: o.ShippingAddress?.PostalCode || null,
-        country: o.ShippingAddress?.CountryCode || 'IN',
-        warranty_status: 'PENDING',
-        synced_at: new Date().toISOString()
-    }));
+    // Process each new order - fetch items and lookup FSN
+    console.log('\n4. Processing new orders (fetching items, looking up FSN)...');
+    const ordersToInsert: any[] = [];
+    let processedCount = 0;
+    let skippedCount = 0;
 
-    const { error } = await supabase.from('amazon_orders').insert(ordersToInsert);
+    for (const order of newOrders) {
+        const orderId = order.AmazonOrderId;
+        console.log(`\n   Processing order: ${orderId}`);
+
+        // Fetch order items to get ASIN
+        const items = await fetchOrderItems(accessToken, orderId);
+
+        if (items.length === 0) {
+            console.log(`   ⚠ No items found for order ${orderId}, skipping`);
+            skippedCount++;
+            continue;
+        }
+
+        // Process each item in the order
+        for (const item of items) {
+            const asin = item.ASIN;
+            const sku = item.SellerSKU;
+
+            console.log(`   - Item ASIN: ${asin}, SKU: ${sku}`);
+
+            // Lookup FSN by ASIN
+            const mapping = await lookupFsnByAsin(asin);
+
+            if (!mapping) {
+                console.log(`   ⚠ Skipping item - no FSN mapping for ASIN ${asin}`);
+                continue;
+            }
+
+            console.log(`   ✓ Found FSN: ${mapping.fsn} (${mapping.productTitle})`);
+
+            ordersToInsert.push({
+                order_id: orderId,
+                order_date: order.PurchaseDate,
+                order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
+                currency: order.OrderTotal?.CurrencyCode || 'INR',
+                fulfillment_type: getFulfillmentType(order),
+                fsn: mapping.fsn, // FSN from ASIN lookup
+                buyer_email: order.BuyerEmail || null,
+                city: order.ShippingAddress?.City || null,
+                state: order.ShippingAddress?.StateOrRegion || null,
+                postal_code: order.ShippingAddress?.PostalCode || null,
+                country: order.ShippingAddress?.CountryCode || 'IN',
+                warranty_status: 'PENDING',
+                synced_at: new Date().toISOString()
+            });
+            processedCount++;
+        }
+
+        // Rate limiting - small delay between orders
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    console.log(`\n   Processed: ${processedCount} items, Skipped: ${skippedCount} orders`);
+
+    if (ordersToInsert.length === 0) {
+        console.log('   No valid orders to insert');
+        return;
+    }
+
+    // Insert orders
+    console.log('\n5. Inserting orders into database...');
+    const { error } = await supabase
+        .from('amazon_orders')
+        .upsert(ordersToInsert, { onConflict: 'order_id' });
 
     if (error) {
         console.log('   Error inserting:', error.message);
     } else {
-        console.log(`   ✓ Inserted ${ordersToInsert.length} new orders`);
+        console.log(`   ✓ Inserted/Updated ${ordersToInsert.length} orders with FSN`);
     }
 
     const { count } = await supabase.from('amazon_orders').select('*', { count: 'exact', head: true });
