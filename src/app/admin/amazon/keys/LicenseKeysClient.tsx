@@ -32,9 +32,10 @@ export default function LicenseKeysClient() {
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
     // Add key form
-    const [newKey, setNewKey] = useState('');
+    const [newKeys, setNewKeys] = useState('');
     const [newFsn, setNewFsn] = useState('');
     const [productName, setProductName] = useState('');
+    const [addResult, setAddResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
 
     // Stats
     const [availableCount, setAvailableCount] = useState(0);
@@ -124,31 +125,87 @@ export default function LicenseKeysClient() {
         setProductName(mapping?.product_title || '');
     };
 
-    // Add new key
+    // Add new keys (bulk)
     const handleAddKey = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newKey.trim() || !newFsn) return;
+        if (!newKeys.trim() || !newFsn) return;
 
         setIsSubmitting(true);
+        setAddResult(null);
 
-        const { error } = await supabase
-            .from('amazon_activation_license_keys')
-            .insert({
-                license_key: newKey.trim(),
+        // Parse keys from textarea - split by newlines and filter empty lines
+        const keysToAdd = newKeys
+            .split('\n')
+            .map(key => key.trim())
+            .filter(key => key.length > 0);
+
+        if (keysToAdd.length === 0) {
+            setIsSubmitting(false);
+            return;
+        }
+
+        let successCount = 0;
+        let failedCount = 0;
+        const errors: string[] = [];
+
+        // Insert keys in batches to handle large numbers
+        const batchSize = 100;
+        for (let i = 0; i < keysToAdd.length; i += batchSize) {
+            const batch = keysToAdd.slice(i, i + batchSize);
+            const insertData = batch.map(key => ({
+                license_key: key,
                 fsn: newFsn,
                 is_redeemed: false,
-            });
+            }));
 
-        if (error) {
-            alert(`Error adding key: ${error.message}`);
-        } else {
-            setNewKey('');
-            setNewFsn('');
-            setProductName('');
-            setIsModalOpen(false);
+            const { data, error } = await supabase
+                .from('amazon_activation_license_keys')
+                .insert(insertData)
+                .select();
+
+            if (error) {
+                // Try inserting one by one to identify duplicates
+                for (const key of batch) {
+                    const { error: singleError } = await supabase
+                        .from('amazon_activation_license_keys')
+                        .insert({
+                            license_key: key,
+                            fsn: newFsn,
+                            is_redeemed: false,
+                        });
+
+                    if (singleError) {
+                        failedCount++;
+                        if (errors.length < 5) {
+                            errors.push(`${key.substring(0, 20)}...: ${singleError.message}`);
+                        }
+                    } else {
+                        successCount++;
+                    }
+                }
+            } else {
+                successCount += data?.length || batch.length;
+            }
+        }
+
+        setAddResult({ success: successCount, failed: failedCount, errors });
+
+        if (successCount > 0) {
             fetchKeys();
             fetchStats();
         }
+
+        if (failedCount === 0) {
+            // Close modal if all succeeded
+            setTimeout(() => {
+                setNewKeys('');
+                setNewFsn('');
+                setProductName('');
+                setAddResult(null);
+                setIsModalOpen(false);
+            }, 1500);
+        }
+
         setIsSubmitting(false);
     };
 

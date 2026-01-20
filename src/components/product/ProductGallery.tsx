@@ -92,6 +92,9 @@ export function ProductGallery({
                                     fill
                                     className="object-contain p-8"
                                     priority={idx === 0}
+                                    loading={idx === 0 ? 'eager' : 'lazy'}
+                                    placeholder="blur"
+                                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PC9zdmc+"
                                 />
                             </div>
                         ))}
@@ -126,6 +129,9 @@ export function ProductGallery({
                                 alt={`${productName} thumbnail ${idx + 1}`}
                                 fill
                                 className="object-contain p-2"
+                                loading="lazy"
+                                placeholder="blur"
+                                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PC9zdmc+"
                             />
                         </button>
                     ))}

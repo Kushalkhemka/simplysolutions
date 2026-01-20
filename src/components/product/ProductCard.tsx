@@ -83,6 +83,9 @@ export function ProductCard({ product, showQuickAdd = true, variant = 'default' 
                                 alt={product.name}
                                 fill
                                 className="object-contain"
+                                loading="lazy"
+                                placeholder="blur"
+                                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PC9zdmc+"
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
@@ -142,6 +145,9 @@ export function ProductCard({ product, showQuickAdd = true, variant = 'default' 
                             fill
                             className="object-contain p-4 group-hover:scale-110 transition-transform duration-500 ease-out"
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                            loading="lazy"
+                            placeholder="blur"
+                            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PC9zdmc+"
                         />
                     ) : (
                         <div className="flex flex-col items-center justify-center text-muted-foreground">

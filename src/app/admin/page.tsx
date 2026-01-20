@@ -7,7 +7,9 @@ import {
     Users,
     TrendingUp,
     TrendingDown,
-    ArrowRight
+    ArrowRight,
+    Key,
+    AlertTriangle
 } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
@@ -62,6 +64,34 @@ export default async function AdminDashboardPage() {
         .order('stock_quantity', { ascending: true })
         .limit(5);
 
+    // License keys stock by FSN
+    const { data: licenseKeysData } = await supabase
+        .from('amazon_activation_license_keys')
+        .select('fsn, is_redeemed');
+
+    // Calculate available keys per FSN
+    const keysByFsn: Record<string, { total: number; available: number }> = {};
+    (licenseKeysData || []).forEach((key: any) => {
+        if (!key.fsn) return;
+        if (!keysByFsn[key.fsn]) {
+            keysByFsn[key.fsn] = { total: 0, available: 0 };
+        }
+        keysByFsn[key.fsn].total++;
+        if (!key.is_redeemed) {
+            keysByFsn[key.fsn].available++;
+        }
+    });
+
+    // Find FSNs with low stock (less than 10 available keys)
+    const lowStockKeys = Object.entries(keysByFsn)
+        .map(([fsn, counts]) => ({ fsn, ...counts }))
+        .filter(item => item.available < 10)
+        .sort((a, b) => a.available - b.available)
+        .slice(0, 5);
+
+    // Total available license keys
+    const totalAvailableKeys = Object.values(keysByFsn).reduce((sum, val) => sum + val.available, 0);
+
     const stats = [
         {
             name: 'Total Products',
@@ -85,11 +115,11 @@ export default async function AdminDashboardPage() {
             href: '/admin/analytics',
         },
         {
-            name: 'Total Customers',
-            value: totalCustomers || 0,
-            icon: Users,
-            color: 'bg-purple-500',
-            href: '/admin/customers',
+            name: 'License Keys Available',
+            value: totalAvailableKeys,
+            icon: Key,
+            color: lowStockKeys.length > 0 ? 'bg-orange-500' : 'bg-purple-500',
+            href: '/admin/amazon/keys',
         },
     ];
 
@@ -189,6 +219,39 @@ export default async function AdminDashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* License Keys Low Stock Alert */}
+            {lowStockKeys.length > 0 && (
+                <div className="bg-card border border-orange-200 rounded-lg">
+                    <div className="p-4 border-b border-orange-200 bg-orange-50 flex items-center justify-between">
+                        <h2 className="font-semibold flex items-center gap-2 text-orange-800">
+                            <AlertTriangle className="h-4 w-4" />
+                            License Keys Low Stock Alert
+                        </h2>
+                        <Link href="/admin/amazon/keys" className="text-sm text-orange-700 hover:underline flex items-center gap-1">
+                            Add Keys <ArrowRight className="h-4 w-4" />
+                        </Link>
+                    </div>
+                    <div className="divide-y divide-orange-100">
+                        {lowStockKeys.map((item) => (
+                            <div key={item.fsn} className="p-4 flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium">{item.fsn}</p>
+                                    <p className="text-xs text-muted-foreground">{item.total} total keys</p>
+                                </div>
+                                <span className={`text-sm font-medium px-2 py-1 rounded ${item.available === 0
+                                        ? 'bg-red-100 text-red-800'
+                                        : item.available < 5
+                                            ? 'bg-orange-100 text-orange-800'
+                                            : 'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                    {item.available} available
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Quick Actions */}
             <div className="bg-card border rounded-lg p-6">
