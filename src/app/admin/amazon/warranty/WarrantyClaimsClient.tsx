@@ -113,11 +113,11 @@ export default function WarrantyClaimsClient() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'VERIFIED':
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="h-3 w-3" /> Verified</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"><CheckCircle className="h-3 w-3" /> Verified</span>;
             case 'REJECTED':
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="h-3 w-3" /> Rejected</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"><XCircle className="h-3 w-3" /> Rejected</span>;
             default:
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3" /> Processing</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"><Clock className="h-3 w-3" /> Processing</span>;
         }
     };
 
@@ -145,24 +145,24 @@ export default function WarrantyClaimsClient() {
             <div className="grid grid-cols-3 gap-4">
                 <button
                     onClick={() => { setStatusFilter('PROCESSING'); setCurrentPage(1); }}
-                    className={`bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left hover:ring-2 hover:ring-yellow-400 transition-all ${statusFilter === 'PROCESSING' ? 'ring-2 ring-yellow-400' : ''}`}
+                    className={`bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-yellow-400 transition-all ${statusFilter === 'PROCESSING' ? 'ring-2 ring-yellow-400' : ''}`}
                 >
-                    <p className="text-2xl font-bold text-yellow-800">{processingCount.toLocaleString()}</p>
-                    <p className="text-sm text-yellow-600">Pending Review</p>
+                    <p className="text-2xl font-bold text-yellow-800 dark:text-yellow-400">{processingCount.toLocaleString()}</p>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-500">Pending Review</p>
                 </button>
                 <button
                     onClick={() => { setStatusFilter('VERIFIED'); setCurrentPage(1); }}
-                    className={`bg-green-50 border border-green-200 rounded-lg p-4 text-left hover:ring-2 hover:ring-green-400 transition-all ${statusFilter === 'VERIFIED' ? 'ring-2 ring-green-400' : ''}`}
+                    className={`bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-green-400 transition-all ${statusFilter === 'VERIFIED' ? 'ring-2 ring-green-400' : ''}`}
                 >
-                    <p className="text-2xl font-bold text-green-800">{verifiedCount.toLocaleString()}</p>
-                    <p className="text-sm text-green-600">Verified</p>
+                    <p className="text-2xl font-bold text-green-800 dark:text-green-400">{verifiedCount.toLocaleString()}</p>
+                    <p className="text-sm text-green-600 dark:text-green-500">Verified</p>
                 </button>
                 <button
                     onClick={() => { setStatusFilter('REJECTED'); setCurrentPage(1); }}
-                    className={`bg-red-50 border border-red-200 rounded-lg p-4 text-left hover:ring-2 hover:ring-red-400 transition-all ${statusFilter === 'REJECTED' ? 'ring-2 ring-red-400' : ''}`}
+                    className={`bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-red-400 transition-all ${statusFilter === 'REJECTED' ? 'ring-2 ring-red-400' : ''}`}
                 >
-                    <p className="text-2xl font-bold text-red-800">{rejectedCount.toLocaleString()}</p>
-                    <p className="text-sm text-red-600">Rejected</p>
+                    <p className="text-2xl font-bold text-red-800 dark:text-red-400">{rejectedCount.toLocaleString()}</p>
+                    <p className="text-sm text-red-600 dark:text-red-500">Rejected</p>
                 </button>
             </div>
 

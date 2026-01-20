@@ -37,6 +37,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.cdn.bubble.io',
       },
+      {
+        protocol: 'https',
+        hostname: 'qcsdnlakugvnwlflhwpo.supabase.co',
+        pathname: '/storage/**',
+      },
     ],
   },
   // Performance optimizations

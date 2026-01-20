@@ -261,17 +261,17 @@ export default function LicenseKeysClient() {
             <div className="grid grid-cols-2 gap-4">
                 <button
                     onClick={() => { setFilterRedeemed('available'); setCurrentPage(1); }}
-                    className={`bg-green-50 border border-green-200 rounded-lg p-4 text-left hover:ring-2 hover:ring-green-400 transition-all ${filterRedeemed === 'available' ? 'ring-2 ring-green-400' : ''}`}
+                    className={`bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-green-400 transition-all ${filterRedeemed === 'available' ? 'ring-2 ring-green-400' : ''}`}
                 >
-                    <p className="text-2xl font-bold text-green-800">{availableCount.toLocaleString()}</p>
-                    <p className="text-sm text-green-600">Available Keys</p>
+                    <p className="text-2xl font-bold text-green-800 dark:text-green-400">{availableCount.toLocaleString()}</p>
+                    <p className="text-sm text-green-600 dark:text-green-500">Available Keys</p>
                 </button>
                 <button
                     onClick={() => { setFilterRedeemed('redeemed'); setCurrentPage(1); }}
-                    className={`bg-orange-50 border border-orange-200 rounded-lg p-4 text-left hover:ring-2 hover:ring-orange-400 transition-all ${filterRedeemed === 'redeemed' ? 'ring-2 ring-orange-400' : ''}`}
+                    className={`bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-orange-400 transition-all ${filterRedeemed === 'redeemed' ? 'ring-2 ring-orange-400' : ''}`}
                 >
-                    <p className="text-2xl font-bold text-orange-800">{redeemedCount.toLocaleString()}</p>
-                    <p className="text-sm text-orange-600">Redeemed Keys</p>
+                    <p className="text-2xl font-bold text-orange-800 dark:text-orange-400">{redeemedCount.toLocaleString()}</p>
+                    <p className="text-sm text-orange-600 dark:text-orange-500">Redeemed Keys</p>
                 </button>
             </div>
 
@@ -344,7 +344,7 @@ export default function LicenseKeysClient() {
                                                     <CheckCircle className="h-3 w-3" /> Redeemed
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                                                     <Key className="h-3 w-3" /> Available
                                                 </span>
                                             )}
@@ -408,29 +408,33 @@ export default function LicenseKeysClient() {
             {/* Add Key Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setIsModalOpen(false)} />
-                    <div className="relative bg-card border rounded-xl shadow-xl w-full max-w-md m-4">
+                    <div className="absolute inset-0 bg-black/50" onClick={() => { setIsModalOpen(false); setAddResult(null); }} />
+                    <div className="relative bg-card border rounded-xl shadow-xl w-full max-w-lg m-4">
                         <div className="border-b px-6 py-4 flex items-center justify-between">
-                            <h2 className="text-xl font-bold">Add License Key</h2>
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-muted rounded-full transition-colors">
+                            <h2 className="text-xl font-bold">Add License Keys (Bulk)</h2>
+                            <button onClick={() => { setIsModalOpen(false); setAddResult(null); }} className="p-2 hover:bg-muted rounded-full transition-colors">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
                         <form onSubmit={handleAddKey} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">License Key *</label>
-                                <div className="relative">
-                                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <input
-                                        type="text"
-                                        value={newKey}
-                                        onChange={(e) => setNewKey(e.target.value)}
-                                        placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
-                                        className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background font-mono"
-                                        required
-                                    />
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-sm font-medium">License Keys *</label>
+                                    <span className="text-xs text-muted-foreground">
+                                        {newKeys.split('\n').filter(k => k.trim()).length} key(s)
+                                    </span>
                                 </div>
+                                <textarea
+                                    value={newKeys}
+                                    onChange={(e) => setNewKeys(e.target.value)}
+                                    placeholder="Paste license keys here (one per line)&#10;XXXXX-XXXXX-XXXXX-XXXXX-XXXXX&#10;XXXXX-XXXXX-XXXXX-XXXXX-XXXXX&#10;XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+                                    className="w-full px-4 py-3 border rounded-lg bg-background font-mono text-sm min-h-[150px] resize-y"
+                                    required
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Enter one license key per line. Empty lines will be ignored.
+                                </p>
                             </div>
 
                             <div>
@@ -458,17 +462,44 @@ export default function LicenseKeysClient() {
                                 </div>
                             )}
 
+                            {/* Result Feedback */}
+                            {addResult && (
+                                <div className={`p-3 rounded-lg ${addResult.failed > 0 ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'}`}>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        {addResult.failed > 0 ? (
+                                            <AlertCircle className="h-4 w-4 text-orange-600" />
+                                        ) : (
+                                            <CheckCircle className="h-4 w-4 text-green-600" />
+                                        )}
+                                        <span className={`font-medium ${addResult.failed > 0 ? 'text-orange-800' : 'text-green-800'}`}>
+                                            {addResult.success} key(s) added successfully
+                                            {addResult.failed > 0 && `, ${addResult.failed} failed`}
+                                        </span>
+                                    </div>
+                                    {addResult.errors.length > 0 && (
+                                        <ul className="text-xs text-orange-700 mt-2 space-y-1">
+                                            {addResult.errors.map((err, i) => (
+                                                <li key={i} className="font-mono truncate">{err}</li>
+                                            ))}
+                                            {addResult.failed > 5 && (
+                                                <li className="text-muted-foreground">... and {addResult.failed - 5} more errors</li>
+                                            )}
+                                        </ul>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
-                                    onClick={() => setIsModalOpen(false)}
+                                    onClick={() => { setIsModalOpen(false); setAddResult(null); }}
                                     className="flex-1 px-4 py-2 border rounded-lg hover:bg-accent"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting || !newKey || !newFsn}
+                                    disabled={isSubmitting || !newKeys.trim() || !newFsn}
                                     className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {isSubmitting ? (
@@ -479,7 +510,7 @@ export default function LicenseKeysClient() {
                                     ) : (
                                         <>
                                             <Plus className="h-4 w-4" />
-                                            Add Key
+                                            Add Keys
                                         </>
                                     )}
                                 </button>

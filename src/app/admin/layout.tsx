@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { AdminHeader } from '@/components/admin/AdminHeader';
 import {
     LayoutDashboard,
     Package,
@@ -17,7 +18,8 @@ import {
     Terminal,
     AlertTriangle,
     Plus,
-    ShieldX
+    ShieldX,
+    BarChart2
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -34,6 +36,7 @@ const sidebarLinks = [
 const amazonLinks = [
     { name: 'Amazon Orders', href: '/admin/amazon/orders', icon: ShoppingBag },
     { name: 'License Keys', href: '/admin/amazon/keys', icon: Key },
+    { name: 'Key Inventory', href: '/admin/amazon/inventory', icon: BarChart2 },
     { name: 'Manual Order', href: '/admin/amazon/manual-order', icon: Plus },
     { name: 'Activation Issues', href: '/admin/amazon/issues', icon: AlertTriangle },
     { name: 'Fraud Orders', href: '/admin/amazon/fraud', icon: ShieldX },
@@ -124,14 +127,7 @@ export default async function AdminLayout({
             {/* Main Content */}
             <div className="flex-1 flex flex-col">
                 {/* Top Bar */}
-                <header className="h-16 border-b bg-card flex items-center justify-between px-6">
-                    <div className="lg:hidden">
-                        <h1 className="text-lg font-bold">Admin Panel</h1>
-                    </div>
-                    <div className="flex items-center gap-4 ml-auto">
-                        <span className="text-sm text-muted-foreground">{user.email}</span>
-                    </div>
-                </header>
+                <AdminHeader userEmail={user.email || ''} />
 
                 {/* Page Content */}
                 <main className="flex-1 p-6">

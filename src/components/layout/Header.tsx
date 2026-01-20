@@ -23,6 +23,7 @@ import {
     Handshake,
     LifeBuoy,
     Settings,
+    Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,7 +46,13 @@ export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const { itemCount } = useCartStore();
-    const { user, isAuthenticated, logout, fetchUser } = useAuthStore();
+    const { user, isAuthenticated, isLoading, logout, fetchUser } = useAuthStore();
+    const [hasMounted, setHasMounted] = useState(false);
+
+    // Track client-side mount to avoid hydration mismatch
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
 
     // Sync auth state with server on mount
     useEffect(() => {
@@ -127,7 +134,13 @@ export function Header() {
                             </Button>
                         </Link>
 
-                        {isAuthenticated ? (
+                        {/* Auth Section - with loading and hydration handling */}
+                        {!hasMounted || isLoading ? (
+                            // Loading skeleton
+                            <div className="hidden sm:flex items-center gap-2 ml-2">
+                                <div className="h-10 w-20 bg-muted animate-pulse rounded-md" />
+                            </div>
+                        ) : isAuthenticated && user ? (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
@@ -209,6 +222,16 @@ export function Header() {
                                             <Settings className="mr-2 h-4 w-4" /> Settings
                                         </Link>
                                     </DropdownMenuItem>
+                                    {(user?.role === 'admin' || user?.role === 'super_admin') && (
+                                        <>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/admin" className="cursor-pointer text-orange-600 dark:text-orange-400 font-medium">
+                                                    <Shield className="mr-2 h-4 w-4" /> Admin Panel
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </>
+                                    )}
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={logout} className="text-destructive cursor-pointer">
                                         <LogOut className="mr-2 h-4 w-4" /> Logout
@@ -295,7 +318,7 @@ export function Header() {
                                 </Link>
                             ))}
                             <div className="border-t my-2"></div>
-                            {isAuthenticated ? (
+                            {isAuthenticated && user ? (
                                 <div className="space-y-2">
                                     {/* User Info */}
                                     <div className="flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-950/40 rounded-lg border border-orange-200/60 dark:border-orange-800/40">
@@ -340,6 +363,14 @@ export function Header() {
                                     <Link href="/dashboard/settings" className="px-2 py-2 text-sm font-medium hover:bg-muted rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
                                         <Settings className="h-4 w-4" /> Settings
                                     </Link>
+                                    {(user?.role === 'admin' || user?.role === 'super_admin') && (
+                                        <>
+                                            <div className="border-t my-2"></div>
+                                            <Link href="/admin" className="px-2 py-2 text-sm font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded-md flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                                                <Shield className="h-4 w-4" /> Admin Panel
+                                            </Link>
+                                        </>
+                                    )}
                                     <button
                                         onClick={() => { logout(); setIsMenuOpen(false); }}
                                         className="w-full px-2 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-md flex items-center gap-2"

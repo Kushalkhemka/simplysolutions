@@ -327,12 +327,12 @@ export const megaMenuCategories: MegaMenuCategory[] = [
     {
         id: 'bundle',
         name: 'Bundle',
-        href: '/products?category=bundles',
+        href: '/bundles',
         icon: MENU_ICONS.bundle.path,
         viewBox: MENU_ICONS.bundle.viewBox,
         subCategories: [],
         topSellers: [],
-        footerLink: { label: 'Shop Bundle Offers', href: '/products?category=bundles' }
+        footerLink: { label: 'Shop Bundle Offers', href: '/bundles' }
     }
 ];
 

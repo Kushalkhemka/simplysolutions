@@ -50,10 +50,9 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .update({
                 has_activation_issue: true,
-                issue_type: issue_type || 'no_key_available',
                 issue_status: 'pending',
-                customer_notify_email: customer_email || null,
-                customer_notify_phone: customer_phone || null,
+                contact_email: customer_email || null,
+                contact_phone: customer_phone || null,
                 issue_created_at: order.has_activation_issue ? undefined : new Date().toISOString(),
                 last_access_ip: ip,
             })

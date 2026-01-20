@@ -166,7 +166,7 @@ export default function SettingsPage() {
     }
 
     const userTier = (user as any)?.tier || 'bronze';
-    const userPoints = (user as any)?.points || 0;
+    const userPoints = (user as any)?.loyalty_points_balance || 0;  // Fixed: use correct field name
     const lifetimePoints = (user as any)?.lifetime_points || 0;
 
     return (

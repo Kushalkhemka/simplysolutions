@@ -93,7 +93,10 @@ export async function POST(request: NextRequest) {
         if (keyError || !availableKey) {
             return NextResponse.json({
                 success: false,
-                error: 'No license keys available for this product. Please contact support.'
+                needsContactInfo: true,
+                error: 'No license keys available for this product. Please contact support.',
+                orderId: orderId.trim(),
+                fsn: fsn
             }, { status: 503 });
         }
 

@@ -73,7 +73,7 @@ export default async function AdminProductsPage() {
                                         </div>
                                     </td>
                                     <td className="p-4 text-center">
-                                        <span className={`font-medium ${product.stock_quantity < 10 ? 'text-red-500' : ''}`}>
+                                        <span className={`font-medium ${product.stock_quantity < 10 ? 'text-red-500 dark:text-red-400' : ''}`}>
                                             {product.stock_quantity}
                                         </span>
                                     </td>

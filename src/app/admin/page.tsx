@@ -64,33 +64,13 @@ export default async function AdminDashboardPage() {
         .order('stock_quantity', { ascending: true })
         .limit(5);
 
-    // License keys stock by FSN
-    const { data: licenseKeysData } = await supabase
+    // License keys - simple total counts (detailed view is on /admin/amazon/inventory)
+    const { count: totalAvailableKeysCount } = await supabase
         .from('amazon_activation_license_keys')
-        .select('fsn, is_redeemed');
+        .select('*', { count: 'exact', head: true })
+        .eq('is_redeemed', false);
 
-    // Calculate available keys per FSN
-    const keysByFsn: Record<string, { total: number; available: number }> = {};
-    (licenseKeysData || []).forEach((key: any) => {
-        if (!key.fsn) return;
-        if (!keysByFsn[key.fsn]) {
-            keysByFsn[key.fsn] = { total: 0, available: 0 };
-        }
-        keysByFsn[key.fsn].total++;
-        if (!key.is_redeemed) {
-            keysByFsn[key.fsn].available++;
-        }
-    });
-
-    // Find FSNs with low stock (less than 10 available keys)
-    const lowStockKeys = Object.entries(keysByFsn)
-        .map(([fsn, counts]) => ({ fsn, ...counts }))
-        .filter(item => item.available < 10)
-        .sort((a, b) => a.available - b.available)
-        .slice(0, 5);
-
-    // Total available license keys
-    const totalAvailableKeys = Object.values(keysByFsn).reduce((sum, val) => sum + val.available, 0);
+    const totalAvailableKeys = totalAvailableKeysCount || 0;
 
     const stats = [
         {
@@ -116,19 +96,19 @@ export default async function AdminDashboardPage() {
         },
         {
             name: 'License Keys Available',
-            value: totalAvailableKeys,
+            value: totalAvailableKeys.toLocaleString(),
             icon: Key,
-            color: lowStockKeys.length > 0 ? 'bg-orange-500' : 'bg-purple-500',
-            href: '/admin/amazon/keys',
+            color: 'bg-purple-500',
+            href: '/admin/amazon/inventory',
         },
     ];
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'delivered': return 'bg-green-100 text-green-800';
-            case 'paid': return 'bg-blue-100 text-blue-800';
-            case 'pending': return 'bg-yellow-100 text-yellow-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'delivered': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+            case 'paid': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+            case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+            default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
         }
     };
 
@@ -207,7 +187,7 @@ export default async function AdminDashboardPage() {
                         {lowStockProducts?.map((product: any) => (
                             <div key={product.id} className="p-4 flex items-center justify-between">
                                 <p className="font-medium truncate flex-1">{product.name}</p>
-                                <span className={`text-sm font-medium px-2 py-1 rounded ${product.stock_quantity === 0 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                                <span className={`text-sm font-medium px-2 py-1 rounded ${product.stock_quantity === 0 ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
                                     }`}>
                                     {product.stock_quantity} left
                                 </span>
@@ -220,38 +200,32 @@ export default async function AdminDashboardPage() {
                 </div>
             </div>
 
-            {/* License Keys Low Stock Alert */}
-            {lowStockKeys.length > 0 && (
-                <div className="bg-card border border-orange-200 rounded-lg">
-                    <div className="p-4 border-b border-orange-200 bg-orange-50 flex items-center justify-between">
-                        <h2 className="font-semibold flex items-center gap-2 text-orange-800">
-                            <AlertTriangle className="h-4 w-4" />
-                            License Keys Low Stock Alert
-                        </h2>
-                        <Link href="/admin/amazon/keys" className="text-sm text-orange-700 hover:underline flex items-center gap-1">
-                            Add Keys <ArrowRight className="h-4 w-4" />
+            {/* License Keys Quick View */}
+            <div className="bg-card border rounded-lg">
+                <div className="p-4 border-b flex items-center justify-between">
+                    <h2 className="font-semibold flex items-center gap-2">
+                        <Key className="h-4 w-4 text-primary" />
+                        License Key Inventory
+                    </h2>
+                    <Link href="/admin/amazon/inventory" className="text-sm text-primary hover:underline flex items-center gap-1">
+                        View Inventory <ArrowRight className="h-4 w-4" />
+                    </Link>
+                </div>
+                <div className="p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-2xl font-bold text-green-700 dark:text-green-400">{totalAvailableKeys.toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground">Available Keys</p>
+                        </div>
+                        <Link
+                            href="/admin/amazon/inventory"
+                            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90"
+                        >
+                            View by FSN
                         </Link>
                     </div>
-                    <div className="divide-y divide-orange-100">
-                        {lowStockKeys.map((item) => (
-                            <div key={item.fsn} className="p-4 flex items-center justify-between">
-                                <div>
-                                    <p className="font-medium">{item.fsn}</p>
-                                    <p className="text-xs text-muted-foreground">{item.total} total keys</p>
-                                </div>
-                                <span className={`text-sm font-medium px-2 py-1 rounded ${item.available === 0
-                                        ? 'bg-red-100 text-red-800'
-                                        : item.available < 5
-                                            ? 'bg-orange-100 text-orange-800'
-                                            : 'bg-yellow-100 text-yellow-800'
-                                    }`}>
-                                    {item.available} available
-                                </span>
-                            </div>
-                        ))}
-                    </div>
                 </div>
-            )}
+            </div>
 
             {/* Quick Actions */}
             <div className="bg-card border rounded-lg p-6">

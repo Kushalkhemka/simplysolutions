@@ -89,13 +89,13 @@ export default function AddLicenseKeysPage() {
             </div>
 
             {uploadResult && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <Check className="h-5 w-5 text-green-600" />
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                        <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                        <p className="font-medium text-green-800">Upload successful!</p>
-                        <p className="text-sm text-green-600">{uploadResult.count} license keys added to inventory</p>
+                        <p className="font-medium text-green-800 dark:text-green-400">Upload successful!</p>
+                        <p className="text-sm text-green-600 dark:text-green-500">{uploadResult.count} license keys added to inventory</p>
                     </div>
                 </div>
             )}

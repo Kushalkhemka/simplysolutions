@@ -10,11 +10,7 @@ interface OrderWithIssue {
     fsn: string | null;
     license_key_id: string | null;
     has_activation_issue: boolean;
-    issue_type: string | null;
     issue_status: string | null;
-    issue_notes: string | null;
-    customer_notify_email: string | null;
-    customer_notify_phone: string | null;
     issue_created_at: string | null;
     contact_email: string | null;
     contact_phone: string | null;
@@ -102,7 +98,7 @@ export default function ActivationIssuesClient() {
 
         let query = supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id, has_activation_issue, issue_type, issue_status, issue_notes, customer_notify_email, customer_notify_phone, issue_created_at, contact_email, contact_phone, created_at', { count: 'exact' })
+            .select('id, order_id, fsn, license_key_id, has_activation_issue, issue_status, issue_created_at, contact_email, contact_phone, created_at', { count: 'exact' })
             .eq('has_activation_issue', true)
             .order('issue_created_at', { ascending: false, nullsFirst: false });
 
@@ -234,13 +230,13 @@ export default function ActivationIssuesClient() {
     const getStatusBadge = (status: string | null) => {
         switch (status) {
             case 'resolved':
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="h-3 w-3" /> Resolved</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"><CheckCircle className="h-3 w-3" /> Resolved</span>;
             case 'notified':
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"><Bell className="h-3 w-3" /> Notified</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"><Bell className="h-3 w-3" /> Notified</span>;
             case 'cancelled':
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"><XCircle className="h-3 w-3" /> Cancelled</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"><XCircle className="h-3 w-3" /> Cancelled</span>;
             default:
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3" /> Pending</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"><Clock className="h-3 w-3" /> Pending</span>;
         }
     };
 
@@ -262,24 +258,24 @@ export default function ActivationIssuesClient() {
             <div className="grid grid-cols-3 gap-4">
                 <button
                     onClick={() => { setStatusFilter('pending'); setCurrentPage(1); }}
-                    className={`bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left hover:ring-2 hover:ring-yellow-400 transition-all ${statusFilter === 'pending' ? 'ring-2 ring-yellow-400' : ''}`}
+                    className={`bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-yellow-400 transition-all ${statusFilter === 'pending' ? 'ring-2 ring-yellow-400' : ''}`}
                 >
-                    <p className="text-2xl font-bold text-yellow-800">{pendingCount}</p>
-                    <p className="text-sm text-yellow-600">Pending</p>
+                    <p className="text-2xl font-bold text-yellow-800 dark:text-yellow-400">{pendingCount}</p>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-500">Pending</p>
                 </button>
                 <button
                     onClick={() => { setStatusFilter('notified'); setCurrentPage(1); }}
-                    className={`bg-blue-50 border border-blue-200 rounded-lg p-4 text-left hover:ring-2 hover:ring-blue-400 transition-all ${statusFilter === 'notified' ? 'ring-2 ring-blue-400' : ''}`}
+                    className={`bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-blue-400 transition-all ${statusFilter === 'notified' ? 'ring-2 ring-blue-400' : ''}`}
                 >
-                    <p className="text-2xl font-bold text-blue-800">{notifiedCount}</p>
-                    <p className="text-sm text-blue-600">Notified</p>
+                    <p className="text-2xl font-bold text-blue-800 dark:text-blue-400">{notifiedCount}</p>
+                    <p className="text-sm text-blue-600 dark:text-blue-500">Notified</p>
                 </button>
                 <button
                     onClick={() => { setStatusFilter('resolved'); setCurrentPage(1); }}
-                    className={`bg-green-50 border border-green-200 rounded-lg p-4 text-left hover:ring-2 hover:ring-green-400 transition-all ${statusFilter === 'resolved' ? 'ring-2 ring-green-400' : ''}`}
+                    className={`bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-green-400 transition-all ${statusFilter === 'resolved' ? 'ring-2 ring-green-400' : ''}`}
                 >
-                    <p className="text-2xl font-bold text-green-800">{resolvedCount}</p>
-                    <p className="text-sm text-green-600">Resolved</p>
+                    <p className="text-2xl font-bold text-green-800 dark:text-green-400">{resolvedCount}</p>
+                    <p className="text-sm text-green-600 dark:text-green-500">Resolved</p>
                 </button>
             </div>
 
@@ -318,8 +314,7 @@ export default function ActivationIssuesClient() {
                                 <tr>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Order ID</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">FSN / Product</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Customer</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Issue</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Customer Contact</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
@@ -334,18 +329,18 @@ export default function ActivationIssuesClient() {
                                             <p className="text-xs text-muted-foreground truncate max-w-[200px]">{getProductName(order.fsn)}</p>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {(order.customer_notify_email || order.contact_email) && (
+                                            {order.contact_email && (
                                                 <p className="text-sm flex items-center gap-1">
-                                                    <Mail className="h-3 w-3" /> {order.customer_notify_email || order.contact_email}
+                                                    <Mail className="h-3 w-3" /> {order.contact_email}
                                                 </p>
                                             )}
-                                            {(order.customer_notify_phone || order.contact_phone) && (
+                                            {order.contact_phone && (
                                                 <p className="text-sm flex items-center gap-1">
-                                                    <Phone className="h-3 w-3" /> {order.customer_notify_phone || order.contact_phone}
+                                                    <Phone className="h-3 w-3" /> {order.contact_phone}
                                                 </p>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 text-xs">{order.issue_type || 'N/A'}</td>
+
                                         <td className="px-4 py-3">{getStatusBadge(order.issue_status)}</td>
                                         <td className="px-4 py-3 text-sm text-muted-foreground">
                                             {formatDate(order.issue_created_at || order.created_at)}

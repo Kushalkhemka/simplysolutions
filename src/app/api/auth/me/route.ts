@@ -18,9 +18,18 @@ export async function GET() {
             .eq('id', user.id)
             .single();
 
+        // If profile is missing, still return basic user info (profile might not exist yet)
         if (error) {
-            console.error('Profile fetch error:', error);
-            return errorResponse('Failed to fetch profile', 500);
+            console.warn('Profile fetch warning:', error.message);
+            // Return basic user info even if profile fetch fails
+            return successResponse({
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    full_name: user.email?.split('@')[0] || 'User',
+                    role: 'customer',
+                },
+            });
         }
 
         return successResponse({

@@ -35,11 +35,11 @@ const statusOptions = ['open', 'in_progress', 'awaiting_reply', 'resolved', 'clo
 const priorityOptions = ['low', 'medium', 'high', 'urgent'];
 
 const statusColors: Record<string, string> = {
-    open: 'bg-blue-100 text-blue-800',
-    in_progress: 'bg-yellow-100 text-yellow-800',
-    awaiting_reply: 'bg-purple-100 text-purple-800',
-    resolved: 'bg-green-100 text-green-800',
-    closed: 'bg-gray-100 text-gray-800',
+    open: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+    in_progress: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    awaiting_reply: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+    resolved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    closed: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
 };
 
 export default function AdminTicketDetailPage() {
@@ -191,10 +191,10 @@ export default function AdminTicketDetailPage() {
                         >
                             <div
                                 className={`max-w-[80%] rounded-lg p-4 ${msg.is_internal
-                                        ? 'bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200'
-                                        : msg.sender_type === 'admin'
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'bg-muted'
+                                    ? 'bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200'
+                                    : msg.sender_type === 'admin'
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'bg-muted'
                                     }`}
                             >
                                 <div className="flex items-center gap-2 mb-1">
