@@ -5,8 +5,12 @@
 
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-dotenv.config({ path: '.env.local' });
+// Use absolute path for .env.local to work with cron jobs
+const envPath = path.resolve(__dirname, '..', '.env.local');
+dotenv.config({ path: envPath });
+console.log(`Loading env from: ${envPath}`);
 
 const SP_API_CONFIG = {
     clientId: process.env.AMAZON_SP_CLIENT_ID!,
@@ -114,8 +118,8 @@ async function lookupFsnByAsin(asin: string): Promise<{ fsn: string; productTitl
 // Determine fulfillment type
 function getFulfillmentType(order: any): string {
     const channel = order.FulfillmentChannel;
-    if (channel === 'AFN') return 'amazon_fba';       // Amazon Fulfilled Network (FBA)
-    if (channel === 'MFN') return 'amazon_merchant';  // Merchant Fulfilled Network
+    if (channel === 'AFN') return 'amazon_fba';  // Amazon Fulfilled Network (FBA)
+    if (channel === 'MFN') return 'amazon_mfn';  // Merchant Fulfilled Network
     return 'amazon_fba'; // Default
 }
 
