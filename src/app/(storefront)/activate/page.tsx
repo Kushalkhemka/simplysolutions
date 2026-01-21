@@ -39,9 +39,15 @@ export default function ActivatePage() {
     const [error, setError] = useState<string | null>(null);
     const [installationIds, setInstallationIds] = useState<string[]>(Array(9).fill(''));
     const installationRef = useRef<HTMLDivElement>(null);
+    const installationGuideRef = useRef<HTMLDivElement>(null);
     const [confirmationId, setConfirmationId] = useState<string | null>(null);
     const [getcidLoading, setGetcidLoading] = useState(false);
     const [getcidError, setGetcidError] = useState<string | null>(null);
+
+    // Success popup and FBA/MFN warning state
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+    const [showFbaWarning, setShowFbaWarning] = useState(false);
+    const [fulfillmentType, setFulfillmentType] = useState<string | null>(null);
 
     const handleVerifyCode = async () => {
         if (!secretCode.trim()) {
@@ -68,6 +74,10 @@ export default function ActivatePage() {
             }
 
             if (data.isAlreadyRedeemed && data.licenseKey) {
+                // Store fulfillment type
+                if (data.fulfillmentType) {
+                    setFulfillmentType(data.fulfillmentType);
+                }
                 setActivationResult({
                     success: true,
                     licenseKey: data.licenseKey,
@@ -77,6 +87,11 @@ export default function ActivatePage() {
                 toast.success('Your license key was already generated!');
                 setIsLoading(false);
                 return;
+            }
+
+            // Store fulfillment type for later use
+            if (data.fulfillmentType) {
+                setFulfillmentType(data.fulfillmentType);
             }
 
             await handleGenerateKey();
@@ -104,6 +119,11 @@ export default function ActivatePage() {
                 return;
             }
 
+            // Store fulfillment type from response
+            if (data.fulfillmentType) {
+                setFulfillmentType(data.fulfillmentType);
+            }
+
             setActivationResult({
                 success: true,
                 licenseKey: data.licenseKey,
@@ -111,7 +131,8 @@ export default function ActivatePage() {
                 alreadyRedeemed: data.alreadyRedeemed,
             });
 
-            toast.success('License Key Has Been Generated Successfully!', { duration: 5000 });
+            // Show success popup
+            setShowSuccessPopup(true);
 
         } catch (err) {
             console.error('Error generating key:', err);
@@ -119,6 +140,28 @@ export default function ActivatePage() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSuccessPopupClose = () => {
+        setShowSuccessPopup(false);
+
+        // Show FBA/MFN warning if applicable (physical delivery orders)
+        if (fulfillmentType === 'amazon_fba' || fulfillmentType === 'seller_easy_ship' || fulfillmentType === 'seller_self_ship') {
+            setShowFbaWarning(true);
+        } else {
+            // Scroll to installation guide
+            setTimeout(() => {
+                installationGuideRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+    };
+
+    const handleFbaWarningClose = () => {
+        setShowFbaWarning(false);
+        // Scroll to installation guide after dismissing warning
+        setTimeout(() => {
+            installationGuideRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
     };
 
     const handleCopyKey = () => {
@@ -499,7 +542,7 @@ export default function ActivatePage() {
                                     </div>
 
                                     {/* Dynamic Installation Guide */}
-                                    <div className="pt-6 border-t border-[#DDD]">
+                                    <div ref={installationGuideRef} className="pt-6 border-t border-[#DDD]">
                                         <InstallationGuide
                                             guideFile={getInstallationGuide(activationResult.productInfo?.sku) || 'office2021.md'}
                                             productName={activationResult.productInfo?.productName || undefined}
@@ -625,6 +668,100 @@ export default function ActivatePage() {
                                 className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded border border-[#FCD200]"
                             >
                                 Confirm Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Popup Modal */}
+            {showSuccessPopup && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="bg-gradient-to-r from-[#067D62] to-[#0A9A77] px-6 py-4">
+                            <div className="flex items-center justify-center gap-3">
+                                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="w-7 h-7 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-white">Success!</h2>
+                                    <p className="text-white/90 text-sm">Your License Key is Ready</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="text-center mb-6">
+                                <div className="bg-[#FCF5EE] border-2 border-[#FF9900] rounded-lg p-4 mb-4">
+                                    <p className="text-xs text-[#565959] mb-2">Your Product License Key:</p>
+                                    <code className="font-mono text-lg font-bold text-[#0F1111] break-all">
+                                        {activationResult?.licenseKey}
+                                    </code>
+                                </div>
+                                <p className="text-[#0F1111] font-medium">
+                                    🎉 Congratulations! Your license key has been generated successfully.
+                                </p>
+                            </div>
+
+                            <div className="bg-[#FFF4E5] border border-[#FF9900] rounded-lg p-4 mb-6">
+                                <div className="flex items-start gap-3">
+                                    <AlertTriangle className="w-5 h-5 text-[#FF9900] flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="font-bold text-[#0F1111] text-sm">Important!</p>
+                                        <p className="text-sm text-[#565959] mt-1">
+                                            Please follow the installation instructions below carefully to activate your product.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleSuccessPopupClose}
+                                className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all duration-200 flex items-center justify-center gap-2"
+                            >
+                                <Download className="w-5 h-5" />
+                                View Installation Instructions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* FBA/MFN Physical Instructions Warning Popup */}
+            {showFbaWarning && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="bg-gradient-to-r from-[#CC0C39] to-[#E63757] px-6 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                    <AlertTriangle className="w-6 h-6 text-white" />
+                                </div>
+                                <h2 className="text-xl font-bold text-white">Important Notice</h2>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="bg-[#FEF2F2] border-l-4 border-[#CC0C39] rounded-r-lg p-4 mb-6">
+                                <p className="text-[#0F1111] font-medium leading-relaxed">
+                                    <strong>Please ignore</strong> the physical instructions that may be sent with your package.
+                                </p>
+                                <p className="text-[#565959] mt-3 leading-relaxed">
+                                    For the <strong>smooth experience</strong> and <strong>easy activation process</strong>, please follow only the installation and activation instructions given on this website.
+                                </p>
+                            </div>
+
+                            <div className="flex items-start gap-3 p-3 bg-[#F0FDF4] rounded-lg border border-[#BBF7D0]">
+                                <CheckCircle className="w-5 h-5 text-[#067D62] flex-shrink-0 mt-0.5" />
+                                <p className="text-sm text-[#0F1111]">
+                                    Our online instructions are always up-to-date and optimized for the best activation experience.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={handleFbaWarningClose}
+                                className="w-full mt-6 py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all duration-200"
+                            >
+                                I Understand, Show Me the Instructions
                             </button>
                         </div>
                     </div>
