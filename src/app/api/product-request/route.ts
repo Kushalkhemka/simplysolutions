@@ -6,6 +6,15 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Map request type to FSN prefix
+const REQUEST_TYPE_TO_FSN: Record<string, string> = {
+    'autocad': 'AUTOCAD-REQ',
+    'canva': 'CANVA-REQ',
+    'revit': 'REVIT-REQ',
+    'fusion360': 'FUSION360-REQ',
+    '365e5': '365E5-REQ'
+};
+
 export async function POST(request: NextRequest) {
     try {
         const { email, orderId, requestType, mobileNumber } = await request.json();
@@ -75,7 +84,6 @@ export async function POST(request: NextRequest) {
             .from('product_requests')
             .select('id, is_completed')
             .eq('order_id', cleanOrderId)
-            .eq('request_type', requestType)
             .single();
 
         if (existing) {
@@ -88,60 +96,32 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Get client IP
-        const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
-            request.headers.get('x-real-ip') || null;
+        // Generate FSN for the product request (required field, used to derive request_type)
+        const fsn = REQUEST_TYPE_TO_FSN[requestType] || `${requestType.toUpperCase()}-REQ`;
 
-        // Create new request with reference to the amazon order
+        // Create new request
+        // Note: request_type is a GENERATED column based on fsn, so we don't insert it directly
         const { data, error } = await supabase
             .from('product_requests')
             .insert({
-                email,
+                email: email.trim(),
                 order_id: cleanOrderId,
-                amazon_order_ref: order.id,  // Reference to amazon_orders.id
-                request_type: requestType,
+                fsn: fsn,
                 mobile_number: mobileNumber || null,
-                is_completed: false,
-                ip_address: ip,
-                fsn: order.fsn
+                is_completed: false
             })
             .select()
             .single();
 
         if (error) {
             console.error('Product request insert error:', error);
-            // If error is due to missing columns, try without them
-            if (error.code === '42703') {
-                const { data: fallbackData, error: fallbackError } = await supabase
-                    .from('product_requests')
-                    .insert({
-                        email,
-                        order_id: cleanOrderId,
-                        request_type: requestType,
-                        mobile_number: mobileNumber || null,
-                        is_completed: false
-                    })
-                    .select()
-                    .single();
-
-                if (fallbackError) {
-                    return NextResponse.json(
-                        { error: 'Failed to submit request' },
-                        { status: 500 }
-                    );
-                }
-
-                return NextResponse.json({
-                    success: true,
-                    message: 'Your request has been submitted successfully! We will process it within 24 hours.',
-                    requestId: fallbackData.id
-                });
-            }
             return NextResponse.json(
-                { error: 'Failed to submit request' },
+                { error: `Failed to submit request: ${error.message}` },
                 { status: 500 }
             );
         }
+
+        console.log('Product request created:', data);
 
         return NextResponse.json({
             success: true,
