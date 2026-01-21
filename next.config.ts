@@ -55,6 +55,26 @@ const nextConfig: NextConfig = {
   },
   // Disable X-Powered-By header
   poweredByHeader: false,
+  // Redirects for short installation doc URLs
+  async redirects() {
+    return [
+      {
+        source: '/office365',
+        destination: '/installation-docs/office365',
+        permanent: true,
+      },
+      {
+        source: '/office2024win',
+        destination: '/installation-docs/office2024win',
+        permanent: true,
+      },
+      {
+        source: '/office2024-mac',
+        destination: '/installation-docs/office2024mac',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
