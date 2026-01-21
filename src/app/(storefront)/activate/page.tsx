@@ -489,7 +489,7 @@ export default function ActivatePage() {
                                             **DO THE WARRANTY REGISTRATION FOR FUTURE FREE SUPPORT
                                         </p>
                                         <a
-                                            href="https://simplysolutions.co.in/warranty"
+                                            href={`${process.env.NEXT_PUBLIC_APP_URL || ''}/warranty`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#CC0C39] text-sm font-bold rounded hover:bg-gray-100 transition-colors"

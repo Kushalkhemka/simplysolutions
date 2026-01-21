@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Search, Plus, Trash2, Key, Package, ChevronLeft, ChevronRight, Loader2, X, CheckCircle, AlertCircle, Upload } from 'lucide-react';
+import { Search, Plus, Trash2, Key, Package, ChevronLeft, ChevronRight, Loader2, X, CheckCircle, AlertCircle, Upload, Calendar } from 'lucide-react';
 
 interface LicenseKey {
     id: string;
@@ -11,12 +11,15 @@ interface LicenseKey {
     is_redeemed: boolean;
     order_id: string | null;
     created_at: string;
+    redeemed_at: string | null;
 }
 
 interface FsnMapping {
     fsn: string;
     product_title: string;
 }
+
+type DateFilterType = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'custom';
 
 export default function LicenseKeysClient() {
     const [keys, setKeys] = useState<LicenseKey[]>([]);
@@ -30,6 +33,11 @@ export default function LicenseKeysClient() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+
+    // Date filter states
+    const [dateFilter, setDateFilter] = useState<DateFilterType>('all');
+    const [customStartDate, setCustomStartDate] = useState('');
+    const [customEndDate, setCustomEndDate] = useState('');
 
     // Add key form
     const [newKeys, setNewKeys] = useState('');
@@ -96,6 +104,37 @@ export default function LicenseKeysClient() {
             query = query.eq('is_redeemed', false);
         } else if (filterRedeemed === 'redeemed') {
             query = query.eq('is_redeemed', true);
+
+            // Apply date filter for redeemed keys
+            if (dateFilter !== 'all') {
+                const now = new Date();
+                let startDate: Date | null = null;
+                let endDate: Date | null = null;
+
+                if (dateFilter === 'today') {
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+                } else if (dateFilter === 'yesterday') {
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59, 999);
+                } else if (dateFilter === 'week') {
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+                    endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+                } else if (dateFilter === 'month') {
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+                    endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+                } else if (dateFilter === 'custom' && customStartDate && customEndDate) {
+                    startDate = new Date(customStartDate);
+                    endDate = new Date(customEndDate);
+                    endDate.setHours(23, 59, 59, 999);
+                }
+
+                if (startDate && endDate) {
+                    query = query
+                        .gte('redeemed_at', startDate.toISOString())
+                        .lte('redeemed_at', endDate.toISOString());
+                }
+            }
         }
 
         const { data, count, error } = await query.range(from, to);
@@ -107,7 +146,7 @@ export default function LicenseKeysClient() {
             setTotalCount(count || 0);
         }
         setIsLoading(false);
-    }, [currentPage, searchQuery, filterFsn, filterRedeemed, supabase]);
+    }, [currentPage, searchQuery, filterFsn, filterRedeemed, dateFilter, customStartDate, customEndDate, supabase]);
 
     useEffect(() => {
         fetchFsnMappings();
@@ -260,7 +299,7 @@ export default function LicenseKeysClient() {
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4">
                 <button
-                    onClick={() => { setFilterRedeemed('available'); setCurrentPage(1); }}
+                    onClick={() => { setFilterRedeemed('available'); setDateFilter('all'); setCustomStartDate(''); setCustomEndDate(''); setCurrentPage(1); }}
                     className={`bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-green-400 transition-all ${filterRedeemed === 'available' ? 'ring-2 ring-green-400' : ''}`}
                 >
                     <p className="text-2xl font-bold text-green-800 dark:text-green-400">{availableCount.toLocaleString()}</p>
@@ -297,13 +336,63 @@ export default function LicenseKeysClient() {
                         <option key={m.fsn} value={m.fsn}>{m.fsn}</option>
                     ))}
                 </select>
+
+                {/* Date Filter - Only show when viewing redeemed keys */}
+                {filterRedeemed === 'redeemed' && (
+                    <>
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <select
+                                value={dateFilter}
+                                onChange={(e) => { setDateFilter(e.target.value as DateFilterType); setCurrentPage(1); }}
+                                className="px-4 py-2 border rounded-lg bg-background min-w-[150px]"
+                            >
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="week">Last 7 Days</option>
+                                <option value="month">Last 30 Days</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+
+                        {/* Custom Date Range Picker */}
+                        {dateFilter === 'custom' && (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="date"
+                                    value={customStartDate}
+                                    onChange={(e) => { setCustomStartDate(e.target.value); setCurrentPage(1); }}
+                                    className="px-3 py-2 border rounded-lg bg-background text-sm"
+                                    placeholder="Start Date"
+                                />
+                                <span className="text-muted-foreground">to</span>
+                                <input
+                                    type="date"
+                                    value={customEndDate}
+                                    onChange={(e) => { setCustomEndDate(e.target.value); setCurrentPage(1); }}
+                                    className="px-3 py-2 border rounded-lg bg-background text-sm"
+                                    placeholder="End Date"
+                                />
+                            </div>
+                        )}
+                    </>
+                )}
+
                 <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
                     Search
                 </button>
-                {(filterFsn !== 'all' || filterRedeemed !== 'available') && (
+                {(filterFsn !== 'all' || filterRedeemed !== 'available' || dateFilter !== 'all') && (
                     <button
                         type="button"
-                        onClick={() => { setFilterFsn('all'); setFilterRedeemed('available'); setCurrentPage(1); }}
+                        onClick={() => {
+                            setFilterFsn('all');
+                            setFilterRedeemed('available');
+                            setDateFilter('all');
+                            setCustomStartDate('');
+                            setCustomEndDate('');
+                            setCurrentPage(1);
+                        }}
                         className="px-4 py-2 border rounded-lg hover:bg-accent"
                     >
                         Clear Filters

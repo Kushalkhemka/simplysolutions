@@ -58,7 +58,8 @@ export async function POST(request: NextRequest) {
             valid: true,
             isAlreadyRedeemed: false,
             orderId: order.order_id,
-            fsn: order.fsn
+            fsn: order.fsn,
+            fulfillmentType: order.fulfillment_type || null
         });
 
     } catch (error) {

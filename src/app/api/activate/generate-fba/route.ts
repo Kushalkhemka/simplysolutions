@@ -142,6 +142,7 @@ export async function POST(request: NextRequest) {
             success: true,
             alreadyRedeemed: false,
             licenseKey: availableKey.license_key,
+            fulfillmentType: order.fulfillment_type || null,
             productInfo: {
                 productName: productData?.product_title || 'Microsoft Office',
                 productImage: productData?.product_image || null,

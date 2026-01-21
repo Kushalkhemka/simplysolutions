@@ -34,6 +34,7 @@ const sidebarLinks = [
 ];
 
 const amazonLinks = [
+    { name: 'Analytics', href: '/admin/amazon/analytics', icon: BarChart3 },
     { name: 'Amazon Orders', href: '/admin/amazon/orders', icon: ShoppingBag },
     { name: 'License Keys', href: '/admin/amazon/keys', icon: Key },
     { name: 'Key Inventory', href: '/admin/amazon/inventory', icon: BarChart2 },
@@ -64,7 +65,7 @@ export default async function AdminLayout({
         .eq('id', user.id)
         .single();
 
-    if (profile?.role !== 'admin') {
+    if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
         redirect('/dashboard');
     }
 

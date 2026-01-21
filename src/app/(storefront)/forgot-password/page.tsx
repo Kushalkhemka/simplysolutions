@@ -9,7 +9,6 @@ import { Mail, ArrowLeft, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getSupabaseClient } from '@/lib/supabase/client';
 
 const forgotPasswordSchema = z.object({
     email: z.string().email('Please enter a valid email'),
@@ -31,13 +30,16 @@ export default function ForgotPasswordPage() {
         setError('');
 
         try {
-            const supabase = getSupabaseClient();
-            const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-                redirectTo: `${window.location.origin}/reset-password`,
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: data.email }),
             });
 
-            if (error) {
-                setError(error.message);
+            const result = await response.json();
+
+            if (!response.ok) {
+                setError(result.error || 'Failed to send reset email');
             } else {
                 setIsSuccess(true);
             }
