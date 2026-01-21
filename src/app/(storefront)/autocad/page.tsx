@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Send, CheckCircle, Loader2 } from 'lucide-react';
+import { Mail, Send, CheckCircle, Loader2, ShoppingCart, HelpCircle, Package } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AutoCADPage() {
@@ -54,18 +54,77 @@ export default function AutoCADPage() {
 
     if (isSubmitted) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-[#232F3E] to-[#131921] flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle className="w-10 h-10 text-green-600" />
+            <div className="min-h-screen bg-[#EAEDED]">
+                {/* Success Banner */}
+                <div className="bg-[#067D62] text-white py-3 px-4">
+                    <div className="container-dense flex items-center justify-center gap-2 text-sm font-medium">
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="font-bold">Success!</span>
+                        <span className="hidden sm:inline">Your AutoCAD request has been submitted</span>
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Request Submitted!</h1>
-                    <p className="text-gray-600 mb-6">
-                        Your AutoCAD subscription request has been received. We will process it within 24 hours and send the subscription details to your email.
-                    </p>
-                    <div className="bg-gray-50 rounded-lg p-4 text-left">
-                        <p className="text-sm text-gray-500 mb-1">Email</p>
-                        <p className="text-gray-900 font-medium">{email}</p>
+                </div>
+
+                {/* Amazon-style Header Banner */}
+                <div className="bg-[#232F3E] py-4 border-b-4 border-[#FF9900]">
+                    <div className="container-dense">
+                        <div className="flex items-center justify-center gap-3 mb-1">
+                            <Package className="w-6 h-6 text-[#FF9900]" />
+                            <h1 className="text-2xl md:text-3xl font-bold text-center text-white uppercase tracking-wider">
+                                AutoCAD Subscription
+                            </h1>
+                        </div>
+                        <p className="text-center text-[#FF9900] text-sm font-medium">
+                            Request Submitted Successfully
+                        </p>
+                    </div>
+                </div>
+
+                <div className="container-dense py-8 md:py-12">
+                    <div className="max-w-2xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-lg border border-[#DDD] overflow-hidden">
+                            <div className="p-6">
+                                <div className="bg-[#F7F8FA] rounded-lg border border-[#DDD] p-6">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-12 h-12 bg-[#067D62] rounded-full flex items-center justify-center">
+                                            <CheckCircle className="w-6 h-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-[#0F1111]">Request Submitted!</h3>
+                                            <p className="text-sm text-[#565959]">We&apos;ll process your request within 24 hours</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-[#FCF5EE] border-2 border-[#FF9900] rounded-lg p-4 mb-4">
+                                        <p className="text-sm text-[#0F1111]">
+                                            Your AutoCAD subscription details will be sent to:
+                                        </p>
+                                        <p className="font-bold text-[#0F1111] mt-1">{email}</p>
+                                    </div>
+
+                                    <p className="text-sm text-[#565959]">
+                                        Please check your email (including spam folder) within 24 hours for your AutoCAD subscription details.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Support Card */}
+                        <div className="mt-6 bg-white rounded-lg shadow border border-[#DDD] overflow-hidden">
+                            <div className="bg-[#FEF8F2] border-l-4 border-[#FF9900] p-4">
+                                <p className="text-sm text-[#0F1111]">
+                                    <span className="font-bold">Need Help?</span> Contact us on WhatsApp:{' '}
+                                    <a
+                                        href="https://wa.me/918595899215"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-bold text-[#007185] hover:text-[#C7511F] hover:underline"
+                                    >
+                                        +91 8595899215
+                                    </a>
+                                    {' '}(message only)
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -73,83 +132,145 @@ export default function AutoCADPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#232F3E] to-[#131921]">
-            {/* Header */}
-            <div className="bg-[#232F3E] py-6 border-b border-[#3B4859]">
-                <div className="container mx-auto px-4 text-center">
-                    <h1 className="text-3xl font-bold text-white mb-2">AutoCAD Subscription</h1>
-                    <p className="text-gray-300">Enter your details to receive your AutoCAD subscription</p>
+        <div className="min-h-screen bg-[#EAEDED]">
+            {/* Amazon-style Header Banner */}
+            <div className="bg-[#232F3E] py-4 border-b-4 border-[#FF9900]">
+                <div className="container-dense">
+                    <div className="flex items-center justify-center gap-3 mb-1">
+                        <Package className="w-6 h-6 text-[#FF9900]" />
+                        <h1 className="text-2xl md:text-3xl font-bold text-center text-white uppercase tracking-wider">
+                            AutoCAD Subscription
+                        </h1>
+                    </div>
+                    <p className="text-center text-[#FF9900] text-sm font-medium">
+                        For Amazon.in Customers
+                    </p>
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-12">
-                <div className="max-w-md mx-auto">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-[#FF9900] rounded-full flex items-center justify-center">
-                                <Mail className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-gray-900">Request AutoCAD</h2>
-                                <p className="text-sm text-gray-500">Subscription will be sent to your email</p>
-                            </div>
+            {/* Main Content */}
+            <div className="container-dense py-8 md:py-12">
+                <div className="max-w-2xl mx-auto">
+
+                    {/* Instructions Card */}
+                    <div className="bg-white rounded-lg shadow border border-[#DDD] overflow-hidden mb-6">
+                        <div className="bg-gradient-to-b from-[#F7F8FA] to-[#E7E9EC] px-4 py-3 border-b border-[#DDD]">
+                            <h3 className="font-bold text-[#0F1111] text-sm flex items-center gap-2">
+                                <HelpCircle className="w-4 h-4 text-[#FF9900]" />
+                                How It Works
+                            </h3>
+                        </div>
+                        <div className="p-4">
+                            <ol className="space-y-2 text-sm text-[#0F1111]">
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-[#FF9900]">1.</span>
+                                    <span>Enter your <strong>Secret Code</strong> or <strong>Amazon Order ID</strong> from your purchase</span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-[#FF9900]">2.</span>
+                                    <span>Provide your <strong className="text-[#CC0C39]">Email Address</strong> where you want to receive the subscription</span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-[#FF9900]">3.</span>
+                                    <span>We will process your request and send the AutoCAD subscription details within <strong>24 hours</strong></span>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    {/* Main Form Card */}
+                    <div className="bg-white rounded-lg shadow-lg border border-[#DDD] overflow-hidden">
+                        {/* Card Header */}
+                        <div className="bg-gradient-to-b from-[#F7F8FA] to-[#E7E9EC] px-6 py-4 border-b border-[#DDD]">
+                            <h2 className="text-lg font-bold text-[#0F1111]">Request AutoCAD Subscription</h2>
+                            <p className="text-sm text-[#565959] mt-1">
+                                Fill in your details below to receive your AutoCAD subscription
+                            </p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Order ID / Secret Code
-                                </label>
-                                <input
-                                    type="text"
-                                    value={orderId}
-                                    onChange={(e) => setOrderId(e.target.value)}
-                                    placeholder="Enter your 15-17 digit code"
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#FF9900] focus:ring-2 focus:ring-[#FF9900]/20 outline-none transition text-gray-900 placeholder:text-gray-400"
-                                />
-                            </div>
+                        <div className="p-6">
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                {/* Order ID Input */}
+                                <div>
+                                    <label className="block text-sm font-bold text-[#0F1111] mb-2">
+                                        SECRET CODE / AMAZON ORDER ID
+                                    </label>
+                                    <div className="flex">
+                                        <div className="bg-[#F0F2F2] border border-r-0 border-[#888C8C] rounded-l px-3 flex items-center">
+                                            <ShoppingCart className="w-5 h-5 text-[#FF9900]" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={orderId}
+                                            onChange={(e) => setOrderId(e.target.value)}
+                                            placeholder="e.g. 534643897517291 or 408-1234567-1234567"
+                                            maxLength={25}
+                                            className="flex-1 px-4 py-3 border border-[#888C8C] rounded-r text-base font-mono text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] placeholder:text-[#6B7280]"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-[#565959] mt-1">
+                                        Enter your 15-digit secret code OR Amazon Order ID (format: 408-1234567-1234567)
+                                    </p>
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Email Address
-                                </label>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="your@email.com"
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#FF9900] focus:ring-2 focus:ring-[#FF9900]/20 outline-none transition text-gray-900 placeholder:text-gray-400"
-                                />
-                                <p className="text-xs text-gray-500 mt-2">
-                                    Your AutoCAD subscription details will be sent to this email
-                                </p>
-                            </div>
+                                {/* Email Input */}
+                                <div>
+                                    <label className="block text-sm font-bold text-[#0F1111] mb-2">
+                                        EMAIL ADDRESS
+                                    </label>
+                                    <div className="flex">
+                                        <div className="bg-[#F0F2F2] border border-r-0 border-[#888C8C] rounded-l px-3 flex items-center">
+                                            <Mail className="w-5 h-5 text-[#FF9900]" />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="your@email.com"
+                                            className="flex-1 px-4 py-3 border border-[#888C8C] rounded-r text-base text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] placeholder:text-[#6B7280]"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-[#CC0C39] mt-1">
+                                        <strong>Important:</strong> Your AutoCAD subscription details will be sent to this email
+                                    </p>
+                                </div>
 
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full bg-gradient-to-b from-[#f7dfa5] to-[#f0c14b] hover:from-[#f0c14b] hover:to-[#e0a800] text-gray-900 py-4 rounded-xl font-bold text-lg shadow-lg border border-[#a88734] transition disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        Submitting...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Send className="w-5 h-5" />
-                                        Submit Request
-                                    </>
-                                )}
-                            </button>
-                        </form>
+                                {/* Submit Button */}
+                                <button
+                                    type="submit"
+                                    disabled={isLoading || !orderId.trim() || !email.trim()}
+                                    className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] disabled:from-[#E7E9EC] disabled:to-[#D5D9D9] text-[#0F1111] disabled:text-[#565959] font-bold rounded-lg border border-[#FCD200] disabled:border-[#D5D9D9] shadow-sm transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="w-5 h-5" />
+                                            Submit Request
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
 
-                        <div className="mt-6 pt-6 border-t border-gray-200">
-                            <p className="text-sm text-gray-500 text-center">
-                                Need help? Contact us at{' '}
-                                <a href="mailto:support@simplysolutions.store" className="text-[#FF9900] hover:underline">
-                                    support@simplysolutions.store
+                    {/* Support Card */}
+                    <div className="mt-6 bg-white rounded-lg shadow border border-[#DDD] overflow-hidden">
+                        <div className="bg-[#FEF8F2] border-l-4 border-[#FF9900] p-4">
+                            <p className="text-sm text-[#0F1111]">
+                                <span className="font-bold">Need Help?</span> Contact us on WhatsApp:{' '}
+                                <a
+                                    href="https://wa.me/918595899215"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="font-bold text-[#007185] hover:text-[#C7511F] hover:underline"
+                                >
+                                    +91 8595899215
                                 </a>
+                                {' '}(message only)
                             </p>
                         </div>
                     </div>
