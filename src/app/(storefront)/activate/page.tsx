@@ -227,9 +227,9 @@ export default function ActivatePage() {
                     <div className="bg-white rounded-lg shadow-lg border border-[#DDD] overflow-hidden">
                         {/* Card Header */}
                         <div className="bg-gradient-to-b from-[#F7F8FA] to-[#E7E9EC] px-6 py-4 border-b border-[#DDD]">
-                            <h2 className="text-lg font-bold text-[#0F1111]">Enter Your Secret Code</h2>
+                            <h2 className="text-lg font-bold text-[#0F1111]">Enter Your Secret Code or Amazon Order ID</h2>
                             <p className="text-sm text-[#565959] mt-1">
-                                Please enter your 15-Digit Unique Secret Code to get your 25-Digit Product License Key
+                                Enter your 15-Digit Secret Code OR Amazon Order ID to get your Product License Key
                             </p>
                         </div>
 
@@ -237,7 +237,7 @@ export default function ActivatePage() {
                             {/* Secret Code Input */}
                             <div className="mb-4">
                                 <label className="block text-sm font-bold text-[#0F1111] mb-2">
-                                    UNIQUE SECRET CODE
+                                    SECRET CODE / AMAZON ORDER ID
                                 </label>
                                 <div className="flex">
                                     <div className="bg-[#F0F2F2] border border-r-0 border-[#888C8C] rounded-l px-3 flex items-center">
@@ -250,9 +250,9 @@ export default function ActivatePage() {
                                             setSecretCode(e.target.value);
                                             setError(null);
                                         }}
-                                        placeholder="e.g. 534643897517291"
+                                        placeholder="e.g. 534643897517291 or 408-1234567-1234567"
                                         className="flex-1 px-4 py-3 border border-[#888C8C] rounded-r text-base font-mono text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] placeholder:text-[#6B7280]"
-                                        maxLength={20}
+                                        maxLength={25}
                                     />
                                 </div>
                             </div>
@@ -260,7 +260,7 @@ export default function ActivatePage() {
                             {/* Helper Note */}
                             <p className="text-xs text-[#CC0C39] mb-6 flex items-start gap-1">
                                 <span className="font-bold">*Note:</span>
-                                <span>Include the Secret Code received via mail from amazon.in to get your license key.</span>
+                                <span>Enter either the Secret Code from your email OR your Amazon Order ID (format: 408-1234567-1234567).</span>
                             </p>
 
                             {/* Error Message */}

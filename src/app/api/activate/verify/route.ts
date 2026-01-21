@@ -15,28 +15,49 @@ export async function POST(request: NextRequest) {
         // Remove any spaces from the code
         const cleanCode = secretCode.replace(/\s/g, '');
 
-        // Validate 15-digit format
-        if (!/^\d{15,17}$/.test(cleanCode)) {
+        // Check if it's an Amazon Order ID format (XXX-XXXXXXX-XXXXXXX) or 15-17 digit secret code
+        const isAmazonOrderId = /^\d{3}-\d{7}-\d{7}$/.test(cleanCode);
+        const isSecretCode = /^\d{15,17}$/.test(cleanCode);
+
+        if (!isAmazonOrderId && !isSecretCode) {
             return NextResponse.json({
                 valid: false,
-                error: 'Invalid secret code format. Please enter a 15-17 digit code.'
+                error: 'Invalid format. Please enter a 15-17 digit secret code OR Amazon Order ID (e.g., 408-1234567-1234567).'
             }, { status: 400 });
         }
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // Check if order exists with this secret code as order_id
-        // Digital delivery orders use the 15-digit code as order_id
-        const { data: order, error: orderError } = await supabase
-            .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id, fulfillment_type')
-            .eq('order_id', cleanCode)
-            .single();
+        let order = null;
+        let orderError = null;
+
+        if (isSecretCode) {
+            // Check if order exists with this secret code as order_id
+            // Digital delivery orders use the 15-digit code as order_id
+            const result = await supabase
+                .from('amazon_orders')
+                .select('id, order_id, amazon_order_id, fsn, license_key_id, fulfillment_type')
+                .eq('order_id', cleanCode)
+                .single();
+            order = result.data;
+            orderError = result.error;
+        } else {
+            // Check if order exists with this Amazon Order ID
+            const result = await supabase
+                .from('amazon_orders')
+                .select('id, order_id, amazon_order_id, fsn, license_key_id, fulfillment_type')
+                .eq('amazon_order_id', cleanCode)
+                .single();
+            order = result.data;
+            orderError = result.error;
+        }
 
         if (orderError || !order) {
             return NextResponse.json({
                 valid: false,
-                error: 'Secret code not found. Please check your code and try again.'
+                error: isAmazonOrderId
+                    ? 'Amazon Order ID not found. Please check your order ID and try again.'
+                    : 'Secret code not found. Please check your code and try again.'
             }, { status: 404 });
         }
 

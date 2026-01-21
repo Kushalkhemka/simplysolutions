@@ -15,17 +15,47 @@ export async function POST(request: NextRequest) {
         // Remove any spaces from the code
         const cleanCode = secretCode.replace(/\s/g, '');
 
+        // Check if it's an Amazon Order ID format (XXX-XXXXXXX-XXXXXXX) or 15-17 digit secret code
+        const isAmazonOrderId = /^\d{3}-\d{7}-\d{7}$/.test(cleanCode);
+        const isSecretCode = /^\d{15,17}$/.test(cleanCode);
+
+        if (!isAmazonOrderId && !isSecretCode) {
+            return NextResponse.json({
+                success: false,
+                error: 'Invalid format. Please enter a 15-17 digit secret code OR Amazon Order ID.'
+            }, { status: 400 });
+        }
+
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // Look up order by secret code (stored as order_id for digital delivery)
-        const { data: order, error: orderError } = await supabase
-            .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id')
-            .eq('order_id', cleanCode)
-            .single();
+        let order = null;
+        let orderError = null;
+
+        if (isSecretCode) {
+            // Look up order by secret code (stored as order_id for digital delivery)
+            const result = await supabase
+                .from('amazon_orders')
+                .select('id, order_id, amazon_order_id, fsn, license_key_id')
+                .eq('order_id', cleanCode)
+                .single();
+            order = result.data;
+            orderError = result.error;
+        } else {
+            // Look up order by Amazon Order ID
+            const result = await supabase
+                .from('amazon_orders')
+                .select('id, order_id, amazon_order_id, fsn, license_key_id')
+                .eq('amazon_order_id', cleanCode)
+                .single();
+            order = result.data;
+            orderError = result.error;
+        }
 
         if (orderError || !order) {
-            return NextResponse.json({ success: false, error: 'Secret code not found' }, { status: 404 });
+            return NextResponse.json({
+                success: false,
+                error: isAmazonOrderId ? 'Amazon Order ID not found' : 'Secret code not found'
+            }, { status: 404 });
         }
 
         // Check if already redeemed

@@ -19,6 +19,12 @@ const guides = [
         href: '/installation-docs/office2024win',
         category: 'Microsoft Office',
     },
+    {
+        title: 'Microsoft Office 2024 LTSC (Mac)',
+        description: 'Installation guide for Office 2024 Standard on macOS',
+        href: '/installation-docs/office2024mac',
+        category: 'Microsoft Office',
+    },
 ];
 
 export default function InstallationDocsPage() {
