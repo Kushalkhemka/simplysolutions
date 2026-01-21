@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { CheckCircle, Clock, Mail } from 'lucide-react';
 
 export default async function ProductRequestsPage() {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Fetch product requests
     const { data: requests, count } = await supabase
