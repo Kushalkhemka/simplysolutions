@@ -43,15 +43,42 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if order exists and if GetCID was already used
-        // Identifier can be either order_id (FBA: XXX-XXXXXXX-XXXXXXX) or secret code (Digital: 15 digits)
-        const { data: order } = await supabase
-            .from('amazon_orders')
-            .select('id, getcid_used')
-            .eq('order_id', identifier)
-            .single();
+        // Identifier can be either:
+        // - order_id (Digital: 15-17 digit secret code)
+        // - amazon_order_id (FBA: XXX-XXXXXXX-XXXXXXX format)
+        const cleanIdentifier = identifier.trim();
+        const isSecretCode = /^\d{15,17}$/.test(cleanIdentifier);
+        const isAmazonOrderId = /^\d{3}-\d{7}-\d{7}$/.test(cleanIdentifier);
+
+        if (!isSecretCode && !isAmazonOrderId) {
+            return NextResponse.json({
+                error: 'Invalid format. Please enter a 15-digit secret code OR Amazon Order ID (e.g., 408-1234567-1234567).'
+            }, { status: 400 });
+        }
+
+        let order = null;
+        if (isSecretCode) {
+            const { data } = await supabase
+                .from('amazon_orders')
+                .select('id, order_id, amazon_order_id, getcid_used')
+                .eq('order_id', cleanIdentifier)
+                .single();
+            order = data;
+        } else {
+            const { data } = await supabase
+                .from('amazon_orders')
+                .select('id, order_id, amazon_order_id, getcid_used')
+                .eq('amazon_order_id', cleanIdentifier)
+                .single();
+            order = data;
+        }
 
         if (!order) {
-            return NextResponse.json({ error: 'Invalid order ID or secret code' }, { status: 404 });
+            return NextResponse.json({
+                error: isAmazonOrderId
+                    ? 'Amazon Order ID not found. Please check your order ID.'
+                    : 'Invalid secret code. Please check and try again.'
+            }, { status: 404 });
         }
 
         if (order.getcid_used) {
@@ -87,10 +114,18 @@ export async function POST(request: NextRequest) {
 
         // Mark as used ONLY on success
         if (isSuccess) {
-            await supabase
-                .from('amazon_orders')
-                .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
-                .eq('order_id', identifier);
+            // Update using the correct field based on identifier type
+            if (isSecretCode) {
+                await supabase
+                    .from('amazon_orders')
+                    .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
+                    .eq('order_id', cleanIdentifier);
+            } else {
+                await supabase
+                    .from('amazon_orders')
+                    .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
+                    .eq('amazon_order_id', cleanIdentifier);
+            }
 
             return NextResponse.json({
                 success: true,

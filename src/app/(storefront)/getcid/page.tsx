@@ -26,7 +26,17 @@ export default function GetCIDPage() {
         e.preventDefault();
 
         if (!secretCode.trim()) {
-            toast.error('Please enter your secret code');
+            toast.error('Please enter your secret code or Amazon Order ID');
+            return;
+        }
+
+        // Validate format: either 15-17 digit secret code OR Amazon Order ID (XXX-XXXXXXX-XXXXXXX)
+        const cleanCode = secretCode.trim();
+        const isSecretCode = /^\d{15,17}$/.test(cleanCode);
+        const isAmazonOrderId = /^\d{3}-\d{7}-\d{7}$/.test(cleanCode);
+
+        if (!isSecretCode && !isAmazonOrderId) {
+            toast.error('Please enter a valid 15-digit secret code or Amazon Order ID');
             return;
         }
 
@@ -133,7 +143,7 @@ export default function GetCIDPage() {
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="font-bold text-[#FF9900]">3.</span>
-                                    <span>Enter your Secret Code and Installation ID below</span>
+                                    <span>Enter your Secret Code (or Amazon Order ID) and Installation ID below</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="font-bold text-[#FF9900]">4.</span>
@@ -212,7 +222,7 @@ export default function GetCIDPage() {
                                     {/* Secret Code Input */}
                                     <div>
                                         <label className="block text-sm font-bold text-[#0F1111] mb-2">
-                                            SECRET CODE
+                                            SECRET CODE / AMAZON ORDER ID
                                         </label>
                                         <div className="flex">
                                             <div className="bg-[#F0F2F2] border border-r-0 border-[#888C8C] rounded-l px-3 flex items-center">
@@ -222,16 +232,16 @@ export default function GetCIDPage() {
                                                 type="text"
                                                 value={secretCode}
                                                 onChange={(e) => {
-                                                    setSecretCode(e.target.value.replace(/\D/g, '').slice(0, 15));
+                                                    setSecretCode(e.target.value);
                                                     setError(null);
                                                 }}
-                                                placeholder="Enter your 15-digit secret code"
-                                                maxLength={15}
+                                                placeholder="e.g. 534643897517291 or 408-1234567-1234567"
+                                                maxLength={25}
                                                 className="flex-1 px-4 py-3 border border-[#888C8C] rounded-r text-base font-mono text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] placeholder:text-[#6B7280]"
                                             />
                                         </div>
                                         <p className="text-xs text-[#565959] mt-1">
-                                            Find this code in your Amazon order email or message center
+                                            Enter your 15-digit secret code OR Amazon Order ID (format: 408-1234567-1234567)
                                         </p>
                                     </div>
 
@@ -283,7 +293,7 @@ export default function GetCIDPage() {
                                     {/* Submit Button */}
                                     <button
                                         type="submit"
-                                        disabled={isLoading || secretCode.length !== 15 || digitCount !== 63}
+                                        disabled={isLoading || !secretCode.trim() || digitCount !== 63}
                                         className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] disabled:from-[#E7E9EC] disabled:to-[#D5D9D9] text-[#0F1111] disabled:text-[#565959] font-bold rounded-lg border border-[#FCD200] disabled:border-[#D5D9D9] shadow-sm transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
                                         {isLoading ? (
