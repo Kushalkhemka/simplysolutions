@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
             // Look up order by secret code (stored as order_id for digital delivery)
             const result = await supabase
                 .from('amazon_orders')
-                .select('id, order_id, amazon_order_id, fsn, license_key_id')
+                .select('id, order_id, amazon_order_id, fsn, license_key_id, fulfillment_type')
                 .eq('order_id', cleanCode)
                 .single();
             order = result.data;
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
             // Look up order by Amazon Order ID
             const result = await supabase
                 .from('amazon_orders')
-                .select('id, order_id, amazon_order_id, fsn, license_key_id')
+                .select('id, order_id, amazon_order_id, fsn, license_key_id, fulfillment_type')
                 .eq('amazon_order_id', cleanCode)
                 .single();
             order = result.data;
@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
             success: true,
             alreadyRedeemed: false,
             licenseKey: availableKey.license_key,
+            fulfillmentType: order.fulfillment_type,
             productInfo: {
                 productName: productData?.product_title || 'Microsoft Office',
                 productImage: productData?.product_image || null,

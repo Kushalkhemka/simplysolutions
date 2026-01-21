@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
                 valid: true,
                 isAlreadyRedeemed: true,
                 fsn: order.fsn,
+                fulfillmentType: order.fulfillment_type,
                 licenseKey: existingKey?.license_key || null,
                 productInfo
             });
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
             valid: true,
             isAlreadyRedeemed: false,
             fsn: order.fsn,
+            fulfillmentType: order.fulfillment_type,
             productInfo
         });
 
