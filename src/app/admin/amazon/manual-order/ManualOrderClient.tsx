@@ -137,7 +137,6 @@ export default function ManualOrderClient() {
             const orderData: any = {
                 order_id: identifier,
                 fsn: selectedFsn,
-                product_title: productName,
                 fulfillment_type: secretCode ? 'amazon_digital' : 'amazon_fba',
                 warranty_status: 'PENDING',
             };
@@ -248,7 +247,6 @@ export default function ManualOrderClient() {
                     .insert({
                         order_id: orderIdVal,
                         fsn: fsnVal,
-                        product_title: mapping?.product_title || fsnVal,
                         fulfillment_type: 'amazon_fba',
                         warranty_status: 'PENDING',
                         license_key_id: keyId,
