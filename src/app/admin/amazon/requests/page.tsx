@@ -21,14 +21,15 @@ export default async function ProductRequestsPage() {
 
     const pendingCount = requests?.filter(r => !r.is_completed).length || 0;
 
-    const getTypeBadge = (type: string) => {
+    const getTypeBadge = (type: string | null) => {
         const colors: Record<string, string> = {
             autocad: 'bg-red-100 text-red-800',
             canva: 'bg-purple-100 text-purple-800',
             '365e5': 'bg-blue-100 text-blue-800',
             other: 'bg-gray-100 text-gray-800'
         };
-        return <span className={`px-2 py-1 rounded text-xs font-medium ${colors[type] || colors.other}`}>{type.toUpperCase()}</span>;
+        const displayType = type || 'other';
+        return <span className={`px-2 py-1 rounded text-xs font-medium ${colors[displayType] || colors.other}`}>{displayType.toUpperCase()}</span>;
     };
 
     return (
