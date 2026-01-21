@@ -56,22 +56,13 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        let order = null;
-        if (isSecretCode) {
-            const { data } = await supabase
-                .from('amazon_orders')
-                .select('id, order_id, amazon_order_id, getcid_used')
-                .eq('order_id', cleanIdentifier)
-                .single();
-            order = data;
-        } else {
-            const { data } = await supabase
-                .from('amazon_orders')
-                .select('id, order_id, amazon_order_id, getcid_used')
-                .eq('amazon_order_id', cleanIdentifier)
-                .single();
-            order = data;
-        }
+        // Search by order_id for both secret codes and Amazon Order IDs
+        // since both are stored in the order_id field
+        const { data: order } = await supabase
+            .from('amazon_orders')
+            .select('id, order_id, getcid_used')
+            .eq('order_id', cleanIdentifier)
+            .single();
 
         if (!order) {
             return NextResponse.json({
@@ -114,18 +105,11 @@ export async function POST(request: NextRequest) {
 
         // Mark as used ONLY on success
         if (isSuccess) {
-            // Update using the correct field based on identifier type
-            if (isSecretCode) {
-                await supabase
-                    .from('amazon_orders')
-                    .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
-                    .eq('order_id', cleanIdentifier);
-            } else {
-                await supabase
-                    .from('amazon_orders')
-                    .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
-                    .eq('amazon_order_id', cleanIdentifier);
-            }
+            // Update using order_id
+            await supabase
+                .from('amazon_orders')
+                .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
+                .eq('order_id', cleanIdentifier);
 
             return NextResponse.json({
                 success: true,

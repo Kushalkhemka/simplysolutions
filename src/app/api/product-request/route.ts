@@ -51,22 +51,15 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify the order exists in amazon_orders table
-        let order = null;
-        if (isSecretCode) {
-            const { data } = await supabase
-                .from('amazon_orders')
-                .select('id, order_id, amazon_order_id, fsn')
-                .eq('order_id', cleanOrderId)
-                .single();
-            order = data;
-        } else {
-            const { data } = await supabase
-                .from('amazon_orders')
-                .select('id, order_id, amazon_order_id, fsn')
-                .eq('amazon_order_id', cleanOrderId)
-                .single();
-            order = data;
-        }
+        // Note: We search by order_id for both secret codes and Amazon Order IDs
+        // since the manual order creation stores both in order_id field
+        const { data: order, error: queryError } = await supabase
+            .from('amazon_orders')
+            .select('id, order_id, fsn')
+            .eq('order_id', cleanOrderId)
+            .single();
+
+        console.log('Order lookup:', { cleanOrderId, order, queryError });
 
         if (!order) {
             return NextResponse.json(

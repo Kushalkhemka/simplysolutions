@@ -119,47 +119,23 @@ export default function ManualOrderClient() {
         setIsSubmitting(true);
 
         try {
-            // Check if order already exists
-            const identifier = orderId || secretCode;
-            const { data: existing } = await supabase
-                .from('amazon_orders')
-                .select('id')
-                .eq('order_id', identifier)
-                .single();
+            // Use API route to create order (bypasses RLS with service role)
+            const response = await fetch('/api/admin/amazon-orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: orderId || null,
+                    secretCode: secretCode || null,
+                    fsn: selectedFsn,
+                    licenseKeyId: selectedKeyId || null,
+                }),
+            });
 
-            if (existing) {
-                setMessage({ type: 'error', text: 'Order already exists in the system' });
-                setIsSubmitting(false);
-                return;
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create order');
             }
-
-            // Create the order
-            const orderData: any = {
-                order_id: identifier,
-                fsn: selectedFsn,
-                fulfillment_type: secretCode ? 'amazon_digital' : 'amazon_fba',
-                warranty_status: 'PENDING',
-            };
-
-            // If a key is selected, link it
-            if (selectedKeyId) {
-                orderData.license_key_id = selectedKeyId;
-
-                // Mark the key as redeemed
-                await supabase
-                    .from('amazon_activation_license_keys')
-                    .update({
-                        is_redeemed: true,
-                        order_id: identifier,
-                    })
-                    .eq('id', selectedKeyId);
-            }
-
-            const { error } = await supabase
-                .from('amazon_orders')
-                .insert(orderData);
-
-            if (error) throw error;
 
             setMessage({ type: 'success', text: 'Order created successfully!' });
 
