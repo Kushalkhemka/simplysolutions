@@ -73,6 +73,21 @@ const nextConfig: NextConfig = {
         destination: '/installation-docs/office2024mac',
         permanent: true,
       },
+      {
+        source: '/warranty',
+        destination: '/digital-warranty',
+        permanent: true,
+      },
+      {
+        source: '/warranty_registration',
+        destination: '/digital-warranty',
+        permanent: true,
+      },
+      {
+        source: '/register-warranty',
+        destination: '/digital-warranty',
+        permanent: true,
+      },
     ];
   },
 };

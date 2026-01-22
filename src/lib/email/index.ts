@@ -304,3 +304,262 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
     return { success: false, error };
   }
 }
+
+// Subscription products configuration
+const SUBSCRIPTION_INSTRUCTIONS: Record<string, {
+  productName: string;
+  downloadUrl: string;
+  steps: string[];
+  afterInstall?: string[];
+}> = {
+  'AUTOCAD': {
+    productName: 'AutoCAD Subscription',
+    downloadUrl: 'https://manage.autodesk.com/products',
+    steps: [
+      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
+      'Click "All Products and Services" in the left catalog bar of the interface',
+      'Download the software you purchased'
+    ],
+    afterInstall: [
+      'Logout the account once',
+      'Re-login to complete activation'
+    ]
+  },
+  'CANVA': {
+    productName: 'Canva Pro Subscription',
+    downloadUrl: 'https://canva.com',
+    steps: [
+      'Login to Canva with the email address provided in this email',
+      'Your Canva Pro subscription is now active on your account',
+      'You can access all Pro features immediately'
+    ]
+  },
+  'REVIT': {
+    productName: 'Revit Subscription',
+    downloadUrl: 'https://manage.autodesk.com/products',
+    steps: [
+      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
+      'Click "All Products and Services" in the left catalog bar of the interface',
+      'Download Revit from your product list'
+    ],
+    afterInstall: [
+      'Logout the account once',
+      'Re-login to complete activation'
+    ]
+  },
+  '3DSMAX': {
+    productName: '3DS Max Subscription',
+    downloadUrl: 'https://manage.autodesk.com/products',
+    steps: [
+      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
+      'Click "All Products and Services" in the left catalog bar of the interface',
+      'Download 3DS Max from your product list'
+    ],
+    afterInstall: [
+      'Logout the account once',
+      'Re-login to complete activation'
+    ]
+  },
+  'MAYA': {
+    productName: 'Maya Subscription',
+    downloadUrl: 'https://manage.autodesk.com/products',
+    steps: [
+      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
+      'Click "All Products and Services" in the left catalog bar of the interface',
+      'Download Maya from your product list'
+    ],
+    afterInstall: [
+      'Logout the account once',
+      'Re-login to complete activation'
+    ]
+  },
+  'FUSION360': {
+    productName: 'Fusion 360 Subscription',
+    downloadUrl: 'https://manage.autodesk.com/products',
+    steps: [
+      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
+      'Click "All Products and Services" in the left catalog bar of the interface',
+      'Download Fusion 360 from your product list'
+    ],
+    afterInstall: [
+      'Logout the account once',
+      'Re-login to complete activation'
+    ]
+  }
+};
+
+interface SubscriptionEmailData {
+  to: string;
+  customerName?: string;
+  orderId: string;
+  fsn: string;
+  subscriptionEmail?: string; // Email where subscription was processed (if different)
+}
+
+export function getSubscriptionConfig(fsn: string) {
+  // Extract base product from FSN (e.g., AUTOCAD-1YEAR -> AUTOCAD)
+  for (const key of Object.keys(SUBSCRIPTION_INSTRUCTIONS)) {
+    if (fsn.startsWith(key)) {
+      return { key, ...SUBSCRIPTION_INSTRUCTIONS[key] };
+    }
+  }
+  return null;
+}
+
+export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
+  const config = getSubscriptionConfig(data.fsn);
+
+  if (!config) {
+    return { success: false, error: 'Unknown subscription product' };
+  }
+
+  const subscriptionEmail = data.subscriptionEmail || data.to;
+  const customerName = data.customerName || 'Customer';
+
+  const stepsHtml = config.steps.map((step, i) => `
+    <tr>
+      <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #DC3E15, #f97316); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <span style="color: white; font-weight: 700; font-size: 14px;">${i + 1}</span>
+          </div>
+          <span style="color: #334155; font-size: 15px; line-height: 1.6; padding-top: 2px;">${step}</span>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  const afterInstallHtml = config.afterInstall ? `
+    <div style="margin-top: 24px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 12px; padding: 20px;">
+      <h3 style="margin: 0 0 12px; font-size: 16px; font-weight: 600; color: #92400e;">
+        ⚠️ After Installation
+      </h3>
+      <ul style="margin: 0; padding-left: 20px; color: #92400e;">
+        ${config.afterInstall.map(step => `<li style="margin-bottom: 8px;">${step}</li>`).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Subscription Activated</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Logo/Header -->
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="margin: 0; font-size: 32px; font-weight: 800; color: #DC3E15; letter-spacing: -1px;">SimplySolutions</h1>
+        </div>
+
+        <!-- Main Card -->
+        <div style="background-color: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
+          
+          <!-- Success Icon -->
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 40px; line-height: 1;">✓</span>
+            </div>
+          </div>
+
+          <h2 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #1e293b; text-align: center;">
+            Subscription Activated! 🎉
+          </h2>
+          
+          <p style="margin: 0 0 24px; font-size: 16px; color: #64748b; text-align: center;">
+            Your ${config.productName} has been successfully processed
+          </p>
+
+          <!-- Order Details -->
+          <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
+            <table style="width: 100%;">
+              <tr>
+                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Order ID:</td>
+                <td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right; font-family: monospace;">${data.orderId}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Product:</td>
+                <td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">${config.productName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Subscription Email:</td>
+                <td style="padding: 8px 0; color: #DC3E15; font-weight: 600; text-align: right;">${subscriptionEmail}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Installation Steps -->
+          <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #1e293b;">
+            📋 Installation Steps
+          </h3>
+          
+          <table style="width: 100%;">
+            ${stepsHtml}
+          </table>
+
+          ${afterInstallHtml}
+
+          <!-- Download Button -->
+          <div style="text-align: center; margin-top: 32px;">
+            <a href="${config.downloadUrl}" 
+               style="display: inline-block; 
+                      background: linear-gradient(135deg, #DC3E15, #f97316); 
+                      color: #ffffff; 
+                      padding: 16px 40px; 
+                      font-size: 16px; 
+                      font-weight: 600; 
+                      text-decoration: none; 
+                      border-radius: 100px;
+                      box-shadow: 0 4px 16px rgba(220, 62, 21, 0.3);">
+              Go to Download Portal →
+            </a>
+          </div>
+        </div>
+
+        <!-- Support Card -->
+        <div style="background-color: #ffffff; border-radius: 12px; padding: 24px; margin-top: 24px; border: 1px solid #e2e8f0; text-align: center;">
+          <p style="margin: 0 0 12px; font-size: 14px; color: #64748b;">
+            Need help with installation?
+          </p>
+          <a href="https://wa.me/918595899215" 
+             style="display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: white; padding: 12px 24px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px;">
+            <span>💬</span> Chat on WhatsApp
+          </a>
+          <p style="margin: 12px 0 0; font-size: 13px; color: #94a3b8;">
+            +91 8595899215 (Message only)
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 32px;">
+          <p style="margin: 0; font-size: 13px; color: #94a3b8;">
+            © ${new Date().getFullYear()} SimplySolutions. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const { data: result, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.com>',
+      to: data.to,
+      subject: `✅ Your ${config.productName} is Ready! - Order ${data.orderId}`,
+      html,
+    });
+
+    if (error) {
+      console.error('Subscription email send error:', error);
+      return { success: false, error };
+    }
+
+    return { success: true, id: result?.id };
+  } catch (error) {
+    console.error('Subscription email service error:', error);
+    return { success: false, error };
+  }
+}
