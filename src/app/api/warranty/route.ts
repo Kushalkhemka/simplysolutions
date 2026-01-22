@@ -11,14 +11,25 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
 
         const orderId = formData.get('orderId') as string;
-        const contact = formData.get('contact') as string;
-        const screenshotSellerFeedback = formData.get('screenshotSellerFeedback') as File;
-        const screenshotProductReview = formData.get('screenshotProductReview') as File;
+        const customerEmail = formData.get('customerEmail') as string;
+        const contact = formData.get('contact') as string; // Legacy support
+        const screenshotSellerFeedback = formData.get('screenshotSellerFeedback') as File | null;
+        const screenshotProductReview = formData.get('screenshotProductReview') as File | null;
+        const isResubmission = formData.get('isResubmission') === 'true';
 
         // Validate required fields
-        if (!orderId || !screenshotSellerFeedback || !screenshotProductReview) {
+        if (!orderId) {
             return NextResponse.json(
-                { error: 'Order ID and both screenshots are required' },
+                { error: 'Order ID is required' },
+                { status: 400 }
+            );
+        }
+
+        // Email is mandatory
+        const email = customerEmail || contact;
+        if (!email || !email.includes('@')) {
+            return NextResponse.json(
+                { error: 'Valid email address is required' },
                 { status: 400 }
             );
         }
@@ -26,16 +37,123 @@ export async function POST(request: NextRequest) {
         // Check if warranty already exists for this order
         const { data: existing } = await supabase
             .from('warranty_registrations')
-            .select('id, status')
+            .select('id, status, missing_seller_feedback, missing_product_review, screenshot_seller_feedback, screenshot_product_review')
             .eq('order_id', orderId)
             .single();
 
+        // Handle resubmission
+        if (existing && existing.status === 'NEEDS_RESUBMISSION') {
+            const timestamp = Date.now();
+            let updateData: any = {
+                status: 'PROCESSING',
+                customer_email: email,
+                missing_seller_feedback: false,
+                missing_product_review: false
+            };
+
+            // Upload only the missing screenshot(s)
+            if (existing.missing_seller_feedback && screenshotSellerFeedback) {
+                const feedbackPath = `warranty/${orderId}/seller-feedback-${timestamp}.${screenshotSellerFeedback.name.split('.').pop()}`;
+                const { error: feedbackError } = await supabase.storage
+                    .from('uploads')
+                    .upload(feedbackPath, screenshotSellerFeedback);
+
+                if (feedbackError) {
+                    console.error('Feedback upload error:', feedbackError);
+                    return NextResponse.json(
+                        { error: 'Failed to upload seller feedback screenshot' },
+                        { status: 500 }
+                    );
+                }
+
+                const { data: feedbackUrl } = supabase.storage.from('uploads').getPublicUrl(feedbackPath);
+                updateData.screenshot_seller_feedback = feedbackUrl.publicUrl;
+            }
+
+            if (existing.missing_product_review && screenshotProductReview) {
+                const reviewPath = `warranty/${orderId}/product-review-${timestamp}.${screenshotProductReview.name.split('.').pop()}`;
+                const { error: reviewError } = await supabase.storage
+                    .from('uploads')
+                    .upload(reviewPath, screenshotProductReview);
+
+                if (reviewError) {
+                    console.error('Review upload error:', reviewError);
+                    return NextResponse.json(
+                        { error: 'Failed to upload product review screenshot' },
+                        { status: 500 }
+                    );
+                }
+
+                const { data: reviewUrl } = supabase.storage.from('uploads').getPublicUrl(reviewPath);
+                updateData.screenshot_product_review = reviewUrl.publicUrl;
+            }
+
+            // Update existing registration
+            const { error: updateError } = await supabase
+                .from('warranty_registrations')
+                .update(updateData)
+                .eq('id', existing.id);
+
+            if (updateError) {
+                console.error('Warranty update error:', updateError);
+                return NextResponse.json(
+                    { error: 'Failed to update warranty registration' },
+                    { status: 500 }
+                );
+            }
+
+            return NextResponse.json({
+                success: true,
+                message: 'Screenshot resubmitted successfully! We will verify within 24 hours.',
+                registrationId: existing.id,
+                status: 'PROCESSING'
+            });
+        }
+
+        // If warranty exists and not needing resubmission, return its status
         if (existing) {
             return NextResponse.json({
                 success: true,
-                message: `Your warranty registration is already ${existing.status.toLowerCase()}.`,
+                message: existing.status === 'VERIFIED'
+                    ? 'Your warranty is already verified!'
+                    : existing.status === 'REJECTED'
+                        ? 'Your warranty registration was rejected. Please contact support.'
+                        : 'Your warranty registration is being processed.',
                 status: existing.status
             });
+        }
+
+        // New registration - require both screenshots
+        if (!screenshotSellerFeedback || !screenshotProductReview) {
+            return NextResponse.json(
+                { error: 'Both screenshots are required for new registration' },
+                { status: 400 }
+            );
+        }
+
+        // Get order details for storing with warranty
+        let productName = null;
+        let quantity = 1;
+        let purchaseDate = null;
+
+        const { data: order } = await supabase
+            .from('amazon_orders')
+            .select('fsn, quantity, order_date')
+            .eq('order_id', orderId)
+            .single();
+
+        if (order) {
+            quantity = order.quantity || 1;
+            purchaseDate = order.order_date;
+
+            if (order.fsn) {
+                const { data: product } = await supabase
+                    .from('products_data')
+                    .select('product_title')
+                    .eq('fsn', order.fsn)
+                    .single();
+                productName = product?.product_title || null;
+            }
         }
 
         // Upload screenshots to Supabase Storage
@@ -76,10 +194,14 @@ export async function POST(request: NextRequest) {
             .from('warranty_registrations')
             .insert({
                 order_id: orderId,
-                contact: contact || null,
+                customer_email: email,
+                contact: email, // Legacy support
                 status: 'PROCESSING',
                 screenshot_seller_feedback: feedbackUrl.publicUrl,
-                screenshot_product_review: reviewUrl.publicUrl
+                screenshot_product_review: reviewUrl.publicUrl,
+                product_name: productName,
+                quantity: quantity,
+                purchase_date: purchaseDate
             })
             .select()
             .single();
@@ -139,7 +261,11 @@ export async function GET(request: NextRequest) {
             status: data.status,
             registeredAt: data.created_at,
             verifiedAt: data.verified_at,
-            rejectionReason: data.rejection_reason
+            rejectionReason: data.rejection_reason,
+            adminNotes: data.admin_notes,
+            missingSeller: data.missing_seller_feedback,
+            missingReview: data.missing_product_review,
+            customerEmail: data.customer_email
         });
 
     } catch (error) {
