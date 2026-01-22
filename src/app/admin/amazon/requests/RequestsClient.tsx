@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CheckCircle, Clock, Mail, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle } from 'lucide-react';
+import { CheckCircle, Clock, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -385,25 +385,17 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                                     })}
                                 </td>
                                 <td className="px-4 py-3.5">
-                                    <div className="flex items-center gap-2">
-                                        <a
-                                            href={`mailto:${request.email}`}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                                            title="Send Email"
+                                    {!request.is_completed ? (
+                                        <button
+                                            onClick={() => handleOpenCompleteModal(request)}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                                            title="Complete Request & Send Notification"
                                         >
-                                            <Mail className="h-4 w-4" />
-                                        </a>
-
-                                        {!request.is_completed && (
-                                            <button
-                                                onClick={() => handleOpenCompleteModal(request)}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
-                                                title="Complete Request & Send Notification"
-                                            >
-                                                <Send className="h-4 w-4" /> Complete
-                                            </button>
-                                        )}
-                                    </div>
+                                            <Send className="h-4 w-4" /> Complete
+                                        </button>
+                                    ) : (
+                                        <span className="text-xs text-slate-400 dark:text-slate-500">Completed</span>
+                                    )}
                                 </td>
                             </tr>
                         ))}
