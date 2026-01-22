@@ -164,7 +164,8 @@ export async function POST(request: NextRequest) {
                 order_id: cleanOrderId,
                 fsn: fsn,
                 mobile_number: mobileNumber || null,
-                is_completed: false
+                is_completed: false,
+                request_type: requestType // Store the type (canva, autocad, 365e5, etc.)
             })
             .select()
             .single();
