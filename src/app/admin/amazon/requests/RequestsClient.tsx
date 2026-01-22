@@ -8,6 +8,7 @@ interface ProductRequest {
     email: string;
     order_id: string | null;
     request_type: string | null;
+    fsn: string | null;
     mobile_number: string | null;
     is_completed: boolean;
     created_at: string;
@@ -127,8 +128,8 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                 <button
                     onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
                     className={`relative overflow-hidden rounded-xl p-4 text-left transition-all ${statusFilter === 'pending'
-                            ? 'ring-2 ring-amber-500 ring-offset-2 dark:ring-offset-slate-900'
-                            : 'hover:scale-[1.02]'
+                        ? 'ring-2 ring-amber-500 ring-offset-2 dark:ring-offset-slate-900'
+                        : 'hover:scale-[1.02]'
                         }`}
                     style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' }}
                 >
@@ -141,8 +142,8 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                 <button
                     onClick={() => setStatusFilter(statusFilter === 'completed' ? 'all' : 'completed')}
                     className={`relative overflow-hidden rounded-xl p-4 text-left transition-all ${statusFilter === 'completed'
-                            ? 'ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900'
-                            : 'hover:scale-[1.02]'
+                        ? 'ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900'
+                        : 'hover:scale-[1.02]'
                         }`}
                     style={{ background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)' }}
                 >
@@ -155,8 +156,8 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                 <button
                     onClick={() => setTypeFilter(typeFilter === 'autocad' ? 'all' : 'autocad')}
                     className={`relative overflow-hidden rounded-xl p-4 text-left transition-all ${typeFilter === 'autocad'
-                            ? 'ring-2 ring-rose-500 ring-offset-2 dark:ring-offset-slate-900'
-                            : 'hover:scale-[1.02]'
+                        ? 'ring-2 ring-rose-500 ring-offset-2 dark:ring-offset-slate-900'
+                        : 'hover:scale-[1.02]'
                         }`}
                     style={{ background: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)' }}
                 >
@@ -169,8 +170,8 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                 <button
                     onClick={() => setTypeFilter(typeFilter === 'canva' ? 'all' : 'canva')}
                     className={`relative overflow-hidden rounded-xl p-4 text-left transition-all ${typeFilter === 'canva'
-                            ? 'ring-2 ring-violet-500 ring-offset-2 dark:ring-offset-slate-900'
-                            : 'hover:scale-[1.02]'
+                        ? 'ring-2 ring-violet-500 ring-offset-2 dark:ring-offset-slate-900'
+                        : 'hover:scale-[1.02]'
                         }`}
                     style={{ background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)' }}
                 >
@@ -183,8 +184,8 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                 <button
                     onClick={() => setTypeFilter(typeFilter === '365e5' ? 'all' : '365e5')}
                     className={`relative overflow-hidden rounded-xl p-4 text-left transition-all ${typeFilter === '365e5'
-                            ? 'ring-2 ring-sky-500 ring-offset-2 dark:ring-offset-slate-900'
-                            : 'hover:scale-[1.02]'
+                        ? 'ring-2 ring-sky-500 ring-offset-2 dark:ring-offset-slate-900'
+                        : 'hover:scale-[1.02]'
                         }`}
                     style={{ background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)' }}
                 >
@@ -275,6 +276,7 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Order ID</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">FSN</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Mobile</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
@@ -295,6 +297,13 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                                     {request.order_id || '-'}
                                 </td>
                                 <td className="px-4 py-3.5">{getTypeBadge(request.request_type)}</td>
+                                <td className="px-4 py-3.5">
+                                    {request.fsn && (
+                                        <span className="px-2 py-1 rounded text-xs font-mono bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                            {request.fsn}
+                                        </span>
+                                    )}
+                                </td>
                                 <td className="px-4 py-3.5 text-sm text-slate-600 dark:text-slate-300">
                                     {request.mobile_number || '-'}
                                 </td>

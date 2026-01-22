@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Send, CheckCircle, Loader2, ShoppingCart, HelpCircle, Palette } from 'lucide-react';
+import { Mail, Send, CheckCircle, Loader2, ShoppingCart, HelpCircle, Palette, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function CanvaPage() {
     const [orderId, setOrderId] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -32,7 +33,8 @@ export default function CanvaPage() {
                 body: JSON.stringify({
                     email: email.trim(),
                     orderId: orderId.trim(),
-                    requestType: 'canva'
+                    requestType: 'canva',
+                    mobileNumber: phone.trim() || null
                 }),
             });
 
@@ -232,6 +234,29 @@ export default function CanvaPage() {
                                     </div>
                                     <p className="text-xs text-[#CC0C39] mt-1">
                                         <strong>Important:</strong> Your Canva Pro subscription details will be sent to this email
+                                    </p>
+                                </div>
+
+                                {/* WhatsApp Phone Input */}
+                                <div>
+                                    <label className="block text-sm font-bold text-[#0F1111] mb-2">
+                                        WHATSAPP NUMBER <span className="text-[#565959] font-normal">(Optional)</span>
+                                    </label>
+                                    <div className="flex">
+                                        <div className="bg-[#F0F2F2] border border-r-0 border-[#888C8C] rounded-l px-3 flex items-center">
+                                            <Phone className="w-5 h-5 text-[#067D62]" />
+                                        </div>
+                                        <input
+                                            type="tel"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                            placeholder="10-digit WhatsApp number"
+                                            maxLength={10}
+                                            className="flex-1 px-4 py-3 border border-[#888C8C] rounded-r text-base font-mono text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#067D62] focus:border-[#067D62] placeholder:text-[#6B7280]"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-[#565959] mt-1">
+                                        We'll notify you on WhatsApp when your subscription is ready
                                     </p>
                                 </div>
 

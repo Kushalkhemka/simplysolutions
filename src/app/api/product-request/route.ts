@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Generate FSN for the product request (required field, used to derive request_type)
-        const fsn = REQUEST_TYPE_TO_FSN[requestType] || `${requestType.toUpperCase()}-REQ`;
+        // Use the actual FSN from the order if available, otherwise fallback to request type
+        const fsn = order.fsn || REQUEST_TYPE_TO_FSN[requestType] || `${requestType.toUpperCase()}-REQ`;
 
         // Create new request
         // Note: request_type is a GENERATED column based on fsn, so we don't insert it directly
