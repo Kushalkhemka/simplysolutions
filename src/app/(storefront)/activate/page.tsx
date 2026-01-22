@@ -42,6 +42,7 @@ interface ActivationResult {
     isCombo?: boolean;
     orderQuantity?: number;
     licenses?: LicenseInfo[];
+    windowsInstallType?: 'upgrade' | 'fresh' | null;
 }
 
 export default function ActivatePage() {
@@ -61,6 +62,15 @@ export default function ActivatePage() {
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [showFbaWarning, setShowFbaWarning] = useState(false);
     const [fulfillmentType, setFulfillmentType] = useState<string | null>(null);
+
+    // Windows installation type selection
+    const [showWindowsTypeModal, setShowWindowsTypeModal] = useState(false);
+    const [windowsInstallType, setWindowsInstallType] = useState<'upgrade' | 'fresh' | null>(null);
+    const [pendingOrderFsn, setPendingOrderFsn] = useState<string | null>(null);
+
+    // Windows FSNs that require installation type selection
+    const WINDOWS_FSNS = ['WINDOWS11', 'OPSG3TNK9HZDZEM9'];
+    const WINDOWS_UPGRADE_KEY = 'KNGH2-BVYFG-HJYTM-GB84H-YY49G';
 
     const handleVerifyCode = async () => {
         if (!secretCode.trim()) {
@@ -107,6 +117,14 @@ export default function ActivatePage() {
                 setFulfillmentType(data.fulfillmentType);
             }
 
+            // Check if this is a Windows product that needs installation type selection
+            if (data.fsn && WINDOWS_FSNS.includes(data.fsn)) {
+                setPendingOrderFsn(data.fsn);
+                setShowWindowsTypeModal(true);
+                setIsLoading(false);
+                return;
+            }
+
             await handleGenerateKey();
 
         } catch (err) {
@@ -116,7 +134,15 @@ export default function ActivatePage() {
         }
     };
 
-    const handleGenerateKey = async () => {
+    // Handle Windows installation type selection
+    const handleWindowsTypeSelect = async (installType: 'upgrade' | 'fresh') => {
+        setWindowsInstallType(installType);
+        setShowWindowsTypeModal(false);
+        setIsLoading(true);
+        await handleGenerateKey(installType);
+    };
+
+    const handleGenerateKey = async (installType?: 'upgrade' | 'fresh') => {
         try {
             const response = await fetch('/api/activate/generate', {
                 method: 'POST',
@@ -152,6 +178,7 @@ export default function ActivatePage() {
                         downloadUrl: data.licenses[0].downloadUrl,
                     },
                     alreadyRedeemed: data.alreadyRedeemed,
+                    windowsInstallType: installType || null,
                 });
             } else {
                 // Fallback for old format
@@ -160,6 +187,7 @@ export default function ActivatePage() {
                     licenseKey: data.licenseKey,
                     productInfo: data.productInfo || {},
                     alreadyRedeemed: data.alreadyRedeemed,
+                    windowsInstallType: installType || null,
                 });
             }
 
@@ -383,6 +411,42 @@ export default function ActivatePage() {
                                 </div>
 
                                 <div className="p-6 space-y-6">
+                                    {/* Windows Upgrade Key Step - Show FIRST for upgrade path */}
+                                    {activationResult.windowsInstallType === 'upgrade' && (
+                                        <div className="border-2 border-[#0078D4] rounded-lg overflow-hidden">
+                                            <div className="bg-[#0078D4] text-white px-4 py-2 flex items-center gap-2">
+                                                <span className="bg-white text-[#0078D4] font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm">1</span>
+                                                <span className="font-bold">STEP 1: Enter Upgrade Key (Switches to Pro Edition)</span>
+                                            </div>
+                                            <div className="p-4 bg-[#F0F8FF]">
+                                                <div className="flex items-center gap-3 p-3 bg-white rounded border border-[#DDD]">
+                                                    <code className="font-mono font-bold text-lg text-[#0F1111]">{WINDOWS_UPGRADE_KEY}</code>
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(WINDOWS_UPGRADE_KEY);
+                                                            toast.success('Upgrade key copied!');
+                                                        }}
+                                                        className="p-2 hover:bg-[#0078D4]/10 rounded"
+                                                    >
+                                                        <Copy className="w-5 h-5 text-[#0078D4]" />
+                                                    </button>
+                                                </div>
+                                                <div className="mt-3 p-3 bg-[#FFF4E5] border border-[#FF9900] rounded text-sm">
+                                                    <p className="text-[#B12704] font-medium">⚠️ Important:</p>
+                                                    <p className="text-[#565959] mt-1">This is an official Microsoft upgrade key. It switches your edition from Home to Pro but does NOT activate Windows. You must complete Step 2 for activation.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Step 2 Header for Upgrade Path */}
+                                    {activationResult.windowsInstallType === 'upgrade' && (
+                                        <div className="flex items-center gap-2 text-[#0F1111]">
+                                            <span className="bg-[#067D62] text-white font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm">2</span>
+                                            <span className="font-bold">STEP 2: Enter Activation Key (Activates Windows)</span>
+                                        </div>
+                                    )}
+
                                     {/* Product Card(s) - Handle multiple licenses for combos/quantities */}
                                     {activationResult.licenses && activationResult.licenses.length > 0 ? (
                                         <div className="space-y-4">
@@ -826,6 +890,85 @@ export default function ActivatePage() {
                             >
                                 <Download className="w-5 h-5" />
                                 View Installation Instructions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Windows Installation Type Selection Modal */}
+            {showWindowsTypeModal && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="bg-[#0078D4] px-6 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="grid grid-cols-2 gap-0.5 w-10 h-10">
+                                    <div className="bg-[#F25022]" />
+                                    <div className="bg-[#7FBA00]" />
+                                    <div className="bg-[#00A4EF]" />
+                                    <div className="bg-[#FFB900]" />
+                                </div>
+                                <h2 className="text-xl font-bold text-white">Windows Installation Type</h2>
+                            </div>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <p className="text-sm text-[#565959] text-center mb-4">
+                                Please select your installation scenario:
+                            </p>
+
+                            {/* Upgrade Options */}
+                            <button
+                                onClick={() => handleWindowsTypeSelect('upgrade')}
+                                className="w-full p-4 border-2 border-[#DDD] rounded-lg hover:border-[#0078D4] hover:bg-[#F0F8FF] transition-all text-left"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 bg-[#FF9900] rounded-full flex items-center justify-center flex-shrink-0">
+                                        <ArrowDown className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-[#0F1111]">Upgrading from Windows 7 / 8.1</p>
+                                        <p className="text-xs text-[#565959] mt-1">I have an older Windows version and want to upgrade</p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => handleWindowsTypeSelect('upgrade')}
+                                className="w-full p-4 border-2 border-[#DDD] rounded-lg hover:border-[#0078D4] hover:bg-[#F0F8FF] transition-all text-left"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 bg-[#0078D4] rounded-full flex items-center justify-center flex-shrink-0">
+                                        <ArrowDown className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-[#0F1111]">Switching from Home to Pro Edition</p>
+                                        <p className="text-xs text-[#565959] mt-1">I have Windows 10/11 Home and want to switch to Pro</p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            {/* Fresh Install Option */}
+                            <button
+                                onClick={() => handleWindowsTypeSelect('fresh')}
+                                className="w-full p-4 border-2 border-[#DDD] rounded-lg hover:border-[#067D62] hover:bg-[#F0FDF4] transition-all text-left"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 bg-[#067D62] rounded-full flex items-center justify-center flex-shrink-0">
+                                        <CheckCircle className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-[#0F1111]">Fresh Installation to Pro</p>
+                                        <p className="text-xs text-[#565959] mt-1">I&apos;m doing a clean install of Windows 10/11 Pro</p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setShowWindowsTypeModal(false)}
+                                className="w-full py-2 text-sm text-[#565959] hover:text-[#0F1111] transition-colors"
+                            >
+                                Cancel
                             </button>
                         </div>
                     </div>
