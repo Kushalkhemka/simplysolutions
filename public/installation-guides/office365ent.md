@@ -1,125 +1,129 @@
-Installation process is simple please follow all the instructions correctly till the end for a smooth activation...
+[color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]Installation process is simple please follow all the instructions correctly till the end for a smooth activation...[/font][/size][/color]
 
-*****Installation instruction:*****
-
-1) Important - You have to uninstall all old office versions using the office removal tool. To download it visit direct download link -->** (https://bit.ly/uninstallmsoffice)**
-
-**NOTE: IF YOU FACE ISSUE IN DOWNLOADING THIS TOOL, USE INCOGNITO MODE OR TRY IN DIFFERENT BROWSER. **
-
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img1.png)
+[color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][u][i][b]Installation instruction:[/b][/i][/u][/font][/size][/color]
 
 
-2) After download the office removal tool, select "**All Office Version**" and Click on "**Next**" and wait for approx 30-45 mins to run this program completely.
+[size=2][font=Verdana, Arial, Helvetica, sans-serif]1) Important - You have to uninstall all old office versions using the office removal tool. To download it visit direct download link -->[b][color=#0000ff] [url=https://bit.ly/uninstallmsoffice]bit.ly/uninstallmsoffice[/url][/color][/b][/font][/size]
+
+[size=2][font=Verdana, Arial, Helvetica, sans-serif][b]NOTE: IF YOU FACE ISSUE IN DOWNLOADING THIS TOOL, USE INCOGNITO MODE OR TRY IN DIFFERENT BROWSER. [/b][/font][/size]
 
 
----
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x250]https://i.postimg.cc/Yqt0Rbjd/Screenshot-2024-07-15-175830.png[/img]
 
-**> ⚠️ **NOTE**** -  **> ⚠️ If you don't have any Office 365 programs pre-installed on your computer, follow these steps. ****> ⚠️ Otherwise if you have, directly login with the generated 365 login credentials and setup the account as given in below steps.**
+[/font][/size][/color]
+[left][font=Verdana, Arial, Helvetica, sans-serif][size=2]2) After download the office removal tool, select "[/size][b][size=2][color=#111111]All Office Version[/color][/size][/b][size=2]" and Click on "[/size][b][size=2][color=#111111]Next[/color][/size][/b][size=2]" and wait for approx 30-45 mins to run this program completely.[/size]
+[/font]
+[hr]
+[font=Verdana, Arial, Helvetica, sans-serif][size=2][b][color=#ff0000][u]NOTE[/u][/color][/b] -  [/size][b][color=#e03e2d][font=Roboto][b][size=3]If you don't have any Office 365 programs pre-installed on your computer, follow these steps. [/size][/b][/font][/color][/b][/font][b][color=#e03e2d][font=Roboto][size=3]Otherwise if you have, directly login with the generated 365 login credentials and setup the account as given in below steps.[/size][/font][/color][/b][/left]
+[left][hr]
+[/left]
+[left][size=3][font=Arial][color=#000000]3) Visit the website [/color][url=https://www.portal.office.com][b][color=#0000ff]https://www.portal.office.com[/color][/b][/url][color=#000000] [b]OR[/b] [/color][url=https://www.office.com][b][color=#0000ff]https://www.office.com[/color][/b][/url][/font]
 
----
+4) Sign in with the generated 365 login credentials[/size][/left]
+[left][center][img=350x250]https://i.postimg.cc/Hs3xhXyd/c74a0daa48309143749575edf3127e00.png[/img]
 
-3) Visit the website [**https://www.portal.office.com**](https://www.portal.office.com) **OR** [**https://www.office.com**](https://www.office.com)
+[img=350x250]https://i.postimg.cc/Lsg85W08/tinywow-37e282b4c28240ea499fe92e2aa4dce3-62490462.png[/img]
 
-4) Sign in with the generated 365 login credentials
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img20.png)
+[left]2) [color=#232323][size=3][font=Roboto]At your first login, you are required to change your password to ensure that only you can access your account. [[b]TIP[/b]- Make sure to remember this password & save it somewhere in system or note it]
 
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img3.png)
-
-2) At your first login, you are required to change your password to ensure that only you can access your account. [**TIP**- Make sure to remember this password & save it somewhere in system or note it]
-
-
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img4.png)
-
-3) More information required.
-
-****NOTE****** - ****We added new feature that enhances the security of your account. You are now required to setup an authentication phone, email or both. ******This is very important to ensure that only you can access your account.****** Microsoft will send you an authentication code in case you forgot your password and want to reset it or if an unauthorized device is trying to login using your credentials from an unknown device or unusual location. Click finish after setting it up to enter your dashboard for the first time!**
-**> ⚠️ ## You can click on this URL at any time to set up your security information: **
-****[](https://mysignins.microsoft.com/security-info)(https://mysignins.microsoft.com/security-info)****
-
-
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img5.png)
+[/font][/size][/color]
+[center][img=350x300]https://i.postimg.cc/Tw8YDcZq/tinywow-b1bb1109b94e51e960a73bf6117a2305-62490588.png[/img][/center]
+[/left]
 
 
 
-Link account either using mobile number or email address as per your convenience.
+[left]3) [size=3][color=#232323][b][b][font=Arial]More information required.[/font]
+[/b][/b][/color]
+[u][b]NOTE[/b][/u][b] - [/b][color=#232323][b][font=sans-serif]We added new feature that enhances the security of your account. You are now required to setup an authentication phone, email or both. [/font][/b][u][font=sans-serif][b]This is very important to ensure that only you can access your account.[/b][/font][/u][b][font=sans-serif] Microsoft will send you an authentication code in case you forgot your password and want to reset it or if an unauthorized device is trying to login using your credentials from an unknown device or unusual location. Click finish after setting it up to enter your dashboard for the first time![/font][/b][/color][/size][/left]
+[left][color=#232323][font=sans-serif][b][color=#e03e2d][size=4][font=Roboto][b][b]You can click on this URL at any time to set up your security information: [/b][/b][/font][/size][/color]
+[color=#032eed][font=Roboto][u][b][b][url=https://mysignins.microsoft.com/security-info][/url][color=#032eed][size=3][u][url=https://mysignins.microsoft.com/security-info]https://mysignins.microsoft.com/security-info[/url][/u][/size][/color][/b][/b][/u][/font][/color]
+[/b][/font]
+[/color]
+[center][color=#232323][color=#111111][font=Verdana, Arial, Helvetica, sans-serif][font=Verdana, Arial, Helvetica, sans-serif][b][img=350x250]https://i.postimg.cc/8kmP7MwM/tinywow-314613142838e260ed058209288a2b52-62490540.png[/img]
+[/b][/font][/font][/color]
+[/color]
+
+[left][size=3][font=Arial]Link account either using mobile number or email address as per your convenience.[/font][/size][/left]
+[/center]
+[/left]
+[/center]
+[center][size=3][img=350x250]https://i.postimg.cc/qqwkWHgj/tinywow-64cb4226fa191cc10138e552b1b01aa8-62490771.png[/img]
+
+[/size]
+[left][size=3][color=#232323][font=Josefin Sans]4) Click the [/font][/color][b][color=#ff0000][font=Josefin Sans][b]Install and more[/b][/font][/color][/b][color=#232323][font=Josefin Sans] in the upper right corner and select [/font][/color][b][color=#ff0000][font=Josefin Sans][b]Install Microsoft 365 apps[/b][/font][/color][/b][/size][color=#232323][font=Josefin Sans][size=3] to install Office 365 Professional Plus.[/size]
+
+[/font][/color]
+[center][img=350x200]https://i.postimg.cc/3JL8Bhsw/tinywow-8df6b51e7dc09b8019e2374f75a36ea7-62500581.png[/img]
+[/center]
+[/left]
+[/center]
+[size=3]**If you don't see such option and see Buy Microsoft 365 or Go Premium Option then follow as below otherwise skip this 5th step.[/size][/left]
+[left][center][img=350x250]https://i.postimg.cc/5tzfbC6H/Screenshot-2024-08-17-000724.png[/img]
+[/center]
+[size=3]5) [/size][size=3]Click on Profile Icon on top-right corner of the window and switch the account and sign in with generated 365 account (NOT YOUR PERSONAL ACCOUNT) by click on "[/size][b][size=3]Sign in with a different account[/size][/b][size=3]".[/size][/left]
+[size=3][img=350x200]https://i.postimg.cc/nzYZQfKp/Screenshot-2024-08-17-000445.png[/img]
 
 
+[/size]
+[left][size=3]6) Now, after clicking Install 365 apps >> Click on [b]Install Office[/b] in next windows as shown and again click on [b]Install Office[/b].[/size][/left]
+[center][size=3][img=350x200]https://i.postimg.cc/3JL8Bhsw/tinywow-8df6b51e7dc09b8019e2374f75a36ea7-62500581.png[/img][/size][/center]
+[left][center][img=350x200]https://i.postimg.cc/8k4NpDPb/tinywow-aea0cffe80f004ebf4d7f36c01a0a115-62501236.png[/img]
 
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img6.png)
+[img=350x200]https://i.postimg.cc/MHpkMMKm/Screenshot-2024-08-17-001716.png[/img]
+[/center]
+[/left]
+[/center]
+[size=3]7) A OfficeSetup.exe will be downloaded, run that file and Click on Yes when prompted. The download & installation will start.[/size]
 
+[center][img=350x200]https://i.postimg.cc/xCYVQpw7/Screenshot-2024-08-17-001852.png[/img][/center]
+[center][img=350x200]https://i.postimg.cc/dQ5cMB4H/Screenshot-2024-08-17-002431.png[/img][/center]
+[center][left]8) Now after installation, [size=3][b][color=#232323][font=Roboto][b]Open any Office apps[/b][/font][/color][/b][color=#232323][font=Roboto], we will use Word for example.[/font][/color][/size][/left]
+[left][size=3][color=#232323][font=Roboto]9) Click on Sign in when prompted or [b]Click on Sign in[/b] on top right corner of windows as shown below and sign in with the 365 generated account.[/font][/color][/size][/left]
+[left][b]TIP[/b] - You can sign in with multiple account in office application, this will allow you to fetch the old data from other personal/work accounts and work in activated office as long as you keep the generated 365 account signed in background (means you keep it in the list of multiple signed in accounts)[/left]
+[left]
+[center][img=350x200]https://i.postimg.cc/xT7r8drL/Screenshot-2024-08-17-002650.png[/img][/center]
+[size=3]10) Your Office 365 will be activated for lifetime.[/size][/left]
+[left][center][img=350x200]https://i.postimg.cc/CKs6Gh2P/tinywow-d4d6504cd45a68e701db9c5b30041ea1-62491022.png[/img][/center]
+[size=3]
+** [b]To access Onedrive Storage[/b], download Onedrive app or visit [url=https://onedrive.live.com/][b][color=#0000ff]https://onedrive.live.com/[/color][/b][/url] . Remember you need to sign in with the generated 365 account in order to enjoy the cloud storage access.[/size][/left]
+[left][hr]
+[/left]
+[left][color=#ff0000][size=3][b][i]NOTE - The procedure is similar for both macOS and windows and you can activate upto 5 devices of even different OS in a similar way.[/i][/b][/size][/color][/left]
+[left][hr]
+[/left]
+[left][size=3][color=#e03e2d][size=2][font=Roboto][size=4][b][b][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif]If you already have any Office 365 pre-installed programs on your computer, follow these steps[/font][/b][/b][/size][/font][/size][/color][color=#e03e2d][size=2][font=Roboto][b][b][size=4].[/size][/b][/b][/font][/size][/color][/size][/left]
+[left][size=3][color=#000000][font=Arial][b][b][b]1) [color=#232323][font=Roboto]Open any Office apps[/font][/color][/b][/b][color=#232323][font=Roboto], we will use Word for example.[/font][/color][/b][/font][/color][/size][/left]
+[left][color=#000000][font=Arial][b][color=#232323][size=3][font=Roboto][color=#232323][font=Roboto]2A. If you are using a Windows, click on File Menu then click on [/font][/color][b][color=#232323][font=Roboto][b]Account[/b][/font][/color][/b][color=#232323][font=Roboto] option at the lower left corner of the screen and then click [/font][/color][b][color=#232323][font=Roboto][b]Activate Product[/b][/font][/color][/b][color=#232323][font=Roboto] just below the Office logo on the upper right.[/font][/color][/font][/size][/color][/b][/font][/color][/left]
+[img=350x200]https://i.postimg.cc/wT1PCdtM/tinywow-c299b52a0cb60debb86057808a2bec55-62490867.png[/img][/center]
+[center]
+[left][size=3][color=#000000][font=Arial][b][color=#232323][font=Roboto][color=#232323][font=Roboto][color=#232323][font=Roboto]2B. If you are using Mac, click [/font][/color][b][color=#232323][font=Roboto][b]Activate[/b][/font][/color][/b][color=#232323][font=Roboto] denoted by a key icon at the lower left corner of the screen. It will open a new window. Click [/font][/color][b][color=#232323][font=Roboto][b]Already bought Office? Sign in[/b][/font][/color][/b][color=#232323][font=Roboto].[/font][/color][/font][/color][/font][/color][/b][/font][/color][/size][/left]
+[img=350x300]https://i.postimg.cc/L6G7R0fT/tinywow-2a9f845fd3044a84a0bca48fc8df8b29-62490938.png[/img][/center]
+[center]
+[left][color=#000000][font=Arial][b][color=#232323][font=Roboto][color=#232323][font=Roboto][color=#232323][size=3][font=Roboto]3) [color=#232323][font=Roboto]This will open a sign in window. You will need to sign in using the credentials that you purchased from us. If you are logged in using a different account, click [/font][/color][b][color=#232323][font=Roboto][b]Use a different account[/b][/font][/color][/b][color=#232323][font=Roboto] otherwise, continue [/font][/color][b][color=#232323][font=Roboto][b]signing in[/b][/font][/color][/b][color=#232323][font=Roboto].[/font][/color][/font][/size][/color][/font][/color][/font][/color][/b][/font][/color][/left]
+[color=#000000][size=4][font=Arial][b][color=#232323][size=2][font=Roboto][color=#232323][size=2][font=Roboto][color=#232323][size=2][font=Roboto][color=#232323][size=2][font=Roboto][img=350x200]https://i.postimg.cc/vmsNxg0x/8d78d83d5e5a8c011aec3801f92b3ba1.png[/img]
+[/font][/size][/color][/font][/size][/color][/font][/size][/color][/font][/size][/color][/b][/font][/size][/color]
+[left][size=3][font=Roboto][b][color=#232323][color=#232323]4)[font=Roboto] Then [/font][/color][/color][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#232323]login using the account credential I sent you. [/color][color=#e03e2d]Refer to the steps discussed earlier for sign in process[/color][/font][/b][/font][/size][/left]
+[size=2][font=Roboto][b][size=2][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#e03e2d][img=350x200]https://i.postimg.cc/Hs3xhXyd/c74a0daa48309143749575edf3127e00.png[/img]
+[/color][/font][/size][/b][/font][/size]
+[left][font=Roboto][b][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#e03e2d][color=#232323][size=3][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif]5. After logging in, the activation is complete.[/font][/size][/color][/color][/font][/b][/font][/left]
+[font=Roboto][b][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#e03e2d][color=#232323][size=3][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][img=350x200]https://i.postimg.cc/CKs6Gh2P/tinywow-d4d6504cd45a68e701db9c5b30041ea1-62491022.png[/img]
+[/font][/size][/color][/color][/font][/b][/font]
+[left][hr]
+[color=#ff0000][size=4][font=Arial][b]For Android Phone/Tablet - Download Office 365 App from playstore and you can also download excel, word, powerpoint apps separately. Login with generated 365 account and it will be activated.[/b][/font][/size][/color][/left]
+[left][color=#ff0000][size=4][font=Arial][b].[/b][/font][/size][/color][/left]
+[left][size=4][font=Arial][b]OFFICE 365[/b] ---> [url=https://play.google.com/store/apps/details?id=com.microsoft.office.officehubrow&hl=en_IN][color=#0000ff][b]https://play.google.com/store/apps/details?id=com.microsoft.office.officehubrow&hl=en_IN[/b][/color][/url][/font][/size][/left]
+[left][size=3][b]Excel[/b] - [b][url=https://play.google.com/store/apps/details?id=com.microsoft.office.excel&hl=en_IN][color=#0000ff]https://play.google.com/store/apps/details?id=com.microsoft.office.excel&hl=en_IN[/color][/url][/b][/size][/left]
+[left][size=3][b]Word[/b] - [b][url=https://play.google.com/store/apps/details?id=com.microsoft.office.word&hl=en_IN][color=#0000ff]https://play.google.com/store/apps/details?id=com.microsoft.office.word&hl=en_IN[/color][/url][/b][/size][/left]
+[left][size=3][b]Powerpoint[/b] - [/size][b][url=https://play.google.com/store/apps/details?id=com.microsoft.office.powerpoint&hl=en_IN][color=#0000ff][size=3]https://play.google.com/store/apps/details?id=com.microsoft.office.powerpoint&hl=en_IN[/size][/color][/url][/b][/left]
+[left][hr]
+[/left]
+[left][size=4][b][color=#ff0000][font=Arial]For iPAD, iOS - Download & install the Office 365 or individual apps from App Store and sign in with generated 365 account and it will get activated[/font][/color]
+[/b][/size]
+[size=3][b]OFFICE 365 -[/b]-> [url=https://apps.apple.com/us/app/microsoft-365-office/id541164041][color=#0000ff][b]https://apps.apple.com/us/app/microsoft-365-office/id541164041[/b][/color][/url][/size][/left]
+[left][size=3][b]Excel[/b] - [url=https://apps.apple.com/us/app/microsoft-excel/id586683407][color=#0000ff][b]https://apps.apple.com/us/app/microsoft-excel/id586683407[/b][/color][/url][/size][/left]
+[left][size=3][b]Word[/b] - [url=https://apps.apple.com/us/app/microsoft-word/id586447913][b][color=#0000ff]https://apps.apple.com/us/app/microsoft-word/id586447913[/color][/b][/url][/size][/left]
+[left][size=3][b]Powerpoint[/b] - [url=https://apps.apple.com/us/app/microsoft-powerpoint/id586449534][b][color=#0000ff]https://apps.apple.com/us/app/microsoft-powerpoint/id586449534[/color][/b][/url][/size][/left]
 
-4) Click the **> ⚠️ Install and more** in the upper right corner and select **> ⚠️ Install Microsoft 365 apps** to install Office 365 Professional Plus.
+[/center]
+[color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][b]In case of any error or query, feel free to reach out to us at +91-9711397918 or mail us at support@simplysolutions.co.in[/b][/font][/size][/color]
 
-
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img7.png)
-
-
-**If you don't see such option and see Buy Microsoft 365 or Go Premium Option then follow as below otherwise skip this 5th step.
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img8.png)
-5) Click on Profile Icon on top-right corner of the window and switch the account and sign in with generated 365 account (NOT YOUR PERSONAL ACCOUNT) by click on "**Sign in with a different account**".
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img9.png)
-
-
-6) Now, after clicking Install 365 apps >> Click on **Install Office** in next windows as shown and again click on **Install Office**.
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img10.png)
-
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img11.png)
-
-7) A OfficeSetup.exe will be downloaded, run that file and Click on Yes when prompted. The download & installation will start.
-
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img12.png)
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img13.png)
-8) Now after installation, **Open any Office apps**, we will use Word for example.
-9) Click on Sign in when prompted or **Click on Sign in** on top right corner of windows as shown below and sign in with the 365 generated account.
-**TIP** - You can sign in with multiple account in office application, this will allow you to fetch the old data from other personal/work accounts and work in activated office as long as you keep the generated 365 account signed in background (means you keep it in the list of multiple signed in accounts)
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img14.png)
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img20.png)
-10) Your Office 365 will be activated for lifetime.
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img21.png)
-
-** **To access Onedrive Storage**, download Onedrive app or visit [**https://onedrive.live.com/**](https://onedrive.live.com/) . Remember you need to sign in with the generated 365 account in order to enjoy the cloud storage access.
-
----
-
-> ⚠️ ***NOTE - The procedure is similar for both macOS and windows and you can activate upto 5 devices of even different OS in a similar way.***
-
----
-
-> ⚠️ ## **If you already have any Office 365 pre-installed programs on your computer, follow these steps**> ⚠️ **## .**
-**1) Open any Office apps**, we will use Word for example.
-**2A. If you are using a Windows, click on File Menu then click on Account** option at the lower left corner of the screen and then click **Activate Product** just below the Office logo on the upper right.
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img17.png)
-
-**2B. If you are using Mac, click Activate** denoted by a key icon at the lower left corner of the screen. It will open a new window. Click **Already bought Office? Sign in**.
-
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img18.png)
-
-**3) This will open a sign in window. You will need to sign in using the credentials that you purchased from us. If you are logged in using a different account, click Use a different account** otherwise, continue **signing in**.
-## **![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img19.png)**
-
-**4) Then login using the account credential I sent you. > ⚠️ Refer to the steps discussed earlier for sign in process**
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img20.png)
-
-**> ⚠️ 5. After logging in, the activation is complete.**
-![](https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office365_img21.png)
-
-
----
-
-> ⚠️ ## **For Android Phone/Tablet - Download Office 365 App from playstore and you can also download excel, word, powerpoint apps separately. Login with generated 365 account and it will be activated.**
-> ⚠️ ## **.**
-## **OFFICE 365** ---> [**https://play.google.com/store/apps/details?id=com.microsoft.office.officehubrow&hl=en_IN**](https://play.google.com/store/apps/details?id=com.microsoft.office.officehubrow&hl=en_IN)
-**Excel** - **(https://play.google.com/store/apps/details?id=com.microsoft.office.excel&hl=en_IN)**
-**Word** - **(https://play.google.com/store/apps/details?id=com.microsoft.office.word&hl=en_IN)**
-**Powerpoint** - **(https://play.google.com/store/apps/details?id=com.microsoft.office.powerpoint&hl=en_IN)**
-
----
-
-> ⚠️ For iPAD, iOS - Download & install the Office 365 or individual apps from App Store and sign in with generated 365 account and it will get activated
-
-**OFFICE 365 -**-> [**https://apps.apple.com/us/app/microsoft-365-office/id541164041**](https://apps.apple.com/us/app/microsoft-365-office/id541164041)
-**Excel** - [**https://apps.apple.com/us/app/microsoft-excel/id586683407**](https://apps.apple.com/us/app/microsoft-excel/id586683407)
-**Word** - [**https://apps.apple.com/us/app/microsoft-word/id586447913**](https://apps.apple.com/us/app/microsoft-word/id586447913)
-**Powerpoint** - [**https://apps.apple.com/us/app/microsoft-powerpoint/id586449534**](https://apps.apple.com/us/app/microsoft-powerpoint/id586449534)
-
-**In case of any error or query, feel free to reach out to us at +91-8595899215 or mail us at support@simplysolutions.co.in**
