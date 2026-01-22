@@ -272,7 +272,7 @@ export default function ActivatePage() {
                         <div className="bg-gradient-to-b from-[#F7F8FA] to-[#E7E9EC] px-6 py-4 border-b border-[#DDD]">
                             <h2 className="text-lg font-bold text-[#0F1111]">Enter Your Secret Code or Amazon Order ID</h2>
                             <p className="text-sm text-[#565959] mt-1">
-                                Enter your 15-Digit Secret Code OR Amazon Order ID to get your Product License Key
+                                Enter your Secret Code OR Amazon Order ID to get your Product License Key
                             </p>
                         </div>
 
@@ -293,7 +293,7 @@ export default function ActivatePage() {
                                             setSecretCode(e.target.value);
                                             setError(null);
                                         }}
-                                        placeholder="e.g. 534643897517291 or 408-1234567-1234567"
+                                        placeholder="e.g. 12345678990000 or 408-1234567-1234567"
                                         className="flex-1 px-4 py-3 border border-[#888C8C] rounded-r text-base font-mono text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] placeholder:text-[#6B7280]"
                                         maxLength={25}
                                     />

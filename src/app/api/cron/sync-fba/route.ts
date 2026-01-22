@@ -1,7 +1,7 @@
 /**
  * Cron endpoint to sync FBA (Amazon Fulfilled) orders
  * Schedule: Every 24 hours at 2 AM
- * Uses ASIN mapping to get product_type (FSN)
+ * Uses ASIN mapping to get FSN for product identification
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -127,14 +127,14 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Fetch ASIN mapping for product_type lookup
+        // Fetch ASIN mapping for FSN lookup
         const { data: asinMappings } = await supabase
             .from('amazon_asin_mapping')
-            .select('asin, product_type');
+            .select('asin, fsn');
 
-        const asinToProductType = new Map<string, string>();
+        const asinToFSN = new Map<string, string>();
         (asinMappings || []).forEach((m: any) => {
-            asinToProductType.set(m.asin, m.product_type);
+            asinToFSN.set(m.asin, m.fsn);
         });
 
         // Prepare orders with ALL fields
@@ -144,14 +144,14 @@ export async function GET(request: NextRequest) {
             const firstItem = items[0];
             const asin = firstItem?.ASIN;
 
-            // Use ASIN mapping to get product_type (FSN)
-            const productType = asin ? asinToProductType.get(asin) : null;
+            // Use ASIN mapping to get FSN
+            const mappedFSN = asin ? asinToFSN.get(asin) : null;
 
             ordersToInsert.push({
                 order_id: order.AmazonOrderId,
                 fulfillment_type: 'amazon_fba',
-                // Use product_type from ASIN mapping, fallback to SellerSKU
-                fsn: productType || firstItem?.SellerSKU || null,
+                // Use FSN from ASIN mapping, fallback to SellerSKU only if no mapping exists
+                fsn: mappedFSN || firstItem?.SellerSKU || null,
                 // Order details
                 order_date: order.PurchaseDate || null,
                 order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,

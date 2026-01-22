@@ -100,6 +100,8 @@ export const fsnToInstallDoc: Record<string, string> = {
     'OFFICE2024-MAC': 'office2024mac',
     'VISIO2021': 'visio2021',
     'PROJECT2021': 'project2021',
+    'GEMINI': null, // No installation doc for Gemini - invite-based activation
+    'ACROBAT2024': 'acrobat2024',
 };
 
 /**
