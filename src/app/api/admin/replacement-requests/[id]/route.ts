@@ -288,8 +288,8 @@ export async function GET(
             success: true,
             data: {
                 ...replacementRequest,
-                original_license_key: originalKey,
-                new_license_key: newKey,
+                original_license_key: originalKey?.license_key || null,
+                new_license_key: newKey?.license_key || null,
                 available_keys: availableKeys
             }
         });
