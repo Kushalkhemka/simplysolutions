@@ -116,6 +116,48 @@ export async function POST(request: NextRequest) {
             };
         }
 
+        // Check for replacement requests
+        let replacementInfo = null;
+        const { data: replacementRequest } = await supabase
+            .from('license_replacement_requests')
+            .select(`
+                id,
+                status,
+                customer_email,
+                screenshot_url,
+                admin_notes,
+                created_at,
+                reviewed_at,
+                new_license_key_id
+            `)
+            .eq('order_id', cleanOrderId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (replacementRequest) {
+            let newLicenseKey = null;
+            if (replacementRequest.status === 'APPROVED' && replacementRequest.new_license_key_id) {
+                const { data: newKey } = await supabase
+                    .from('amazon_activation_license_keys')
+                    .select('license_key')
+                    .eq('id', replacementRequest.new_license_key_id)
+                    .single();
+                newLicenseKey = newKey?.license_key || null;
+            }
+
+            replacementInfo = {
+                hasReplacementRequest: true,
+                status: replacementRequest.status,
+                customerEmail: replacementRequest.customer_email,
+                screenshotUrl: replacementRequest.screenshot_url,
+                adminNotes: replacementRequest.admin_notes,
+                requestedAt: replacementRequest.created_at,
+                reviewedAt: replacementRequest.reviewed_at,
+                newLicenseKey: newLicenseKey
+            };
+        }
+
         // Get product info from products_data via FSN
         let productInfo = null;
         if (order.fsn) {
@@ -193,6 +235,9 @@ export async function POST(request: NextRequest) {
             // All License Keys (for multi-quantity/combo orders)
             allLicenses: allLicenses,
 
+            // Replacement Request Info
+            replacement: replacementInfo,
+
             // GetCID Status
             getcid: {
                 used: order.getcid_used || false,
@@ -201,7 +246,7 @@ export async function POST(request: NextRequest) {
             },
 
             // Suggested Actions for AI
-            suggestedActions: getSuggestedActions(order, licenseInfo)
+            suggestedActions: getSuggestedActions(order, licenseInfo, replacementInfo)
         });
 
     } catch (error) {
@@ -215,7 +260,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper function to suggest actions based on order state
-function getSuggestedActions(order: any, licenseInfo: any): string[] {
+function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any): string[] {
     const actions: string[] = [];
 
     if (order.is_fraud) {
@@ -228,6 +273,18 @@ function getSuggestedActions(order: any, licenseInfo: any): string[] {
 
     if (order.has_activation_issue) {
         actions.push(`🔧 Customer has reported activation issue. Status: ${order.issue_status}`);
+    }
+
+    // Check for replacement request status
+    if (replacementInfo?.hasReplacementRequest) {
+        if (replacementInfo.status === 'PENDING') {
+            actions.push('🔄 Customer has a PENDING replacement request. Under investigation (12-24 hours).');
+        } else if (replacementInfo.status === 'APPROVED') {
+            actions.push(`✅ Replacement APPROVED! New license key: ${replacementInfo.newLicenseKey}`);
+            actions.push('📧 Customer was notified via email with the new key.');
+        } else if (replacementInfo.status === 'REJECTED') {
+            actions.push(`❌ Replacement request was REJECTED. Reason: ${replacementInfo.adminNotes}`);
+        }
     }
 
     // Check if combo product
