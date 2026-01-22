@@ -11,7 +11,12 @@ import {
     AlertTriangle,
     ArrowDown,
     Phone,
-    Video
+    Video,
+    Upload,
+    RefreshCw,
+    Loader2,
+    Clock,
+    XCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import InstallationGuide from '@/components/InstallationGuide';
@@ -76,6 +81,87 @@ export default function ActivatePage() {
     // Windows FSNs that require installation type selection
     const WINDOWS_FSNS = ['WINDOWS11', 'OPSG3TNK9HZDZEM9'];
     const WINDOWS_UPGRADE_KEY = 'KNGH2-BVYFG-HJYTM-GB84H-YY49G';
+
+    // License Replacement Request state
+    const [showReplacementForm, setShowReplacementForm] = useState(false);
+    const [replacementEmail, setReplacementEmail] = useState('');
+    const [replacementScreenshot, setReplacementScreenshot] = useState<File | null>(null);
+    const [replacementScreenshotPreview, setReplacementScreenshotPreview] = useState<string | null>(null);
+    const [replacementLoading, setReplacementLoading] = useState(false);
+    const [replacementStatus, setReplacementStatus] = useState<{
+        found: boolean;
+        status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+        adminNotes?: string;
+        newLicenseKey?: string;
+        submittedAt?: string;
+    } | null>(null);
+    const replacementInputRef = useRef<HTMLInputElement>(null);
+
+    // Check for existing replacement request when order is verified
+    const checkReplacementStatus = async (orderId: string) => {
+        try {
+            const res = await fetch(`/api/replacement-request?orderId=${encodeURIComponent(orderId)}`);
+            const data = await res.json();
+            if (data.found) {
+                setReplacementStatus(data);
+            } else {
+                setReplacementStatus(null);
+            }
+        } catch (error) {
+            console.error('Error checking replacement status:', error);
+        }
+    };
+
+    // Handle replacement screenshot change
+    const handleReplacementScreenshotChange = (file: File | null) => {
+        if (file) {
+            setReplacementScreenshot(file);
+            setReplacementScreenshotPreview(URL.createObjectURL(file));
+        } else {
+            setReplacementScreenshot(null);
+            setReplacementScreenshotPreview(null);
+        }
+    };
+
+    // Submit replacement request
+    const handleSubmitReplacementRequest = async () => {
+        if (!replacementEmail.trim()) {
+            toast.error('Please enter your email address');
+            return;
+        }
+        if (!replacementScreenshot) {
+            toast.error('Please upload a screenshot showing the issue');
+            return;
+        }
+
+        setReplacementLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append('orderId', secretCode.trim());
+            formData.append('customerEmail', replacementEmail.trim());
+            formData.append('screenshot', replacementScreenshot);
+
+            const res = await fetch('/api/replacement-request', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                toast.success('Replacement request submitted successfully!');
+                setShowReplacementForm(false);
+                // Refresh status
+                await checkReplacementStatus(secretCode.trim());
+            } else {
+                toast.error(data.error || 'Failed to submit replacement request');
+            }
+        } catch (error) {
+            toast.error('Failed to submit replacement request');
+        } finally {
+            setReplacementLoading(false);
+        }
+    };
+
 
     const handleVerifyCode = async () => {
         if (!secretCode.trim()) {
@@ -230,6 +316,9 @@ export default function ActivatePage() {
 
             // Show success popup
             setShowSuccessPopup(true);
+
+            // Check for any existing replacement requests
+            await checkReplacementStatus(secretCode.trim());
 
         } catch (err) {
             console.error('Error generating key:', err);
@@ -678,6 +767,201 @@ export default function ActivatePage() {
                                                 </a>
                                                 {' '}(message only)
                                             </p>
+                                        </div>
+
+                                        {/* License Replacement Request Section */}
+                                        <div className="pt-4 border-t border-[#DDD]">
+                                            {/* Replacement Status Display */}
+                                            {replacementStatus?.found && (
+                                                <div className={`mb-4 p-4 rounded-lg ${replacementStatus.status === 'APPROVED'
+                                                        ? 'bg-[#F0FDF4] border border-[#BBF7D0]'
+                                                        : replacementStatus.status === 'REJECTED'
+                                                            ? 'bg-[#FEF2F2] border border-[#FECACA]'
+                                                            : 'bg-[#FFFBEB] border border-[#FCD34D]'
+                                                    }`}>
+                                                    <div className="flex items-start gap-3">
+                                                        {replacementStatus.status === 'APPROVED' ? (
+                                                            <CheckCircle className="w-5 h-5 text-[#067D62] flex-shrink-0 mt-0.5" />
+                                                        ) : replacementStatus.status === 'REJECTED' ? (
+                                                            <XCircle className="w-5 h-5 text-[#CC0C39] flex-shrink-0 mt-0.5" />
+                                                        ) : (
+                                                            <Clock className="w-5 h-5 text-[#D97706] flex-shrink-0 mt-0.5" />
+                                                        )}
+                                                        <div className="flex-1">
+                                                            <p className={`font-bold text-sm ${replacementStatus.status === 'APPROVED'
+                                                                    ? 'text-[#067D62]'
+                                                                    : replacementStatus.status === 'REJECTED'
+                                                                        ? 'text-[#CC0C39]'
+                                                                        : 'text-[#D97706]'
+                                                                }`}>
+                                                                {replacementStatus.status === 'APPROVED'
+                                                                    ? '✓ Replacement Approved!'
+                                                                    : replacementStatus.status === 'REJECTED'
+                                                                        ? '✗ Replacement Request Rejected'
+                                                                        : '⏳ Replacement Request Pending'}
+                                                            </p>
+
+                                                            {replacementStatus.status === 'APPROVED' && replacementStatus.newLicenseKey && (
+                                                                <div className="mt-2 p-2 bg-white rounded border border-[#BBF7D0]">
+                                                                    <p className="text-xs text-[#565959] mb-1">Your New License Key:</p>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <code className="font-mono font-bold text-[#0F1111]">{replacementStatus.newLicenseKey}</code>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                navigator.clipboard.writeText(replacementStatus.newLicenseKey!);
+                                                                                toast.success('New license key copied!');
+                                                                            }}
+                                                                            className="p-1 hover:bg-[#067D62]/10 rounded"
+                                                                        >
+                                                                            <Copy className="w-4 h-4 text-[#067D62]" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {replacementStatus.status === 'REJECTED' && replacementStatus.adminNotes && (
+                                                                <p className="mt-2 text-sm text-[#565959]">
+                                                                    <span className="font-medium">Reason:</span> {replacementStatus.adminNotes}
+                                                                </p>
+                                                            )}
+
+                                                            {replacementStatus.status === 'PENDING' && (
+                                                                <p className="mt-1 text-xs text-[#565959]">
+                                                                    Your request is under investigation. This usually takes 12-24 hours.
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Replacement Request Button/Form */}
+                                            {(!replacementStatus?.found || replacementStatus.status === 'REJECTED') && (
+                                                <>
+                                                    {!showReplacementForm ? (
+                                                        <button
+                                                            onClick={() => setShowReplacementForm(true)}
+                                                            className="w-full py-2 text-sm text-[#007185] hover:text-[#C7511F] hover:underline transition-colors flex items-center justify-center gap-2"
+                                                        >
+                                                            <RefreshCw className="w-4 h-4" />
+                                                            Received a faulty license key? Request Replacement
+                                                        </button>
+                                                    ) : (
+                                                        <div className="bg-[#FFFBEB] border border-[#FCD34D] rounded-lg p-4">
+                                                            <div className="flex items-center justify-between mb-3">
+                                                                <h4 className="font-bold text-[#0F1111] text-sm flex items-center gap-2">
+                                                                    <RefreshCw className="w-4 h-4 text-[#D97706]" />
+                                                                    Request License Key Replacement
+                                                                </h4>
+                                                                <button
+                                                                    onClick={() => setShowReplacementForm(false)}
+                                                                    className="p-1 hover:bg-[#D97706]/10 rounded"
+                                                                >
+                                                                    <X className="w-4 h-4 text-[#565959]" />
+                                                                </button>
+                                                            </div>
+
+                                                            {/* Warning Message */}
+                                                            <div className="bg-[#FEF2F2] border-l-4 border-[#CC0C39] p-3 mb-4 rounded-r">
+                                                                <div className="flex items-start gap-2">
+                                                                    <AlertTriangle className="w-4 h-4 text-[#CC0C39] flex-shrink-0 mt-0.5" />
+                                                                    <div>
+                                                                        <p className="text-xs text-[#CC0C39] font-bold mb-1">⚠️ WARNING</p>
+                                                                        <p className="text-xs text-[#565959]">
+                                                                            Some activations require <strong>telephonic activation</strong>. Make sure you have gone through the installation instructions once again before submitting this request.
+                                                                        </p>
+                                                                        <p className="text-xs text-[#CC0C39] font-medium mt-1">
+                                                                            Unnecessary replacement requests or fraudulent requests will be rejected and may lead to existing license being revoked.
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Form Fields */}
+                                                            <div className="space-y-3">
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-[#0F1111] mb-1">
+                                                                        Your Email Address *
+                                                                    </label>
+                                                                    <input
+                                                                        type="email"
+                                                                        value={replacementEmail}
+                                                                        onChange={(e) => setReplacementEmail(e.target.value)}
+                                                                        placeholder="email@example.com"
+                                                                        className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900]"
+                                                                    />
+                                                                    <p className="text-xs text-[#565959] mt-1">We will notify you once your request is processed</p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-[#0F1111] mb-1">
+                                                                        Screenshot of the Issue *
+                                                                    </label>
+                                                                    {replacementScreenshotPreview ? (
+                                                                        <div className="relative border border-[#067D62] rounded-lg overflow-hidden">
+                                                                            <img
+                                                                                src={replacementScreenshotPreview}
+                                                                                alt="Screenshot preview"
+                                                                                className="w-full h-32 object-cover"
+                                                                            />
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    handleReplacementScreenshotChange(null);
+                                                                                    if (replacementInputRef.current) replacementInputRef.current.value = '';
+                                                                                }}
+                                                                                className="absolute top-2 right-2 bg-[#CC0C39] text-white p-1 rounded-full hover:bg-[#A00F28]"
+                                                                            >
+                                                                                <X className="w-3 h-3" />
+                                                                            </button>
+                                                                            <div className="absolute bottom-2 left-2 bg-[#067D62] text-white px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1">
+                                                                                <CheckCircle className="w-3 h-3" />
+                                                                                Uploaded
+                                                                            </div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-[#888C8C] rounded-lg cursor-pointer hover:border-[#FF9900] hover:bg-[#FEF8F2] transition-all">
+                                                                            <Upload className="w-6 h-6 text-[#888C8C]" />
+                                                                            <span className="text-xs text-[#565959] mt-1">Click to upload screenshot</span>
+                                                                            <input
+                                                                                ref={replacementInputRef}
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                onChange={(e) => handleReplacementScreenshotChange(e.target.files?.[0] || null)}
+                                                                                className="hidden"
+                                                                            />
+                                                                        </label>
+                                                                    )}
+                                                                </div>
+
+                                                                <button
+                                                                    onClick={handleSubmitReplacementRequest}
+                                                                    disabled={replacementLoading || !replacementEmail.trim() || !replacementScreenshot}
+                                                                    className="w-full py-2 bg-gradient-to-b from-[#FF9900] to-[#E47911] hover:from-[#FA8900] hover:to-[#D07910] text-white font-bold rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                                                >
+                                                                    {replacementLoading ? (
+                                                                        <>
+                                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                                            Submitting...
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <RefreshCw className="w-4 h-4" />
+                                                                            Submit Replacement Request
+                                                                        </>
+                                                                    )}
+                                                                </button>
+
+                                                                <p className="text-xs text-[#565959] text-center">
+                                                                    It takes 12-24 hours for investigation. For urgent queries, contact us on WhatsApp:{' '}
+                                                                    <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="text-[#007185] hover:underline font-medium">
+                                                                        8595899215
+                                                                    </a>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
                                         </div>
 
                                         {/* Installation Warning Box */}

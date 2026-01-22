@@ -33,6 +33,8 @@ export default function LicenseKeysClient() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
     // Date filter states
     const [dateFilter, setDateFilter] = useState<DateFilterType>('all');
@@ -300,7 +302,59 @@ export default function LicenseKeysClient() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setCurrentPage(1);
+        setSelectedKeys(new Set()); // Clear selection on search
         fetchKeys();
+    };
+
+    // Toggle single key selection
+    const toggleKeySelection = (keyId: string) => {
+        setSelectedKeys(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(keyId)) {
+                newSet.delete(keyId);
+            } else {
+                newSet.add(keyId);
+            }
+            return newSet;
+        });
+    };
+
+    // Toggle select all on current page
+    const toggleSelectAll = () => {
+        if (selectedKeys.size === keys.length) {
+            setSelectedKeys(new Set());
+        } else {
+            setSelectedKeys(new Set(keys.map(k => k.id)));
+        }
+    };
+
+    // Bulk delete selected keys
+    const handleBulkDelete = async () => {
+        if (selectedKeys.size === 0) return;
+        if (!confirm(`Are you sure you want to delete ${selectedKeys.size} key(s)?`)) return;
+
+        setIsBulkDeleting(true);
+        const idsToDelete = Array.from(selectedKeys);
+        let deleted = 0;
+
+        // Delete in batches of 50
+        for (let i = 0; i < idsToDelete.length; i += 50) {
+            const batch = idsToDelete.slice(i, i + 50);
+            const { error } = await supabase
+                .from('amazon_activation_license_keys')
+                .delete()
+                .in('id', batch);
+
+            if (!error) {
+                deleted += batch.length;
+            }
+        }
+
+        setSelectedKeys(new Set());
+        setIsBulkDeleting(false);
+        fetchKeys();
+        fetchStats();
+        alert(`Successfully deleted ${deleted} key(s)`);
     };
 
     const totalPages = Math.ceil(totalCount / pageSize);
@@ -430,6 +484,32 @@ export default function LicenseKeysClient() {
                 )}
             </form>
 
+            {/* Selection Toolbar */}
+            {selectedKeys.size > 0 && (
+                <div className="flex items-center justify-between p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                    <span className="text-sm font-medium">
+                        {selectedKeys.size} key(s) selected
+                    </span>
+                    <button
+                        onClick={handleBulkDelete}
+                        disabled={isBulkDeleting}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                    >
+                        {isBulkDeleting ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Deleting...
+                            </>
+                        ) : (
+                            <>
+                                <Trash2 className="h-4 w-4" />
+                                Delete Selected
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
+
             {/* Keys Table */}
             <div className="bg-card border rounded-lg overflow-hidden">
                 {isLoading ? (
@@ -442,6 +522,14 @@ export default function LicenseKeysClient() {
                         <table className="w-full">
                             <thead className="bg-muted/50">
                                 <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-medium w-10">
+                                        <input
+                                            type="checkbox"
+                                            checked={keys.length > 0 && selectedKeys.size === keys.length}
+                                            onChange={toggleSelectAll}
+                                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                    </th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">License Key</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">FSN</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Product Name</th>
@@ -451,7 +539,15 @@ export default function LicenseKeysClient() {
                             </thead>
                             <tbody className="divide-y">
                                 {keys.map((key) => (
-                                    <tr key={key.id} className="hover:bg-muted/30">
+                                    <tr key={key.id} className={`hover:bg-muted/30 ${selectedKeys.has(key.id) ? 'bg-primary/10' : ''}`}>
+                                        <td className="px-4 py-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedKeys.has(key.id)}
+                                                onChange={() => toggleKeySelection(key.id)}
+                                                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                            />
+                                        </td>
                                         <td className="px-4 py-3 font-mono text-sm">{key.license_key}</td>
                                         <td className="px-4 py-3 text-sm font-medium">{key.fsn}</td>
                                         <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">

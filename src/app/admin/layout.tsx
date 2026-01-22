@@ -19,7 +19,8 @@ import {
     AlertTriangle,
     Plus,
     ShieldX,
-    BarChart2
+    BarChart2,
+    RefreshCw
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -37,6 +38,7 @@ const amazonLinks = [
     { name: 'Analytics', href: '/admin/amazon/analytics', icon: BarChart3 },
     { name: 'Amazon Orders', href: '/admin/amazon/orders', icon: ShoppingBag },
     { name: 'License Keys', href: '/admin/amazon/keys', icon: Key },
+    { name: 'Key Replacements', href: '/admin/replacement-requests', icon: RefreshCw },
     { name: 'Key Inventory', href: '/admin/amazon/inventory', icon: BarChart2 },
     { name: 'Manual Order', href: '/admin/amazon/manual-order', icon: Plus },
     { name: 'Activation Issues', href: '/admin/amazon/issues', icon: AlertTriangle },
