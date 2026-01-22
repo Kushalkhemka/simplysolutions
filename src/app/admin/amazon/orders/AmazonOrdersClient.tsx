@@ -31,6 +31,7 @@ interface LicenseKey {
 
 interface OrderDetails extends AmazonOrder {
     license_key?: LicenseKey | null;
+    license_keys?: LicenseKey[]; // For combo/multi-key orders
 }
 
 export default function AmazonOrdersClient() {
@@ -121,16 +122,18 @@ export default function AmazonOrdersClient() {
         setIsModalOpen(true);
 
         let licenseKey: LicenseKey | null = null;
+        let licenseKeys: LicenseKey[] = [];
 
-        // Try to find license key by order_id first (for imported orders)
-        const { data: keyByOrderId } = await supabase
+        // Fetch ALL license keys by order_id (for combo/multi-key orders)
+        const { data: keysByOrderId } = await supabase
             .from('amazon_activation_license_keys')
             .select('id, license_key, fsn, is_redeemed, created_at')
             .eq('order_id', order.order_id)
-            .maybeSingle();
+            .order('created_at', { ascending: true });
 
-        if (keyByOrderId) {
-            licenseKey = keyByOrderId;
+        if (keysByOrderId && keysByOrderId.length > 0) {
+            licenseKeys = keysByOrderId;
+            licenseKey = keysByOrderId[0]; // For backward compatibility
         } else if (order.license_key_id) {
             // Fallback to license_key_id lookup
             const { data } = await supabase
@@ -139,12 +142,16 @@ export default function AmazonOrdersClient() {
                 .eq('id', order.license_key_id)
                 .single();
 
-            licenseKey = data;
+            if (data) {
+                licenseKey = data;
+                licenseKeys = [data];
+            }
         }
 
         setSelectedOrder({
             ...order,
-            license_key: licenseKey
+            license_key: licenseKey,
+            license_keys: licenseKeys
         });
         setIsLoadingDetails(false);
     };
@@ -400,16 +407,41 @@ export default function AmazonOrdersClient() {
                                     </div>
                                 </div>
 
-                                {/* License Key */}
+                                {/* License Key(s) */}
                                 <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
                                     <div className="p-2 bg-green-100 rounded-lg">
                                         <Key className="h-5 w-5 text-green-600" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">License Key</p>
-                                        <p className="font-mono font-medium break-all">
-                                            {selectedOrder.license_key?.license_key || <span className="text-muted-foreground italic">Not Assigned</span>}
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                                            License Key{selectedOrder.license_keys && selectedOrder.license_keys.length > 1 ? 's' : ''}
+                                            {selectedOrder.license_keys && selectedOrder.license_keys.length > 1 && (
+                                                <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                                    {selectedOrder.license_keys.length} keys (Combo)
+                                                </span>
+                                            )}
                                         </p>
+                                        {selectedOrder.license_keys && selectedOrder.license_keys.length > 0 ? (
+                                            <div className="space-y-2 mt-2">
+                                                {selectedOrder.license_keys.map((key, index) => (
+                                                    <div key={key.id} className="p-2 bg-white dark:bg-slate-800 rounded border">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs text-muted-foreground">#{index + 1}</span>
+                                                            {key.fsn && (
+                                                                <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                                                    {key.fsn}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="font-mono font-medium break-all mt-1">{key.license_key}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="font-mono font-medium break-all">
+                                                <span className="text-muted-foreground italic">Not Assigned</span>
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
