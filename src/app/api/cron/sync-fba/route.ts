@@ -137,41 +137,69 @@ export async function GET(request: NextRequest) {
             asinToFSN.set(m.asin, m.fsn);
         });
 
-        // Prepare orders with ALL fields
+        // Prepare orders - only first item synced, multi-product orders logged separately
         const ordersToInsert = [];
+        const multiProductOrders = [];
+
         for (const order of newOrders) {
             const items = await fetchOrderItems(accessToken, order.AmazonOrderId);
+
+            // Log multi-product orders for manual admin handling
+            if (items.length > 1) {
+                const itemsData = items.map((item: any) => ({
+                    asin: item.ASIN,
+                    sku: item.SellerSKU,
+                    fsn: asinToFSN.get(item.ASIN) || item.SellerSKU,
+                    title: item.Title,
+                    quantity: item.QuantityOrdered,
+                    price: item.ItemPrice?.Amount
+                }));
+
+                multiProductOrders.push({
+                    order_id: order.AmazonOrderId,
+                    order_date: order.PurchaseDate || null,
+                    buyer_email: order.BuyerInfo?.BuyerEmail || null,
+                    contact_email: order.BuyerInfo?.BuyerEmail || null,
+                    items: itemsData,
+                    item_count: items.length,
+                    total_amount: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
+                    currency: order.OrderTotal?.CurrencyCode || 'INR',
+                    fulfillment_type: 'amazon_fba',
+                    status: 'PENDING'
+                });
+            }
+
+            // Only sync first item to amazon_orders (customer can activate this)
             const firstItem = items[0];
             const asin = firstItem?.ASIN;
-
-            // Use ASIN mapping to get FSN
             const mappedFSN = asin ? asinToFSN.get(asin) : null;
 
             ordersToInsert.push({
                 order_id: order.AmazonOrderId,
                 fulfillment_type: 'amazon_fba',
-                // Use FSN from ASIN mapping, fallback to SellerSKU only if no mapping exists
                 fsn: mappedFSN || firstItem?.SellerSKU || null,
-                // Order details
                 order_date: order.PurchaseDate || null,
                 order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
                 currency: order.OrderTotal?.CurrencyCode || 'INR',
                 quantity: firstItem?.QuantityOrdered || 1,
-                // Buyer info
                 buyer_email: order.BuyerInfo?.BuyerEmail || null,
                 contact_email: order.BuyerInfo?.BuyerEmail || null,
-                // Shipping address
                 city: order.ShippingAddress?.City || null,
                 state: order.ShippingAddress?.StateOrRegion || null,
                 postal_code: order.ShippingAddress?.PostalCode || null,
                 country: order.ShippingAddress?.CountryCode || 'IN',
-                // Status
                 warranty_status: 'PENDING',
                 synced_at: new Date().toISOString()
             });
         }
 
+        // Insert regular orders
         const { error } = await supabase.from('amazon_orders').insert(ordersToInsert);
+
+        // Log multi-product orders for admin
+        if (multiProductOrders.length > 0) {
+            await supabase.from('multi_fsn_orders').insert(multiProductOrders);
+        }
 
         if (error) {
             return NextResponse.json({
