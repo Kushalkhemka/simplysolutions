@@ -817,13 +817,33 @@ export default function ActivatePage() {
                                             </a>
                                         </div>
 
-                                        {/* Dynamic Installation Guide */}
-                                        <div ref={installationGuideRef} className="pt-6 border-t border-[#DDD]">
-                                            <InstallationGuide
-                                                guideFile={getInstallationGuide(activationResult.comboFsn || activationResult.productInfo?.sku) || 'office2021.md'}
-                                                productName={activationResult.productInfo?.productName || undefined}
-                                                downloadLink={activationResult.productInfo?.downloadUrl || undefined}
-                                            />
+                                        {/* Dynamic Installation Guide(s) */}
+                                        <div ref={installationGuideRef} className="pt-6 border-t border-[#DDD] space-y-4">
+                                            {activationResult.licenses && activationResult.licenses.length > 1 ? (
+                                                /* Combo product: Show separate guide for each license */
+                                                <>
+                                                    {activationResult.licenses.map((license, index) => {
+                                                        const guideFile = getInstallationGuide(license.fsn);
+                                                        if (!guideFile) return null;
+
+                                                        return (
+                                                            <InstallationGuide
+                                                                key={index}
+                                                                guideFile={guideFile}
+                                                                productName={license.productName || undefined}
+                                                                downloadLink={license.downloadUrl || undefined}
+                                                            />
+                                                        );
+                                                    })}
+                                                </>
+                                            ) : (
+                                                /* Single product: Show one guide */
+                                                <InstallationGuide
+                                                    guideFile={getInstallationGuide(activationResult.productInfo?.sku) || 'office2021.md'}
+                                                    productName={activationResult.productInfo?.productName || undefined}
+                                                    downloadLink={activationResult.productInfo?.downloadUrl || undefined}
+                                                />
+                                            )}
                                         </div>
                                     </div>
                                 )}
