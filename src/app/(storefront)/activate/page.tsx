@@ -40,6 +40,7 @@ interface ActivationResult {
     productInfo?: ProductInfo;
     alreadyRedeemed?: boolean;
     isCombo?: boolean;
+    orderQuantity?: number;
     licenses?: LicenseInfo[];
 }
 
@@ -141,6 +142,7 @@ export default function ActivatePage() {
                 setActivationResult({
                     success: true,
                     isCombo: data.isCombo,
+                    orderQuantity: data.orderQuantity || 1,
                     licenses: data.licenses,
                     // For backward compatibility, use first license
                     licenseKey: data.licenses[0].licenseKey,
@@ -381,12 +383,27 @@ export default function ActivatePage() {
                                 </div>
 
                                 <div className="p-6 space-y-6">
-                                    {/* Product Card(s) - Handle multiple licenses for combos */}
+                                    {/* Product Card(s) - Handle multiple licenses for combos/quantities */}
                                     {activationResult.licenses && activationResult.licenses.length > 0 ? (
                                         <div className="space-y-4">
-                                            {activationResult.isCombo && (
-                                                <div className="bg-[#232F3E] text-white px-4 py-2 rounded-lg text-center text-sm font-medium">
-                                                    🎁 Combo Package - {activationResult.licenses.length} License Keys
+                                            {/* Order Summary Header */}
+                                            {(activationResult.isCombo || (activationResult.orderQuantity && activationResult.orderQuantity > 1)) && (
+                                                <div className="bg-[#232F3E] text-white px-4 py-3 rounded-lg text-center">
+                                                    {activationResult.isCombo && activationResult.orderQuantity && activationResult.orderQuantity > 1 ? (
+                                                        <>
+                                                            <div className="font-bold">🎁 Combo Package × {activationResult.orderQuantity}</div>
+                                                            <div className="text-sm opacity-90">{activationResult.licenses.length} License Keys Total</div>
+                                                        </>
+                                                    ) : activationResult.isCombo ? (
+                                                        <>
+                                                            <div className="font-medium">🎁 Combo Package - {activationResult.licenses.length} License Keys</div>
+                                                        </>
+                                                    ) : activationResult.orderQuantity && activationResult.orderQuantity > 1 ? (
+                                                        <>
+                                                            <div className="font-bold">📦 Bulk Order - Quantity: {activationResult.orderQuantity}</div>
+                                                            <div className="text-sm opacity-90">{activationResult.licenses.length} License Keys</div>
+                                                        </>
+                                                    ) : null}
                                                 </div>
                                             )}
                                             {activationResult.licenses.map((license, index) => (

@@ -39,6 +39,9 @@ export async function POST(request: NextRequest) {
             }, { status: 404 });
         }
 
+        // Get quantity from order (default to 1)
+        const orderQuantity = order.quantity || 1;
+
         // Check if already has license keys assigned
         const { data: existingKeys } = await supabase
             .from('amazon_activation_license_keys')
@@ -71,7 +74,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 success: true,
                 alreadyRedeemed: true,
-                isCombo: licenses.length > 1,
+                isCombo: isComboProduct(order.fsn),
+                orderQuantity,
                 licenses
             });
         }
@@ -103,31 +107,38 @@ export async function POST(request: NextRequest) {
         const isCombo = isComboProduct(fsn);
         const componentFSNs = getComponentFSNs(fsn);
 
-        // Fetch one available key for EACH component
+        // Calculate total keys needed: quantity × number of components
+        // e.g., qty=5 for WIN11-PP24 = 5 Windows + 5 Office = 10 keys
+        const keysPerComponent = orderQuantity;
+
+        // Fetch keys for EACH component, quantity times
         const availableKeys: Array<{ id: string; license_key: string; fsn: string }> = [];
 
         for (const componentFSN of componentFSNs) {
-            const { data: availableKey, error: keyError } = await supabase
+            // Fetch 'keysPerComponent' keys for this FSN
+            const { data: keys, error: keyError } = await supabase
                 .from('amazon_activation_license_keys')
                 .select('id, license_key, fsn')
                 .eq('fsn', componentFSN)
                 .is('order_id', null)
                 .eq('is_redeemed', false)
-                .limit(1)
-                .single();
+                .limit(keysPerComponent);
 
-            if (keyError || !availableKey) {
+            if (keyError || !keys || keys.length < keysPerComponent) {
+                const available = keys?.length || 0;
                 return NextResponse.json({
                     success: false,
                     needsContactInfo: true,
-                    error: `No license keys available for ${componentFSN}. Please contact support.`,
+                    error: `Not enough license keys for ${componentFSN}. Need ${keysPerComponent}, only ${available} available.`,
                     orderId: orderId.trim(),
                     fsn: fsn,
-                    missingComponent: componentFSN
+                    missingComponent: componentFSN,
+                    needed: keysPerComponent,
+                    available
                 }, { status: 503 });
             }
 
-            availableKeys.push(availableKey);
+            availableKeys.push(...keys);
         }
 
         // Assign ALL keys to this order
@@ -190,6 +201,7 @@ export async function POST(request: NextRequest) {
             success: true,
             alreadyRedeemed: false,
             isCombo,
+            orderQuantity,
             fulfillmentType: order.fulfillment_type || null,
             licenses
         });

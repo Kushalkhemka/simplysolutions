@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         // Search in amazon_orders by order_id (works for both secret codes and amazon order IDs)
         const result = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id, fulfillment_type')
+            .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity')
             .eq('order_id', cleanCode)
             .single();
         const order = result.data;
@@ -53,6 +53,9 @@ export async function POST(request: NextRequest) {
                 error: isAmazonOrderId ? 'Amazon Order ID not found' : 'Secret code not found'
             }, { status: 404 });
         }
+
+        // Get quantity from order (default to 1)
+        const orderQuantity = order.quantity || 1;
 
         // Check if already has license keys assigned
         const { data: existingKeys } = await supabase
@@ -86,7 +89,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 success: true,
                 alreadyRedeemed: true,
-                isCombo: licenses.length > 1,
+                isCombo: order.fsn ? isComboProduct(order.fsn) : false,
+                orderQuantity,
                 licenses
             });
         }
@@ -101,28 +105,33 @@ export async function POST(request: NextRequest) {
         const isCombo = isComboProduct(fsn);
         const componentFSNs = getComponentFSNs(fsn);
 
-        // Fetch one available key for EACH component
+        // Calculate keys needed: quantity × number of components
+        const keysPerComponent = orderQuantity;
+
+        // Fetch keys for EACH component, quantity times
         const availableKeys: Array<{ id: string; license_key: string; fsn: string }> = [];
 
         for (const componentFSN of componentFSNs) {
-            const { data: availableKey, error: keyError } = await supabase
+            const { data: keys, error: keyError } = await supabase
                 .from('amazon_activation_license_keys')
                 .select('id, license_key, fsn')
                 .eq('fsn', componentFSN)
                 .is('order_id', null)
                 .eq('is_redeemed', false)
-                .limit(1)
-                .single();
+                .limit(keysPerComponent);
 
-            if (keyError || !availableKey) {
+            if (keyError || !keys || keys.length < keysPerComponent) {
+                const available = keys?.length || 0;
                 return NextResponse.json({
                     success: false,
-                    error: `No license keys available for ${componentFSN}. Please contact support.`,
-                    missingComponent: componentFSN
+                    error: `Not enough keys for ${componentFSN}. Need ${keysPerComponent}, only ${available} available.`,
+                    missingComponent: componentFSN,
+                    needed: keysPerComponent,
+                    available
                 }, { status: 404 });
             }
 
-            availableKeys.push(availableKey);
+            availableKeys.push(...keys);
         }
 
         // Assign ALL keys to this order
@@ -174,6 +183,7 @@ export async function POST(request: NextRequest) {
             success: true,
             alreadyRedeemed: false,
             isCombo,
+            orderQuantity,
             fulfillmentType: order.fulfillment_type,
             licenses
         });
