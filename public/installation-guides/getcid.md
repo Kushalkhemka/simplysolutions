@@ -1,48 +1,41 @@
-[color=#ff0000][b][u]If you face the activation issues which is shown in below image then follow troubleshooting steps mentioned below :-[/u][/b][/color]
-[center][u][img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/0.png[/img][/u][/center]
-[u][color=#ff0000][size=4][b]STEPS TO RESOLVE THE ISSUE -[/b][/size][/color][/u]
+**If you face the activation issues which is shown in below image then follow troubleshooting steps mentioned below :- ![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/0.png) STEPS TO RESOLVE THE ISSUE -**
 
-[color=#000000][size=3]1) After getting such error message on screen, click on [b]Back[/b] button.[/size][/color]
+1) After getting such error message on screen, click on **Back** button.
 
-[center][color=#000000][size=3][img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/6.jpg[/img]
-[/size][/color][/center]
-[b][color=#000000][size=3][font=Arial, sans-serif][b]2)[/b][/font][/size][/color][/b][color=#333333][size=3][font=Arial, sans-serif] Then select: [b]"I want to activate the software by telephone[/b]" and click "[b]Next[/b]".[/font][/size][/color]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/6.jpg)
 
-[center][color=#333333][size=3][font=Arial, sans-serif][img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/1.png[/img][/font][/size][/color][/center]
-[center]
+**2)** Then select: **"I want to activate the software by telephone**" and click "**Next**".
 
-[left][color=#333333][size=3][font=Arial, sans-serif]3) In the next window, in the drop-down menu, select your country of location in step 1, for example, we will have the [b]India [/b]or it works worldwide.[/font][/size][/color][/left]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/1.png)
+
+[left]3) In the next window, in the drop-down menu, select your country of location in step 1, for example, we will have the **India **or it works worldwide.[/left]
 [left]
-Then, [b][u][color=#ff0000]scroll up this page[/color][/u][/b] and you will get the option to enter the unique secret code and  installation id (like shown below) which is currently reflecting on your screen.[/left]
+Then, **scroll up this page** and you will get the option to enter the unique secret code and  installation id (like shown below) which is currently reflecting on your screen.[/left]
 [left]
-[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/INSTALLATION-ID-SS.png[/img]
-[/center]
-[center][left]4) Firstly, Enter the[b] secret code[/b] received in mail from [b]ECOM KEYS[/b] where you got the key also for this product .[/left]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/INSTALLATION-ID-SS.png)
+
+[left]4) Firstly, Enter the** secret code** received in mail from **ECOM KEYS** where you got the key also for this product .[/left]
 [left]5) Then , Enter the installation id, column by column as visible in your screen on this website tool.[/left]
-[/center]
 
-[center][img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/2.png[/img]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/2.png)
 
-[left]5) After entering your installation id on this website page, [b]wait for 3-4 mins[/b] while your confirmation id gets generated from the MICROSOFT server. (IT WILL BE VISIBLE ON THIS PAGE ONLY)
+[left]5) After entering your installation id on this website page, **wait for 3-4 mins** while your confirmation id gets generated from the MICROSOFT server. (IT WILL BE VISIBLE ON THIS PAGE ONLY)
 
-[center][img=350x260]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/installation-id-ss-2.png[/img][/center]
-[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/maxresdefault-4.jpg[/img][/center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/installation-id-ss-2.png)
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/maxresdefault-4.jpg)
 
-6) After, the confirmation id visible [b]on this page[/b], [b]enter it the columns reflected [/b]on your screen and then click on [b]Next[/b] Button. [/left]
-[left]7) [color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]Voila! Your Purchased Office 2021/2019/2016 license for lifetime is activated.[/font][/size][/color]
+6) After, the confirmation id visible **on this page**, **enter it the columns reflected **on your screen and then click on **Next** Button. [/left]
+[left]7) Voila! Your Purchased Office 2021/2019/2016 license for lifetime is activated.
 [/left]
-[/center]
-[center] [img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/4.png[/img][/center]
-[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/5.png[/img][/center]
-[/left]
-[/center]
 
-In case of any error or query, feel free to reach out to us at +91-[b]9711397918[/b] (only whatsapp) or mail us at support@simplysolutions.co.in 
+ ![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/4.png)
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/5.png)
+[/left]
+
+In case of any error or query, feel free to reach out to us at +91-**9711397918** (only whatsapp) or mail us at support@simplysolutions.co.in 
 
 FAQs (Frequently Asked Questions)
 
-[b]Q1) Why this issue occurs and we can't directly activate over internet? [/b]
+**Q1) Why this issue occurs and we can't directly activate over internet?  Ans**. First of all, this issue doesn't mean that your key is used, because if so, it will not even activate through telephone method. This issue faced due to connection issue with microsoft server to activate recently, however the above steps is official steps of microsoft to resolve these kind of issues and activate your product hassle free. 
 
-[u]Ans[/u]. First of all, this issue doesn't mean that your key is used, because if so, it will not even activate through telephone method. This issue faced due to connection issue with microsoft server to activate recently, however the above steps is official steps of microsoft to resolve these kind of issues and activate your product hassle free. 
-
-[b]**TIP** - [/b]After submitting the Installation ID, either you can enter the Confirmation ID column by column in your application or you can simple[b] "back" [/b]and[b] "Click on Activate Over Internet". [/b]This time you will not going to face any error since [b]your product is genuine [/b]and validated in microsoft server by your installation id which you provided.
+**TIP** - **After submitting the Installation ID, either you can enter the Confirmation ID column by column in your application or you can simple** "back" **and** "Click on Activate Over Internet". **This time you will not going to face any error since **your product is genuine **and validated in microsoft server by your installation id which you provided.

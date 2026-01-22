@@ -1,155 +1,132 @@
-[color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]Installation process is simple please follow all the instructions correctly till the end for a smooth activation...[/font][/size][/color]
+Installation process is simple please follow all the instructions correctly till the end for a smooth activation...
 
-[color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][u][i][b]Installation instruction:[/b][/i][/u][/font][/size][/color]
+***Installation instruction:***
 
+1) Important - You have to uninstall all old office versions using the office removal tool. To download it visit direct download link -->** [bit.ly/uninstallmsoffice](https://bit.ly/uninstallmsoffice) NOTE: IF YOU FACE ISSUE IN DOWNLOADING THIS TOOL, USE INCOGNITO MODE OR TRY IN DIFFERENT BROWSER. **
 
-[size=2][font=Verdana, Arial, Helvetica, sans-serif]1) Important - You have to uninstall all old office versions using the office removal tool. To download it visit direct download link -->[b][color=#0000ff] [url=https://bit.ly/uninstallmsoffice]bit.ly/uninstallmsoffice[/url][/color][/b][/font][/size]
-[size=2][font=Verdana, Arial, Helvetica, sans-serif][b]NOTE: IF YOU FACE ISSUE IN DOWNLOADING THIS TOOL, USE INCOGNITO MODE OR TRY IN DIFFERENT BROWSER. [/b][/font][/size]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-175830.png)
 
+[left]2) After download the office removal tool, select "**All Office Version**" and Click on "**Next**" and wait for approx 30-45 mins to run this program completely.
 
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-175830.png[/img]
+3) Now, after uninstallation. It's time to install the Office 2024 LTSC version, for that click on Download Button (On right side of product key) or visit [**https://tinyurl.com/office2024ltsc**](https://tinyurl.com/office2024ltsc)[/left]
 
-[/font][/size][/color]
-[left][size=2][font=Verdana, Arial, Helvetica, sans-serif]2) After download the office removal tool, select "[b][color=#111111]All Office Version[/color][/b]" and Click on "[b][color=#111111]Next[/color][/b]" and wait for approx 30-45 mins to run this program completely.
+4) The Download Setup will start of about (2.7MB) OFFICE 2024 EN 64BITS LTSC ZIP File.
 
-3) Now, after uninstallation. It's time to install the Office 2024 LTSC version, for that click on Download Button (On right side of product key) or visit [url=https://tinyurl.com/office2024ltsc][b][color=#0000ff]https://tinyurl.com/office2024ltsc[/color][/b][/url][/font][/size][/left]
-[/center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-04-095117.png)
 
-[color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]4) The Download Setup will start of about (2.7MB) OFFICE 2024 EN 64BITS LTSC ZIP File.
+[left]5) Open the download folders in file manager. >> Double Click on the **Office 2024 Professional Plus LTSC_EN_64Bits** zip file.
 
-[/font][/size][/color][/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=300x75]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-04-095117.png[/img]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-04-095249.png)
 
-[/font][/size][/color]
-[left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]5) Open the download folders in file manager. >> Double Click on the [b][color=#111111][size=2][font="Helvetica Neue", Helvetica, Arial, sans-serif][b]Office 2024 Professional Plus LTSC_EN_64Bits[/b][/font][/size][/color][/b] zip file.
+[left]6) Double Click again on the application "**Office 2024 Professional Plus LTSC_EN_64Bits" **to run it.
 
-[/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x150]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-04-095249.png[/img]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-04-095442.png)
 
-[/font][/size][/color]
-[left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]6) Double Click again on the application "[color=#111111][size=2][font="Helvetica Neue", Helvetica, Arial, sans-serif][b][b]Office 2024 Professional Plus LTSC_EN_64Bits" [/b][/b]to run it.[/font][/size][/color]
+[left]7) Click on **Next **in next prompted windows of Self Extracting zip as shown below.[/left]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture2.png)
 
-[/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x75]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-04-095442.png[/img]
-[/font][/size][/color]
-[left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]7) Click on [b]Next [/b]in next prompted windows of Self Extracting zip as shown below.[/font][/size][/color][/left]
-[color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture2.png[/img][/font][/size][/color][/center]
-[color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]
-8) Click on [b]Yes[/b], when Window prompt appears and wait until a[color=#555555][size=2][font="Helvetica Neue", Helvetica, Arial, sans-serif] [/font][/size][/color][color=#111111][size=2][font="Helvetica Neue", Helvetica, Arial, sans-serif]prompt of Office installation will appear. Please stay online while it download and installs (approx.15-30 mins)[/font][/size][/color]
+8) Click on **Yes**, when Window prompt appears and wait until a prompt of Office installation will appear. Please stay online while it download and installs (approx.15-30 mins)
 
-[/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture3.png[/img]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture3.png)
 
-[/font][/size][/color]
-[left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]9) [color=#111111][size=2][font="Helvetica Neue", Helvetica, Arial, sans-serif]After the installation got successful, open any microsoft office app for eg. Word, Excel >> Accept License Agreement.[/font][/size][/color]
+[left]9) After the installation got successful, open any microsoft office app for eg. Word, Excel >> Accept License Agreement.
 
-[/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture4.png[/img]
-[/font][/size][/color][/center]
-[center][size=2][img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture5.png[/img][/size][/center]
-[center][left][center][left][center][left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]
-14) Click on [b]File Menu[/b] on top left corner in Microsoft Application >> Click on [b]Accounts[/b] in bottom left corner and see on right side of screen.
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture4.png)
 
-[/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture6.png[/img]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture5.png)
+[left][left][left]
+14) Click on **File Menu** on top left corner in Microsoft Application >> Click on **Accounts** in bottom left corner and see on right side of screen.
 
-[/font][/size][/color]
-[left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]15) Click on "[b]Change Product Key[/b]" as shown above and enter then generated 25-digit license key on next dialog box as shown in below image.
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture6.png)
 
-[/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-182859.png[/img][/font][/size][/color][/center]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture.png[/img][/font][/size][/color][/center]
-[center]
+[left]15) Click on "**Change Product Key**" as shown above and enter then generated 25-digit license key on next dialog box as shown in below image.
 
-[left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]16) Click on "[b]ACTIVATE OFFICE[/b]" and Voila ! Your Office 2024 will be activated. 
-[/font][/size][/color]
-[center]
-[img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture5.png[/img][/center]
-[center][img=350x100]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-182730.png[/img][/center]
-[center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-182859.png)
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture.png)
 
-[left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]17) Click on "[b]Close[/b]" and restart the Office Apps to see it in activated mode[/font][/size][/color][/left]
-[left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]
+[left]16) Click on "**ACTIVATE OFFICE**" and Voila ! Your Office 2024 will be activated. 
 
-18) After Restart, your [b][u]Office 2024 LTSC Professional Plus 2024 Preview License[/u][/b] will be activated.
-[/font][/size][/color][/left]
-[/center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture5.png)
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-182730.png)
+
+[left]17) Click on "**Close**" and restart the Office Apps to see it in activated mode[/left]
+[left]
+
+18) After Restart, your **Office 2024 LTSC Professional Plus 2024 Preview License** will be activated.
 [/left]
-[/center]
+
 [/left]
-[/center]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x100]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-182751.png[/img]
 
-[/font][/size][/color]
-[left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]19) Thanks for your patience. Your Office has been activated for lifetime.
-[/font][/size][/color][size=3][b]
-[color=#ff0000]IMPORTANT DURING ACTIVATION PROCESS YOU MAY ENCOUNTER THE FOLLOWING ERROR AS SHOWN BELOW[/color][/b][/size][/left]
-[center][color=#ff0000][size=3][b][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture0.png[/img][/b][/size][/color]
+[/left]
 
-[left][b][size=3]TO RESOLVE THIS ERROR, FOLLOW THE BELOW STEPS :-[/size][/b]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-182751.png)
 
-[size=2]1) Click on "[b]OK[/b]" as shown in above image and go back.
+[left]19) Thanks for your patience. Your Office has been activated for lifetime.
+**
+IMPORTANT DURING ACTIVATION PROCESS YOU MAY ENCOUNTER THE FOLLOWING ERROR AS SHOWN BELOW**[/left]
+**![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture0.png)**
 
-2) Select *"[b]I want to activate this software over the telephone[/b]."*
+[left]**TO RESOLVE THIS ERROR, FOLLOW THE BELOW STEPS :-**
 
-[/size]
-[center][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture2.png[/img]
+1) Click on "**OK**" as shown in above image and go back.
 
-[left]3) Choose the region as [b]India[/b].
+2) Select *"**I want to activate this software over the telephone**."*
 
-4) Dial [b]0008000404453[/b] and follow the automated call instructions.
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture2.png)
 
-[center][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture4.png[/img]
+[left]3) Choose the region as **India**.
 
-[left]5) You will receive a [b]link via SMS[/b] to continue with product activation as shown below.
+4) Dial **0008000404453** and follow the automated call instructions.
 
-[center][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Whats-App-Image-2024-12-12-at-22-45-41-2e8cb64d.jpg[/img]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture4.png)
+
+[left]5) You will receive a **link via SMS** to continue with product activation as shown below.
+
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Whats-App-Image-2024-12-12-at-22-45-41-2e8cb64d.jpg)
 
 [left]6) Open the link and:
 
 7) Select Microsoft Office.
 
-[center][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture1.png[/img]
-[/center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture1.png)
+
 Navigate to Windows Operating System > Office 2024 (Office Version).
 
-[center][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture2.png[/img][/center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture2.png)
 
-[center][img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture3.png[/img][/center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture3.png)
 
 8) On the page, enter the Installation ID column by column and click Submit.
 
-[center][img=300x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture4.png[/img][/center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture4.png)
 
 9) *A Confirmation ID will be displayed on your screen.*
 
-[center][img=300x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture5.png[/img]
-[/center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/capture5.png)
+
 10) Enter this Confirmation ID into your Microsoft application to complete the activation.
 
-[center][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture6.png[/img]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Capture6.png)
 
-[img=350x100]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-182751.png[/img][/center]
+![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-15-182751.png)
 [/left]
-[/center]
-[/left]
-[/center]
-[/left]
-[/center]
-[/left]
-[/center]
-[/center]
-[/left]
-[/center]
-[/left]
-[/center]
-[/left]
-[/center]
-[/left]
-[/center]
-[/left]
-[/center]
-[/left]
-[/center]
-[color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][b]In case of any error or query, feel free to reach out to us at whatsapp +91-7011787948 or mail us at support@simplysolutions.co.in[/b][/font][/size][/color]
 
+[/left]
+
+[/left]
+
+[/left]
+
+[/left]
+
+[/left]
+
+[/left]
+
+[/left]
+
+[/left]
+
+[/left]
+
+**In case of any error or query, feel free to reach out to us at whatsapp +91-7011787948 or mail us at support@simplysolutions.co.in**
