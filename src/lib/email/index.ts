@@ -503,7 +503,7 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
           <!-- Success Banner -->
           <div style="background: linear-gradient(135deg, #0078D4, #005A9E); padding: 24px; text-align: center;">
             <div style="width: 64px; height: 64px; margin: 0 auto 16px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 32px;">✓</span>
+              <span style="font-size: 32px; color: white;">✓</span>
             </div>
             <h2 style="margin: 0; font-size: 22px; font-weight: 700; color: white;">
               Your Microsoft 365 Account is Ready!
@@ -523,7 +523,7 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
             <!-- Credentials Box -->
             <div style="background: #eff6ff; border: 2px solid #3b82f6; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
               <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: #1e40af;">
-                🔐 Your Login Credentials
+                Your Login Credentials
               </h3>
               
               <div style="margin-bottom: 16px;">
@@ -543,7 +543,7 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
 
             <!-- Instructions -->
             <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #1e293b;">
-              🚀 Getting Started
+              Getting Started
             </h3>
             
             <ol style="margin: 0; padding-left: 20px; color: #475569;">
@@ -553,10 +553,18 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
               <li style="margin-bottom: 12px;">Enable Two-Factor Authentication (2FA)</li>
             </ol>
 
+            <!-- Guide Link -->
+            <div style="margin-top: 24px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 16px;">
+              <p style="margin: 0; color: #0369a1; font-size: 14px;">
+                <strong>Need detailed instructions?</strong><br>
+                <a href="https://simplysolutions.co.in/office365" style="color: #0078D4; font-weight: 600;">View our complete setup guide →</a>
+              </p>
+            </div>
+
             <!-- Warning -->
-            <div style="margin-top: 24px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px;">
+            <div style="margin-top: 16px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px;">
               <p style="margin: 0; color: #92400e; font-size: 14px;">
-                <strong>⚠️ Important:</strong> Please change your password on first login and keep your credentials secure. Do not share them with anyone.
+                <strong>Important:</strong> Please change your password on first login and keep your credentials secure. Do not share them with anyone.
               </p>
             </div>
 
@@ -572,7 +580,7 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
                         text-decoration: none; 
                         border-radius: 100px;
                         box-shadow: 0 4px 16px rgba(0, 120, 212, 0.3);">
-                Login to Microsoft 365 →
+                Login to Microsoft 365
               </a>
             </div>
           </div>
@@ -585,7 +593,7 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
           </p>
           <a href="https://wa.me/918595899215" 
              style="display: inline-block; background: #25D366; color: white; padding: 10px 20px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px;">
-            💬 Chat on WhatsApp
+            Chat on WhatsApp
           </a>
         </div>
 
@@ -604,7 +612,7 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
     const { data: result, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.com>',
       to: data.to,
-      subject: `🔑 Your Microsoft 365 Account is Ready - Order ${data.orderId}`,
+      subject: `Your Microsoft 365 Account is Ready - Order ${data.orderId}`,
       html,
     });
 

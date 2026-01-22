@@ -376,13 +376,13 @@ export default function Enterprise365Page() {
                                 {/* Email */}
                                 <div>
                                     <label className="block text-sm font-bold text-[#0F1111] mb-2">
-                                        EMAIL ADDRESS *
+                                        PERSONAL EMAIL *
                                     </label>
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="your@email.com"
+                                        placeholder="johndoe@gmail.com"
                                         className="w-full px-4 py-3 border border-[#888C8C] rounded text-base text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] placeholder:text-[#6B7280]"
                                     />
                                     <p className="text-xs text-[#CC0C39] mt-1">
