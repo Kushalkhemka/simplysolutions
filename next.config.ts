@@ -93,6 +93,11 @@ const nextConfig: NextConfig = {
         destination: '/digital-warranty',
         permanent: true,
       },
+      {
+        source: '/admin-',
+        destination: '/admin',
+        permanent: true,
+      },
     ];
   },
 };

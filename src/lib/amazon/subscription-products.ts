@@ -81,6 +81,20 @@ export const SUBSCRIPTION_INSTRUCTIONS: Record<string, {
             'Logout the account once',
             'Re-login to complete activation'
         ]
+    },
+    '365E5': {
+        productName: 'Microsoft 365 E5 Subscription',
+        downloadUrl: 'https://www.office.com',
+        steps: [
+            'Go to <a href="https://www.office.com" style="color: #0078D4; text-decoration: underline;">office.com</a>',
+            'Sign in with your Microsoft 365 email and password (provided in this email)',
+            'Access Word, Excel, PowerPoint, Teams, OneDrive, and all Microsoft 365 apps'
+        ],
+        afterInstall: [
+            '<strong>Change your password</strong> on first login for security',
+            'Set up <strong>two-factor authentication</strong> for enhanced security',
+            'Download the Microsoft 365 desktop apps for the best experience'
+        ]
     }
 };
 

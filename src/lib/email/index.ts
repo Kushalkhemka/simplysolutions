@@ -472,3 +472,150 @@ export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
     return { success: false, error };
   }
 }
+
+// Microsoft 365 Enterprise Email with Credentials
+export interface Enterprise365EmailData {
+  to: string;
+  orderId: string;
+  firstName: string;
+  generatedEmail: string;
+  generatedPassword: string;
+}
+
+export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #DC3E15;">SimplySolutions</h1>
+        </div>
+
+        <!-- Main Card -->
+        <div style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+          
+          <!-- Success Banner -->
+          <div style="background: linear-gradient(135deg, #0078D4, #005A9E); padding: 24px; text-align: center;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 16px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 32px;">✓</span>
+            </div>
+            <h2 style="margin: 0; font-size: 22px; font-weight: 700; color: white;">
+              Your Microsoft 365 Account is Ready!
+            </h2>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+              Hi ${data.firstName}, your account has been created successfully
+            </p>
+          </div>
+
+          <div style="padding: 32px;">
+            <!-- Order Info -->
+            <div style="background: #f8fafc; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
+              <p style="margin: 0; font-size: 13px; color: #64748b;">Order ID</p>
+              <p style="margin: 4px 0 0; font-size: 15px; color: #1e293b; font-weight: 600; font-family: monospace;">${data.orderId}</p>
+            </div>
+
+            <!-- Credentials Box -->
+            <div style="background: #eff6ff; border: 2px solid #3b82f6; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+              <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: #1e40af;">
+                🔐 Your Login Credentials
+              </h3>
+              
+              <div style="margin-bottom: 16px;">
+                <p style="margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 600;">Email / Username</p>
+                <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #dbeafe;">
+                  <code style="font-size: 16px; color: #1e293b; font-weight: 600; font-family: 'Courier New', monospace;">${data.generatedEmail}</code>
+                </div>
+              </div>
+              
+              <div>
+                <p style="margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 600;">Temporary Password</p>
+                <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #dbeafe;">
+                  <code style="font-size: 16px; color: #1e293b; font-weight: 600; font-family: 'Courier New', monospace;">${data.generatedPassword}</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Instructions -->
+            <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #1e293b;">
+              🚀 Getting Started
+            </h3>
+            
+            <ol style="margin: 0; padding-left: 20px; color: #475569;">
+              <li style="margin-bottom: 12px;">Go to <a href="https://www.office.com" style="color: #0078D4; font-weight: 600;">office.com</a></li>
+              <li style="margin-bottom: 12px;">Sign in with the credentials above</li>
+              <li style="margin-bottom: 12px;"><strong style="color: #dc2626;">Change your password immediately</strong> for security</li>
+              <li style="margin-bottom: 12px;">Enable Two-Factor Authentication (2FA)</li>
+            </ol>
+
+            <!-- Warning -->
+            <div style="margin-top: 24px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px;">
+              <p style="margin: 0; color: #92400e; font-size: 14px;">
+                <strong>⚠️ Important:</strong> Please change your password on first login and keep your credentials secure. Do not share them with anyone.
+              </p>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin-top: 32px;">
+              <a href="https://www.office.com" 
+                 style="display: inline-block; 
+                        background: linear-gradient(135deg, #0078D4, #005A9E); 
+                        color: #ffffff; 
+                        padding: 16px 40px; 
+                        font-size: 16px; 
+                        font-weight: 600; 
+                        text-decoration: none; 
+                        border-radius: 100px;
+                        box-shadow: 0 4px 16px rgba(0, 120, 212, 0.3);">
+                Login to Microsoft 365 →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Support -->
+        <div style="text-align: center; margin-top: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <p style="margin: 0 0 12px; font-size: 14px; color: #64748b;">
+            Need help? Contact us on WhatsApp
+          </p>
+          <a href="https://wa.me/918595899215" 
+             style="display: inline-block; background: #25D366; color: white; padding: 10px 20px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px;">
+            💬 Chat on WhatsApp
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 24px;">
+          <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+            © ${new Date().getFullYear()} SimplySolutions. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const { data: result, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.com>',
+      to: data.to,
+      subject: `🔑 Your Microsoft 365 Account is Ready - Order ${data.orderId}`,
+      html,
+    });
+
+    if (error) {
+      console.error('365 Enterprise email send error:', error);
+      return { success: false, error };
+    }
+
+    return { success: true, id: result?.id };
+  } catch (error) {
+    console.error('365 Enterprise email service error:', error);
+    return { success: false, error };
+  }
+}

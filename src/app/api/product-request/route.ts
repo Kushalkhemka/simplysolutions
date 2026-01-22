@@ -12,12 +12,12 @@ const REQUEST_TYPE_TO_FSN: Record<string, string> = {
     'canva': 'CANVA-REQ',
     'revit': 'REVIT-REQ',
     'fusion360': 'FUSION360-REQ',
-    '365e5': '365E5-REQ'
+    '365e5': '365E5'
 };
 
 export async function POST(request: NextRequest) {
     try {
-        const { email, orderId, requestType, mobileNumber } = await request.json();
+        const { email, orderId, requestType, mobileNumber, firstName, lastName, usernamePrefix } = await request.json();
 
         // Validate required fields
         if (!email || !orderId || !requestType) {
@@ -36,6 +36,25 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Additional validation for 365e5 requests
+        if (requestType === '365e5') {
+            if (!firstName || !lastName || !usernamePrefix || !mobileNumber) {
+                return NextResponse.json(
+                    { error: 'First name, last name, username prefix, and WhatsApp number are required for Microsoft 365 requests' },
+                    { status: 400 }
+                );
+            }
+
+            // Validate username prefix format
+            const cleanPrefix = usernamePrefix.toLowerCase().trim();
+            if (cleanPrefix.length < 3 || !/^[a-z0-9.]+$/.test(cleanPrefix)) {
+                return NextResponse.json(
+                    { error: 'Username must be at least 3 characters and contain only letters, numbers, and dots' },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Clean the order ID
         const cleanOrderId = orderId.trim();
 
@@ -51,8 +70,6 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify the order exists in amazon_orders table
-        // Note: We search by order_id for both secret codes and Amazon Order IDs
-        // since the manual order creation stores both in order_id field
         const { data: order, error: queryError } = await supabase
             .from('amazon_orders')
             .select('id, order_id, fsn')
@@ -89,11 +106,57 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        // For 365e5 requests, validate the order FSN is 365E5
+        if (requestType === '365e5') {
+            if (!order.fsn || !order.fsn.toUpperCase().startsWith('365E5')) {
+                return NextResponse.json(
+                    { error: 'This order is not for Microsoft 365 Enterprise. Please use the correct activation page for your product.' },
+                    { status: 400 }
+                );
+            }
+
+            // Also check office365_requests table
+            const { data: existing365 } = await supabase
+                .from('office365_requests')
+                .select('id, is_completed')
+                .eq('order_id', cleanOrderId)
+                .single();
+
+            if (existing365) {
+                return NextResponse.json({
+                    success: true,
+                    message: existing365.is_completed
+                        ? 'Your Microsoft 365 account has been created. Check your email for credentials.'
+                        : 'Your Microsoft 365 request is being processed.',
+                    status: existing365.is_completed ? 'completed' : 'processing'
+                });
+            }
+        }
+
+        // For canva requests, validate the order FSN starts with CANVA
+        if (requestType === 'canva') {
+            if (!order.fsn || !order.fsn.toUpperCase().startsWith('CANVA')) {
+                return NextResponse.json(
+                    { error: 'This order is not for Canva Pro. Please use the correct activation page for your product.' },
+                    { status: 400 }
+                );
+            }
+        }
+
+        // For autocad requests, validate the order FSN starts with AUTOCAD
+        if (requestType === 'autocad') {
+            if (!order.fsn || !order.fsn.toUpperCase().startsWith('AUTOCAD')) {
+                return NextResponse.json(
+                    { error: 'This order is not for AutoCAD. Please use the correct activation page for your product.' },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Use the actual FSN from the order if available, otherwise fallback to request type
         const fsn = order.fsn || REQUEST_TYPE_TO_FSN[requestType] || `${requestType.toUpperCase()}-REQ`;
 
-        // Create new request
-        // Note: request_type is a GENERATED column based on fsn, so we don't insert it directly
+        // Create new request in product_requests
         const { data, error } = await supabase
             .from('product_requests')
             .insert({
@@ -116,9 +179,33 @@ export async function POST(request: NextRequest) {
 
         console.log('Product request created:', data);
 
+        // For 365e5 requests, also create entry in office365_requests table
+        if (requestType === '365e5') {
+            const { error: office365Error } = await supabase
+                .from('office365_requests')
+                .insert({
+                    order_id: cleanOrderId,
+                    first_name: firstName.trim(),
+                    last_name: lastName.trim(),
+                    username_prefix: usernamePrefix.toLowerCase().trim(),
+                    whatsapp_number: mobileNumber.trim(),
+                    email: email.trim(),
+                    is_completed: false
+                });
+
+            if (office365Error) {
+                console.error('Office365 request insert error:', office365Error);
+                // Don't fail the request, just log the error
+            } else {
+                console.log('Office365 request created for order:', cleanOrderId);
+            }
+        }
+
         return NextResponse.json({
             success: true,
-            message: 'Your request has been submitted successfully! We will process it within 24 hours.',
+            message: requestType === '365e5'
+                ? 'Your Microsoft 365 account request has been submitted! We will create your account and notify you within 24 hours.'
+                : 'Your request has been submitted successfully! We will process it within 24 hours.',
             requestId: data.id
         });
 
@@ -130,3 +217,4 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+

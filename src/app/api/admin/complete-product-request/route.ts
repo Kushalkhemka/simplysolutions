@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendSubscriptionEmail } from '@/lib/email';
+import { sendSubscriptionEmail, send365EnterpriseEmail } from '@/lib/email';
 import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -10,7 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: NextRequest) {
     try {
-        const { requestId, subscriptionEmail } = await request.json();
+        const { requestId, subscriptionEmail, generatedEmail, generatedPassword } = await request.json();
 
         if (!requestId) {
             return NextResponse.json(
@@ -57,7 +57,104 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Check if this is a subscription product
+        // Check if this is a 365E5 request
+        const is365E5 = fsn?.startsWith('365E5') || productRequest.request_type === '365e5';
+
+        // For 365E5, require generated credentials
+        if (is365E5) {
+            if (!generatedEmail || !generatedPassword) {
+                return NextResponse.json(
+                    { error: 'Generated email and password are required for Microsoft 365 requests' },
+                    { status: 400 }
+                );
+            }
+
+            // Fetch the office365_requests entry
+            const { data: office365Request } = await supabase
+                .from('office365_requests')
+                .select('*')
+                .eq('order_id', productRequest.order_id)
+                .single();
+
+            // Update office365_requests with generated credentials
+            const { error: update365Error } = await supabase
+                .from('office365_requests')
+                .update({
+                    generated_email: generatedEmail.trim(),
+                    generated_password: generatedPassword.trim(),
+                    is_completed: true,
+                    completed_at: new Date().toISOString()
+                })
+                .eq('order_id', productRequest.order_id);
+
+            if (update365Error) {
+                console.error('Error updating office365_requests:', update365Error);
+                // Continue anyway, don't fail the request
+            }
+
+            // Update the product request to completed
+            const { error: updateRequestError } = await supabase
+                .from('product_requests')
+                .update({
+                    is_completed: true,
+                    completed_at: new Date().toISOString()
+                })
+                .eq('id', requestId);
+
+            if (updateRequestError) {
+                console.error('Error updating product request:', updateRequestError);
+                return NextResponse.json(
+                    { error: 'Failed to update product request' },
+                    { status: 500 }
+                );
+            }
+
+            // Update amazon_orders
+            if (productRequest.order_id) {
+                const licenseKeyValue = `Microsoft 365 - ${generatedEmail}`;
+                const { error: updateOrderError } = await supabase
+                    .from('amazon_orders')
+                    .update({
+                        license_key: licenseKeyValue,
+                        is_redeemed: true,
+                        redeemed_at: new Date().toISOString()
+                    })
+                    .eq('order_id', productRequest.order_id);
+
+                if (updateOrderError) {
+                    console.error('Error updating amazon order:', updateOrderError);
+                }
+            }
+
+            // Send 365 enterprise email
+            const emailResult = await send365EnterpriseEmail({
+                to: productRequest.email,
+                orderId: productRequest.order_id || requestId,
+                firstName: office365Request?.first_name || 'Customer',
+                generatedEmail: generatedEmail.trim(),
+                generatedPassword: generatedPassword.trim()
+            });
+
+            if (!emailResult.success) {
+                console.error('Failed to send 365 email:', emailResult.error);
+                return NextResponse.json({
+                    success: true,
+                    emailSent: false,
+                    emailError: 'Failed to send email notification',
+                    message: 'Request marked as completed but email notification failed'
+                });
+            }
+
+            return NextResponse.json({
+                success: true,
+                emailSent: true,
+                emailId: emailResult.id,
+                message: 'Microsoft 365 account created and notification sent',
+                generatedEmail: generatedEmail
+            });
+        }
+
+        // Check if this is a subscription product (non-365E5)
         const subscriptionConfig = getSubscriptionConfig(fsn || '');
 
         if (!subscriptionConfig) {
@@ -140,3 +237,4 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+

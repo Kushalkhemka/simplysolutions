@@ -28,6 +28,8 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
     // Completion Modal State
     const [selectedRequest, setSelectedRequest] = useState<ProductRequest | null>(null);
     const [subscriptionEmail, setSubscriptionEmail] = useState('');
+    const [generatedEmail, setGeneratedEmail] = useState('');
+    const [generatedPassword, setGeneratedPassword] = useState('');
     const [isCompleting, setIsCompleting] = useState(false);
     const [showCompleteModal, setShowCompleteModal] = useState(false);
 
@@ -125,11 +127,22 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
     const handleOpenCompleteModal = (request: ProductRequest) => {
         setSelectedRequest(request);
         setSubscriptionEmail(request.email);
+        // Reset generated fields
+        setGeneratedEmail('');
+        setGeneratedPassword('');
         setShowCompleteModal(true);
     };
 
     const handleCompleteRequest = async () => {
         if (!selectedRequest) return;
+
+        // Validation for 365E5
+        if (selectedRequest.request_type === '365e5') {
+            if (!generatedEmail || !generatedPassword) {
+                toast.error('Please enter generated email and password');
+                return;
+            }
+        }
 
         setIsCompleting(true);
         try {
@@ -138,7 +151,9 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     requestId: selectedRequest.id,
-                    subscriptionEmail: subscriptionEmail.trim()
+                    subscriptionEmail: subscriptionEmail.trim(),
+                    generatedEmail: generatedEmail.trim(),
+                    generatedPassword: generatedPassword.trim()
                 }),
             });
 
@@ -457,6 +472,40 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                                     The email where the subscription was activated (sent in notification)
                                 </p>
                             </div>
+
+                            {selectedRequest.request_type === '365e5' && (
+                                <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                    <div className="bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800 rounded-lg p-3">
+                                        <p className="text-sm text-sky-800 dark:text-sky-300 font-medium">
+                                            Microsof 365 Credentials Required
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Generated Email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={generatedEmail}
+                                            onChange={(e) => setGeneratedEmail(e.target.value)}
+                                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
+                                            placeholder="username@tenant.onmicrosoft.com"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                            Generated Password
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={generatedPassword}
+                                            onChange={(e) => setGeneratedPassword(e.target.value)}
+                                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
+                                            placeholder="Temporary Password"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="p-4 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
