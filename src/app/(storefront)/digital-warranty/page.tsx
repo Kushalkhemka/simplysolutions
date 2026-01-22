@@ -276,7 +276,7 @@ export default function DigitalWarrantyPage() {
                             </h3>
                             <div className="rounded-xl overflow-hidden border border-gray-200">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/warranty-reference/seller-feedback-reference.png"
+                                    src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/uploads/warranty-reference/seller-feedback-reference.png`}
                                     alt="Seller Feedback Reference - Check seller name, rate 5 stars, write comment"
                                     width={600}
                                     height={400}
@@ -294,7 +294,7 @@ export default function DigitalWarrantyPage() {
                             </h3>
                             <div className="rounded-xl overflow-hidden border border-gray-200">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/warranty-reference/product-review-reference.png"
+                                    src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/uploads/warranty-reference/product-review-reference.png`}
                                     alt="Product Review Reference - Create review, rate 5 stars, add headline and written review"
                                     width={600}
                                     height={400}
