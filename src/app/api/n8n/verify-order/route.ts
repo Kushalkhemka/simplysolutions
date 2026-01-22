@@ -89,22 +89,31 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Check if already redeemed (has license key)
+        // Check if already redeemed - get ALL license keys for this order
         let licenseInfo = null;
-        if (order.license_key_id) {
-            const { data: licenseData } = await supabase
-                .from('amazon_activation_license_keys')
-                .select('license_key, fsn, is_redeemed, redeemed_at')
-                .eq('id', order.license_key_id)
-                .single();
+        let allLicenses: Array<{ licenseKey: string; fsn: string; isRedeemed: boolean; redeemedAt: string | null }> = [];
 
-            if (licenseData) {
-                licenseInfo = {
-                    licenseKey: licenseData.license_key,
-                    isRedeemed: licenseData.is_redeemed,
-                    redeemedAt: licenseData.redeemed_at
-                };
-            }
+        // Fetch all license keys assigned to this order
+        const { data: licenseDataArray } = await supabase
+            .from('amazon_activation_license_keys')
+            .select('license_key, fsn, is_redeemed, redeemed_at')
+            .eq('order_id', cleanOrderId);
+
+        if (licenseDataArray && licenseDataArray.length > 0) {
+            allLicenses = licenseDataArray.map(lic => ({
+                licenseKey: lic.license_key,
+                fsn: lic.fsn,
+                isRedeemed: lic.is_redeemed,
+                redeemedAt: lic.redeemed_at
+            }));
+
+            // For backward compatibility, also set single licenseInfo
+            licenseInfo = {
+                licenseKey: licenseDataArray[0].license_key,
+                isRedeemed: licenseDataArray[0].is_redeemed,
+                redeemedAt: licenseDataArray[0].redeemed_at,
+                totalKeys: licenseDataArray.length
+            };
         }
 
         // Get product info from products_data via FSN
@@ -178,8 +187,11 @@ export async function POST(request: NextRequest) {
                 country: order.country || 'IN'
             },
 
-            // License Key (if redeemed)
+            // License Key (if redeemed) - backward compatible single key
             license: licenseInfo,
+
+            // All License Keys (for multi-quantity/combo orders)
+            allLicenses: allLicenses,
 
             // GetCID Status
             getcid: {
