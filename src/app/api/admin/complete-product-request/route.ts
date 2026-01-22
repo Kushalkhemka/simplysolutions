@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendSubscriptionEmail, getSubscriptionConfig } from '@/lib/email';
+import { sendSubscriptionEmail } from '@/lib/email';
+import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;

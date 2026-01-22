@@ -86,10 +86,12 @@ export async function POST(request: NextRequest) {
                 });
             }
 
+            const orderIsCombo = order.fsn ? isComboProduct(order.fsn) : false;
             return NextResponse.json({
                 success: true,
                 alreadyRedeemed: true,
-                isCombo: order.fsn ? isComboProduct(order.fsn) : false,
+                isCombo: orderIsCombo,
+                comboFsn: orderIsCombo ? order.fsn : undefined,
                 orderQuantity,
                 licenses
             });
@@ -183,6 +185,7 @@ export async function POST(request: NextRequest) {
             success: true,
             alreadyRedeemed: false,
             isCombo,
+            comboFsn: isCombo ? fsn : undefined, // Original combo FSN for installation guide
             orderQuantity,
             fulfillmentType: order.fulfillment_type,
             licenses

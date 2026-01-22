@@ -1,3 +1,4 @@
+import { getSubscriptionConfig, SUBSCRIPTION_INSTRUCTIONS } from '../amazon/subscription-products';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -305,105 +306,13 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
   }
 }
 
-// Subscription products configuration
-const SUBSCRIPTION_INSTRUCTIONS: Record<string, {
-  productName: string;
-  downloadUrl: string;
-  steps: string[];
-  afterInstall?: string[];
-}> = {
-  'AUTOCAD': {
-    productName: 'AutoCAD Subscription',
-    downloadUrl: 'https://manage.autodesk.com/products',
-    steps: [
-      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
-      'Click "All Products and Services" in the left catalog bar of the interface',
-      'Download the software you purchased'
-    ],
-    afterInstall: [
-      'Logout the account once',
-      'Re-login to complete activation'
-    ]
-  },
-  'CANVA': {
-    productName: 'Canva Pro Subscription',
-    downloadUrl: 'https://canva.com',
-    steps: [
-      'Login to Canva with the email address provided in this email',
-      'Your Canva Pro subscription is now active on your account',
-      'You can access all Pro features immediately'
-    ]
-  },
-  'REVIT': {
-    productName: 'Revit Subscription',
-    downloadUrl: 'https://manage.autodesk.com/products',
-    steps: [
-      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
-      'Click "All Products and Services" in the left catalog bar of the interface',
-      'Download Revit from your product list'
-    ],
-    afterInstall: [
-      'Logout the account once',
-      'Re-login to complete activation'
-    ]
-  },
-  '3DSMAX': {
-    productName: '3DS Max Subscription',
-    downloadUrl: 'https://manage.autodesk.com/products',
-    steps: [
-      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
-      'Click "All Products and Services" in the left catalog bar of the interface',
-      'Download 3DS Max from your product list'
-    ],
-    afterInstall: [
-      'Logout the account once',
-      'Re-login to complete activation'
-    ]
-  },
-  'MAYA': {
-    productName: 'Maya Subscription',
-    downloadUrl: 'https://manage.autodesk.com/products',
-    steps: [
-      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
-      'Click "All Products and Services" in the left catalog bar of the interface',
-      'Download Maya from your product list'
-    ],
-    afterInstall: [
-      'Logout the account once',
-      'Re-login to complete activation'
-    ]
-  },
-  'FUSION360': {
-    productName: 'Fusion 360 Subscription',
-    downloadUrl: 'https://manage.autodesk.com/products',
-    steps: [
-      'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
-      'Click "All Products and Services" in the left catalog bar of the interface',
-      'Download Fusion 360 from your product list'
-    ],
-    afterInstall: [
-      'Logout the account once',
-      'Re-login to complete activation'
-    ]
-  }
-};
 
-interface SubscriptionEmailData {
+export interface SubscriptionEmailData {
   to: string;
   customerName?: string;
   orderId: string;
   fsn: string;
   subscriptionEmail?: string; // Email where subscription was processed (if different)
-}
-
-export function getSubscriptionConfig(fsn: string) {
-  // Extract base product from FSN (e.g., AUTOCAD-1YEAR -> AUTOCAD)
-  for (const key of Object.keys(SUBSCRIPTION_INSTRUCTIONS)) {
-    if (fsn.startsWith(key)) {
-      return { key, ...SUBSCRIPTION_INSTRUCTIONS[key] };
-    }
-  }
-  return null;
 }
 
 export async function sendSubscriptionEmail(data: SubscriptionEmailData) {

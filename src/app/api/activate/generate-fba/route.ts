@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
                 success: true,
                 alreadyRedeemed: true,
                 isCombo: isComboProduct(order.fsn),
+                comboFsn: isComboProduct(order.fsn) ? order.fsn : undefined,
                 orderQuantity,
                 licenses
             });
@@ -201,6 +202,7 @@ export async function POST(request: NextRequest) {
             success: true,
             alreadyRedeemed: false,
             isCombo,
+            comboFsn: isCombo ? fsn : undefined,
             orderQuantity,
             fulfillmentType: order.fulfillment_type || null,
             licenses

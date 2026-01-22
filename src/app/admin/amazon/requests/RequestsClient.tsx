@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CheckCircle, Clock, Mail, Filter, Search, Calendar, X, Package } from 'lucide-react';
+import { CheckCircle, Clock, Mail, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface ProductRequest {
     id: string;
@@ -19,7 +21,16 @@ interface RequestsClientProps {
     totalCount: number;
 }
 
-export default function RequestsClient({ requests, totalCount }: RequestsClientProps) {
+export default function RequestsClient({ requests: initialRequests, totalCount }: RequestsClientProps) {
+    const router = useRouter();
+    const [requests, setRequests] = useState(initialRequests);
+
+    // Completion Modal State
+    const [selectedRequest, setSelectedRequest] = useState<ProductRequest | null>(null);
+    const [subscriptionEmail, setSubscriptionEmail] = useState('');
+    const [isCompleting, setIsCompleting] = useState(false);
+    const [showCompleteModal, setShowCompleteModal] = useState(false);
+
     // Filter states
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all');
     const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -109,6 +120,54 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                 {displayType.toUpperCase()}
             </span>
         );
+    };
+
+    const handleOpenCompleteModal = (request: ProductRequest) => {
+        setSelectedRequest(request);
+        setSubscriptionEmail(request.email);
+        setShowCompleteModal(true);
+    };
+
+    const handleCompleteRequest = async () => {
+        if (!selectedRequest) return;
+
+        setIsCompleting(true);
+        try {
+            const response = await fetch('/api/admin/complete-product-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    requestId: selectedRequest.id,
+                    subscriptionEmail: subscriptionEmail.trim()
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success(data.message);
+
+                // Update local state
+                setRequests(prev => prev.map(r =>
+                    r.id === selectedRequest.id
+                        ? { ...r, is_completed: true }
+                        : r
+                ));
+
+                setShowCompleteModal(false);
+                setSelectedRequest(null);
+
+                // Refresh data to ensure sync
+                router.refresh();
+            } else {
+                toast.error(data.error || 'Failed to complete request');
+            }
+        } catch (error) {
+            console.error('Completion error:', error);
+            toast.error('Failed to process request');
+        } finally {
+            setIsCompleting(false);
+        }
     };
 
     return (
@@ -326,12 +385,25 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                                     })}
                                 </td>
                                 <td className="px-4 py-3.5">
-                                    <a
-                                        href={`mailto:${request.email}`}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
-                                    >
-                                        <Mail className="h-4 w-4" /> Email
-                                    </a>
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href={`mailto:${request.email}`}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                            title="Send Email"
+                                        >
+                                            <Mail className="h-4 w-4" />
+                                        </a>
+
+                                        {!request.is_completed && (
+                                            <button
+                                                onClick={() => handleOpenCompleteModal(request)}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                                                title="Complete Request & Send Notification"
+                                            >
+                                                <Send className="h-4 w-4" /> Complete
+                                            </button>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -348,6 +420,82 @@ export default function RequestsClient({ requests, totalCount }: RequestsClientP
                     </div>
                 )}
             </div>
+
+            {/* Completion Modal */}
+            {showCompleteModal && selectedRequest && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <CheckCircle className="h-5 w-5 text-indigo-500" />
+                                Complete Request
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                Order: <span className="font-mono">{selectedRequest.order_id || 'N/A'}</span>
+                            </p>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-lg p-4">
+                                <div className="flex items-start gap-3">
+                                    <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                    <div className="text-sm text-amber-800 dark:text-amber-200">
+                                        <p className="font-medium">Action Summary:</p>
+                                        <ul className="list-disc ml-4 mt-1 space-y-1 opacity-90">
+                                            <li>Mark request as completed</li>
+                                            <li>Update Amazon Order with "Subscription processed"</li>
+                                            <li>Send confirmation email to customer</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                    Subscription Email
+                                </label>
+                                <input
+                                    type="email"
+                                    value={subscriptionEmail}
+                                    onChange={(e) => setSubscriptionEmail(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                    placeholder="email@example.com"
+                                />
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    The email where the subscription was activated (sent in notification)
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowCompleteModal(false)}
+                                disabled={isCompleting}
+                                className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCompleteRequest}
+                                disabled={isCompleting}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isCompleting ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className="h-4 w-4" />
+                                        Complete & Send Email
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -16,6 +16,7 @@ import {
 import { toast } from 'sonner';
 import InstallationGuide from '@/components/InstallationGuide';
 import { getInstallationGuide } from '@/lib/installation-guides';
+import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
 
 interface ProductInfo {
     productName: string | null;
@@ -40,9 +41,12 @@ interface ActivationResult {
     productInfo?: ProductInfo;
     alreadyRedeemed?: boolean;
     isCombo?: boolean;
+    comboFsn?: string; // For combo products, the combo FSN (e.g., WIN11-PP21)
     orderQuantity?: number;
     licenses?: LicenseInfo[];
     windowsInstallType?: 'upgrade' | 'fresh' | null;
+    isSubscription?: boolean;
+    subscriptionConfig?: any;
 }
 
 export default function ActivatePage() {
@@ -97,6 +101,23 @@ export default function ActivatePage() {
             }
 
             if (data.isAlreadyRedeemed && data.licenseKey) {
+                // Check if it's a subscription product
+                const subConfig = data.fsn ? getSubscriptionConfig(data.fsn) : null;
+
+                if (subConfig) {
+                    setActivationResult({
+                        success: true,
+                        licenseKey: data.licenseKey,
+                        productInfo: data.productInfo || {},
+                        alreadyRedeemed: true,
+                        isSubscription: true,
+                        subscriptionConfig: subConfig
+                    });
+                    toast.success('Subscription status retrieved!');
+                    setIsLoading(false);
+                    return;
+                }
+
                 // Store fulfillment type
                 if (data.fulfillmentType) {
                     setFulfillmentType(data.fulfillmentType);
@@ -115,6 +136,15 @@ export default function ActivatePage() {
             // Store fulfillment type for later use
             if (data.fulfillmentType) {
                 setFulfillmentType(data.fulfillmentType);
+            }
+
+            // Check if it's a subscription product (not yet redeemed)
+            const subConfig = data.fsn ? getSubscriptionConfig(data.fsn) : null;
+            if (subConfig) {
+                // Use a blue/info style for pending subscriptions
+                setError(`Your ${subConfig.productName} is currently being processed. You will receive an email/WhatsApp notification once activated (usually within 2-4 hours).`);
+                setIsLoading(false);
+                return;
             }
 
             // Check if this is a Windows product that needs installation type selection
@@ -168,6 +198,7 @@ export default function ActivatePage() {
                 setActivationResult({
                     success: true,
                     isCombo: data.isCombo,
+                    comboFsn: data.comboFsn,
                     orderQuantity: data.orderQuantity || 1,
                     licenses: data.licenses,
                     // For backward compatibility, use first license
@@ -410,315 +441,392 @@ export default function ActivatePage() {
                                     </button>
                                 </div>
 
-                                <div className="p-6 space-y-6">
-                                    {/* Windows Upgrade Key Step - Show FIRST for upgrade path */}
-                                    {activationResult.windowsInstallType === 'upgrade' && (
-                                        <div className="border-2 border-[#0078D4] rounded-lg overflow-hidden">
-                                            <div className="bg-[#0078D4] text-white px-4 py-2 flex items-center gap-2">
-                                                <span className="bg-white text-[#0078D4] font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm">1</span>
-                                                <span className="font-bold">STEP 1: Enter Upgrade Key (Switches to Pro Edition)</span>
+                                {/* Subscription Product UI */}
+                                {activationResult.isSubscription && activationResult.subscriptionConfig ? (
+                                    <div className="p-6 space-y-6">
+                                        <div className="text-center">
+                                            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <CheckCircle className="w-10 h-10" />
                                             </div>
-                                            <div className="p-4 bg-[#F0F8FF]">
-                                                <div className="flex items-center gap-3 p-3 bg-white rounded border border-[#DDD]">
-                                                    <code className="font-mono font-bold text-lg text-[#0F1111]">{WINDOWS_UPGRADE_KEY}</code>
-                                                    <button
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(WINDOWS_UPGRADE_KEY);
-                                                            toast.success('Upgrade key copied!');
-                                                        }}
-                                                        className="p-2 hover:bg-[#0078D4]/10 rounded"
-                                                    >
-                                                        <Copy className="w-5 h-5 text-[#0078D4]" />
-                                                    </button>
-                                                </div>
-                                                <div className="mt-3 p-3 bg-[#FFF4E5] border border-[#FF9900] rounded text-sm">
-                                                    <p className="text-[#B12704] font-medium">⚠️ Important:</p>
-                                                    <p className="text-[#565959] mt-1">This is an official Microsoft upgrade key. It switches your edition from Home to Pro but does NOT activate Windows. You must complete Step 2 for activation.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                            <h3 className="text-xl font-bold text-slate-800 mb-2">
+                                                {activationResult.subscriptionConfig.productName} Active!
+                                            </h3>
+                                            <p className="text-slate-600 mb-6">
+                                                Your subscription has been successfully processed and is ready to use.
+                                            </p>
 
-                                    {/* Step 2 Header for Upgrade Path */}
-                                    {activationResult.windowsInstallType === 'upgrade' && (
-                                        <div className="flex items-center gap-2 text-[#0F1111]">
-                                            <span className="bg-[#067D62] text-white font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm">2</span>
-                                            <span className="font-bold">STEP 2: Enter Activation Key (Activates Windows)</span>
-                                        </div>
-                                    )}
-
-                                    {/* Product Card(s) - Handle multiple licenses for combos/quantities */}
-                                    {activationResult.licenses && activationResult.licenses.length > 0 ? (
-                                        <div className="space-y-4">
-                                            {/* Order Summary Header */}
-                                            {(activationResult.isCombo || (activationResult.orderQuantity && activationResult.orderQuantity > 1)) && (
-                                                <div className="bg-[#232F3E] text-white px-4 py-3 rounded-lg text-center">
-                                                    {activationResult.isCombo && activationResult.orderQuantity && activationResult.orderQuantity > 1 ? (
-                                                        <>
-                                                            <div className="font-bold">🎁 Combo Package × {activationResult.orderQuantity}</div>
-                                                            <div className="text-sm opacity-90">{activationResult.licenses.length} License Keys Total</div>
-                                                        </>
-                                                    ) : activationResult.isCombo ? (
-                                                        <>
-                                                            <div className="font-medium">🎁 Combo Package - {activationResult.licenses.length} License Keys</div>
-                                                        </>
-                                                    ) : activationResult.orderQuantity && activationResult.orderQuantity > 1 ? (
-                                                        <>
-                                                            <div className="font-bold">📦 Bulk Order - Quantity: {activationResult.orderQuantity}</div>
-                                                            <div className="text-sm opacity-90">{activationResult.licenses.length} License Keys</div>
-                                                        </>
-                                                    ) : null}
-                                                </div>
-                                            )}
-                                            {activationResult.licenses.map((license, index) => (
-                                                <div key={index} className="p-4 bg-[#F7F8FA] rounded border border-[#DDD]">
-                                                    <div className="flex items-start gap-4">
-                                                        <div className="w-16 h-16 bg-white rounded flex items-center justify-center flex-shrink-0 border border-[#DDD]">
-                                                            {license.productImage ? (
-                                                                <Image src={license.productImage} alt="Product" width={60} height={60} className="object-contain" />
-                                                            ) : (
-                                                                <div className="text-2xl">{index === 0 ? '🪟' : '📝'}</div>
-                                                            )}
-                                                        </div>
-
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-bold text-[#0F1111] mb-1">
-                                                                {license.productName || `Product ${index + 1}`}
-                                                            </p>
-                                                            <div className="p-2 bg-[#FCF5EE] border border-[#FF9900] rounded">
-                                                                <p className="text-xs text-[#565959] mb-1">License Key {index + 1}:</p>
-                                                                <div className="flex items-center gap-2">
-                                                                    <code className="font-mono text-sm font-bold text-[#0F1111] break-all">
-                                                                        {license.licenseKey}
-                                                                    </code>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            navigator.clipboard.writeText(license.licenseKey);
-                                                                            toast.success('License key copied!');
-                                                                        }}
-                                                                        className="p-1.5 hover:bg-[#FF9900]/20 rounded"
-                                                                        title="Copy"
-                                                                    >
-                                                                        <Copy className="w-4 h-4 text-[#FF9900]" />
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            {license.downloadUrl && (
-                                                                <a
-                                                                    href={license.downloadUrl}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="mt-2 inline-flex items-center gap-1 text-xs text-[#007185] hover:underline"
-                                                                >
-                                                                    <Download className="w-3 h-3" /> Download
-                                                                </a>
-                                                            )}
-                                                        </div>
+                                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 inline-block text-left max-w-lg w-full">
+                                                <p className="font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">Activation Details:</p>
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-slate-500">Status:</span>
+                                                        <span className="text-emerald-600 font-bold">Active & Ready</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-slate-500">License Info:</span>
+                                                        <span className="text-slate-900 font-medium">{activationResult.licenseKey}</span>
                                                     </div>
                                                 </div>
-                                            ))}
+                                            </div>
                                         </div>
-                                    ) : (
-                                        /* Single license fallback */
-                                        <div className="flex items-start gap-4 p-4 bg-[#F7F8FA] rounded border border-[#DDD]">
-                                            <div className="w-16 h-16 bg-white rounded flex items-center justify-center flex-shrink-0 border border-[#DDD]">
-                                                {activationResult.productInfo?.productImage ? (
-                                                    <Image src={activationResult.productInfo.productImage} alt="Product" width={60} height={60} className="object-contain" />
-                                                ) : (
-                                                    <div className="text-2xl">📦</div>
-                                                )}
+
+                                        <div className="bg-sky-50 border border-sky-100 rounded-xl p-6">
+                                            <h4 className="font-bold text-sky-900 mb-4 flex items-center gap-2">
+                                                <Download className="w-5 h-5" />
+                                                Installation Instructions
+                                            </h4>
+
+                                            <div className="space-y-4">
+                                                {activationResult.subscriptionConfig.steps.map((step: string, i: number) => (
+                                                    <div key={i} className="flex gap-3">
+                                                        <span className="w-6 h-6 bg-sky-200 text-sky-800 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5">
+                                                            {i + 1}
+                                                        </span>
+                                                        <div
+                                                            className="text-sky-800 text-sm leading-relaxed"
+                                                            dangerouslySetInnerHTML={{ __html: step }}
+                                                        />
+                                                    </div>
+                                                ))}
                                             </div>
 
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-[#565959]">
-                                                    <span className="font-bold text-[#0F1111]">Product: </span>
-                                                    {activationResult.productInfo?.productName || 'Microsoft Office Professional Plus'}
+                                            <div className="mt-6 pt-4 border-t border-sky-200">
+                                                <a
+                                                    href={activationResult.subscriptionConfig.downloadUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg transition-colors gap-2"
+                                                >
+                                                    Go to Login Portal <ArrowDown className="w-4 h-4" />
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        {activationResult.subscriptionConfig.afterInstall && (
+                                            <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 text-sm text-amber-900">
+                                                <p className="font-bold mb-2 flex items-center gap-2">
+                                                    <AlertTriangle className="w-4 h-4" />
+                                                    Important Next Steps:
                                                 </p>
-                                                <div className="mt-2 p-2 bg-[#FCF5EE] border border-[#FF9900] rounded">
-                                                    <p className="text-xs text-[#565959] mb-1">Your License Key:</p>
-                                                    <div className="flex items-center gap-2">
-                                                        <code className="font-mono text-sm font-bold text-[#0F1111] break-all">
-                                                            {activationResult.licenseKey}
-                                                        </code>
-                                                        <button onClick={handleCopyKey} className="p-1.5 hover:bg-[#FF9900]/20 rounded" title="Copy">
-                                                            <Copy className="w-4 h-4 text-[#FF9900]" />
+                                                <ul className="list-disc ml-5 space-y-1">
+                                                    {activationResult.subscriptionConfig.afterInstall.map((step: string, i: number) => (
+                                                        <li key={i}>{step}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="p-6 space-y-6">
+                                        {/* Windows Upgrade Key Step - Show FIRST for upgrade path */}
+                                        {activationResult.windowsInstallType === 'upgrade' && (
+                                            <div className="border-2 border-[#0078D4] rounded-lg overflow-hidden">
+                                                <div className="bg-[#0078D4] text-white px-4 py-2 flex items-center gap-2">
+                                                    <span className="bg-white text-[#0078D4] font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm">1</span>
+                                                    <span className="font-bold">STEP 1: Enter Upgrade Key (Switches to Pro Edition)</span>
+                                                </div>
+                                                <div className="p-4 bg-[#F0F8FF]">
+                                                    <div className="flex items-center gap-3 p-3 bg-white rounded border border-[#DDD]">
+                                                        <code className="font-mono font-bold text-lg text-[#0F1111]">{WINDOWS_UPGRADE_KEY}</code>
+                                                        <button
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(WINDOWS_UPGRADE_KEY);
+                                                                toast.success('Upgrade key copied!');
+                                                            }}
+                                                            className="p-2 hover:bg-[#0078D4]/10 rounded"
+                                                        >
+                                                            <Copy className="w-5 h-5 text-[#0078D4]" />
                                                         </button>
                                                     </div>
+                                                    <div className="mt-3 p-3 bg-[#FFF4E5] border border-[#FF9900] rounded text-sm">
+                                                        <p className="text-[#B12704] font-medium">⚠️ Important:</p>
+                                                        <p className="text-[#565959] mt-1">This is an official Microsoft upgrade key. It switches your edition from Home to Pro but does NOT activate Windows. You must complete Step 2 for activation.</p>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        )}
 
-                                            {activationResult.productInfo?.downloadUrl && (
-                                                <button onClick={handleDownload} className="flex flex-col items-center gap-1 p-2 hover:bg-[#F0F2F2] rounded">
-                                                    <Download className="w-5 h-5 text-[#007185]" />
-                                                    <span className="text-xs text-[#007185]">Download</span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
+                                        {/* Step 2 Header for Upgrade Path */}
+                                        {activationResult.windowsInstallType === 'upgrade' && (
+                                            <div className="flex items-center gap-2 text-[#0F1111]">
+                                                <span className="bg-[#067D62] text-white font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm">2</span>
+                                                <span className="font-bold">STEP 2: Enter Activation Key (Activates Windows)</span>
+                                            </div>
+                                        )}
 
-                                    {/* Multiple Keys Note */}
-                                    <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
-                                        <p className="text-xs text-[#B12704]">
-                                            <span className="font-bold">Multiple Keys?</span> Contact us on WhatsApp:{' '}
-                                            <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-[#CC0C39]">
-                                                8595899215
-                                            </a>
-                                            {' '}(message only)
-                                        </p>
-                                    </div>
+                                        {/* Product Card(s) - Handle multiple licenses for combos/quantities */}
+                                        {activationResult.licenses && activationResult.licenses.length > 0 ? (
+                                            <div className="space-y-4">
+                                                {/* Order Summary Header */}
+                                                {(activationResult.isCombo || (activationResult.orderQuantity && activationResult.orderQuantity > 1)) && (
+                                                    <div className="bg-[#232F3E] text-white px-4 py-3 rounded-lg text-center">
+                                                        {activationResult.isCombo && activationResult.orderQuantity && activationResult.orderQuantity > 1 ? (
+                                                            <>
+                                                                <div className="font-bold">🎁 Combo Package × {activationResult.orderQuantity}</div>
+                                                                <div className="text-sm opacity-90">{activationResult.licenses.length} License Keys Total</div>
+                                                            </>
+                                                        ) : activationResult.isCombo ? (
+                                                            <>
+                                                                <div className="font-medium">🎁 Combo Package - {activationResult.licenses.length} License Keys</div>
+                                                            </>
+                                                        ) : activationResult.orderQuantity && activationResult.orderQuantity > 1 ? (
+                                                            <>
+                                                                <div className="font-bold">📦 Bulk Order - Quantity: {activationResult.orderQuantity}</div>
+                                                                <div className="text-sm opacity-90">{activationResult.licenses.length} License Keys</div>
+                                                            </>
+                                                        ) : null}
+                                                    </div>
+                                                )}
+                                                {activationResult.licenses.map((license, index) => (
+                                                    <div key={index} className="p-4 bg-[#F7F8FA] rounded border border-[#DDD]">
+                                                        <div className="flex items-start gap-4">
+                                                            <div className="w-16 h-16 bg-white rounded flex items-center justify-center flex-shrink-0 border border-[#DDD]">
+                                                                {license.productImage ? (
+                                                                    <Image src={license.productImage} alt="Product" width={60} height={60} className="object-contain" />
+                                                                ) : (
+                                                                    <div className="text-2xl">{index === 0 ? '🪟' : '📝'}</div>
+                                                                )}
+                                                            </div>
 
-                                    {/* Installation Warning Box */}
-                                    <div className="bg-[#FFF4E5] border-l-4 border-[#FF9900] p-4">
-                                        <p className="text-[#0F1111] font-medium text-sm mb-3">
-                                            ⚠️ Please uninstall all previous versions of Microsoft Office Suite before installing this product.
-                                        </p>
-                                        <div className="flex flex-wrap gap-2">
-                                            <a
-                                                href="https://aka.ms/SaRA-officeUninstallFromPC"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-1 px-4 py-2 bg-[#232F3E] text-white text-sm font-medium rounded hover:bg-[#37475A] transition-colors"
-                                            >
-                                                <AlertTriangle className="w-4 h-4" />
-                                                Office Removal Tool
-                                            </a>
-                                            <a
-                                                href="https://www.youtube.com/watch?v=your-video-id"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-1 px-4 py-2 bg-[#CC0C39] text-white text-sm font-medium rounded hover:bg-[#A00F28] transition-colors"
-                                            >
-                                                <Video className="w-4 h-4" />
-                                                Video Guide
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    {/* Installation ID Section */}
-                                    <div ref={installationRef} className="pt-4 border-t border-[#DDD]">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h3 className="font-bold text-[#0F1111] text-sm uppercase">
-                                                Phone Activation (If Online Fails)
-                                            </h3>
-                                            <button onClick={scrollToInstallation} className="text-xs text-[#007185] hover:underline hover:text-[#C7511F]">
-                                                Learn more ↓
-                                            </button>
-                                        </div>
-
-                                        <p className="text-xs text-[#565959] mb-3">
-                                            Enter your 63-digit Installation ID below to get your Confirmation ID:
-                                        </p>
-
-                                        {/* Confirmation ID Result */}
-                                        {confirmationId && (
-                                            <div className="mb-4 p-4 bg-[#067D62] text-white rounded-lg">
-                                                <p className="text-sm font-bold mb-2">✓ Confirmation ID Generated!</p>
-                                                <div className="bg-white/20 p-2 rounded">
-                                                    <code className="font-mono text-sm break-all">{confirmationId}</code>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-sm font-bold text-[#0F1111] mb-1">
+                                                                    {license.productName || `Product ${index + 1}`}
+                                                                </p>
+                                                                <div className="p-2 bg-[#FCF5EE] border border-[#FF9900] rounded">
+                                                                    <p className="text-xs text-[#565959] mb-1">License Key {index + 1}:</p>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <code className="font-mono text-sm font-bold text-[#0F1111] break-all">
+                                                                            {license.licenseKey}
+                                                                        </code>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                navigator.clipboard.writeText(license.licenseKey);
+                                                                                toast.success('License key copied!');
+                                                                            }}
+                                                                            className="p-1.5 hover:bg-[#FF9900]/20 rounded"
+                                                                            title="Copy"
+                                                                        >
+                                                                            <Copy className="w-4 h-4 text-[#FF9900]" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                {license.downloadUrl && (
+                                                                    <a
+                                                                        href={license.downloadUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="mt-2 inline-flex items-center gap-1 text-xs text-[#007185] hover:underline"
+                                                                    >
+                                                                        <Download className="w-3 h-3" /> Download
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            /* Single license fallback */
+                                            <div className="flex items-start gap-4 p-4 bg-[#F7F8FA] rounded border border-[#DDD]">
+                                                <div className="w-16 h-16 bg-white rounded flex items-center justify-center flex-shrink-0 border border-[#DDD]">
+                                                    {activationResult.productInfo?.productImage ? (
+                                                        <Image src={activationResult.productInfo.productImage} alt="Product" width={60} height={60} className="object-contain" />
+                                                    ) : (
+                                                        <div className="text-2xl">📦</div>
+                                                    )}
                                                 </div>
-                                                <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(confirmationId);
-                                                        toast.success('Confirmation ID copied!');
-                                                    }}
-                                                    className="mt-2 px-3 py-1 bg-white text-[#067D62] text-xs font-bold rounded hover:bg-gray-100"
+
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm text-[#565959]">
+                                                        <span className="font-bold text-[#0F1111]">Product: </span>
+                                                        {activationResult.productInfo?.productName || 'Microsoft Office Professional Plus'}
+                                                    </p>
+                                                    <div className="mt-2 p-2 bg-[#FCF5EE] border border-[#FF9900] rounded">
+                                                        <p className="text-xs text-[#565959] mb-1">Your License Key:</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <code className="font-mono text-sm font-bold text-[#0F1111] break-all">
+                                                                {activationResult.licenseKey}
+                                                            </code>
+                                                            <button onClick={handleCopyKey} className="p-1.5 hover:bg-[#FF9900]/20 rounded" title="Copy">
+                                                                <Copy className="w-4 h-4 text-[#FF9900]" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {activationResult.productInfo?.downloadUrl && (
+                                                    <button onClick={handleDownload} className="flex flex-col items-center gap-1 p-2 hover:bg-[#F0F2F2] rounded">
+                                                        <Download className="w-5 h-5 text-[#007185]" />
+                                                        <span className="text-xs text-[#007185]">Download</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Multiple Keys Note */}
+                                        <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
+                                            <p className="text-xs text-[#B12704]">
+                                                <span className="font-bold">Multiple Keys?</span> Contact us on WhatsApp:{' '}
+                                                <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-[#CC0C39]">
+                                                    8595899215
+                                                </a>
+                                                {' '}(message only)
+                                            </p>
+                                        </div>
+
+                                        {/* Installation Warning Box */}
+                                        <div className="bg-[#FFF4E5] border-l-4 border-[#FF9900] p-4">
+                                            <p className="text-[#0F1111] font-medium text-sm mb-3">
+                                                ⚠️ Please uninstall all previous versions of Microsoft Office Suite before installing this product.
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                <a
+                                                    href="https://aka.ms/SaRA-officeUninstallFromPC"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1 px-4 py-2 bg-[#232F3E] text-white text-sm font-medium rounded hover:bg-[#37475A] transition-colors"
                                                 >
-                                                    Copy Confirmation ID
-                                                </button>
+                                                    <AlertTriangle className="w-4 h-4" />
+                                                    Office Removal Tool
+                                                </a>
+                                                <a
+                                                    href="https://www.youtube.com/watch?v=your-video-id"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1 px-4 py-2 bg-[#CC0C39] text-white text-sm font-medium rounded hover:bg-[#A00F28] transition-colors"
+                                                >
+                                                    <Video className="w-4 h-4" />
+                                                    Video Guide
+                                                </a>
                                             </div>
-                                        )}
-
-                                        {/* GetCID Error */}
-                                        {getcidError && (
-                                            <div className="mb-4 p-3 bg-[#FCF4F4] border border-[#CC0C39] rounded flex items-center gap-2">
-                                                <AlertTriangle className="w-4 h-4 text-[#CC0C39] flex-shrink-0" />
-                                                <span className="text-[#CC0C39] text-sm">{getcidError}</span>
-                                            </div>
-                                        )}
-
-                                        <div className="grid grid-cols-3 sm:grid-cols-9 gap-1 mb-4">
-                                            {installationIds.map((id, index) => (
-                                                <input
-                                                    key={index}
-                                                    id={`install-id-${index}`}
-                                                    type="text"
-                                                    value={id}
-                                                    onChange={(e) => handleInstallationIdChange(index, e.target.value)}
-                                                    className="w-full px-1 py-2 text-center font-mono text-xs border border-[#888C8C] rounded focus:outline-none focus:ring-2 focus:ring-[#FF9900] bg-white"
-                                                    maxLength={7}
-                                                    placeholder="0000000"
-                                                />
-                                            ))}
                                         </div>
 
-                                        <button
-                                            onClick={handlePhoneActivation}
-                                            disabled={getcidLoading || !secretCode.trim()}
-                                            className="w-full py-2 bg-gradient-to-b from-[#FF9900] to-[#E47911] hover:from-[#FA8900] hover:to-[#D07910] text-white font-bold rounded border border-[#D07910] flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {getcidLoading ? (
-                                                <>
-                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                    Generating...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Phone className="w-4 h-4" />
-                                                    GET CONFIRMATION ID
-                                                </>
+                                        {/* Installation ID Section */}
+                                        <div ref={installationRef} className="pt-4 border-t border-[#DDD]">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <h3 className="font-bold text-[#0F1111] text-sm uppercase">
+                                                    Phone Activation (If Online Fails)
+                                                </h3>
+                                                <button onClick={scrollToInstallation} className="text-xs text-[#007185] hover:underline hover:text-[#C7511F]">
+                                                    Learn more ↓
+                                                </button>
+                                            </div>
+
+                                            <p className="text-xs text-[#565959] mb-3">
+                                                Enter your 63-digit Installation ID below to get your Confirmation ID:
+                                            </p>
+
+                                            {/* Confirmation ID Result */}
+                                            {confirmationId && (
+                                                <div className="mb-4 p-4 bg-[#067D62] text-white rounded-lg">
+                                                    <p className="text-sm font-bold mb-2">✓ Confirmation ID Generated!</p>
+                                                    <div className="bg-white/20 p-2 rounded">
+                                                        <code className="font-mono text-sm break-all">{confirmationId}</code>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(confirmationId);
+                                                            toast.success('Confirmation ID copied!');
+                                                        }}
+                                                        className="mt-2 px-3 py-1 bg-white text-[#067D62] text-xs font-bold rounded hover:bg-gray-100"
+                                                    >
+                                                        Copy Confirmation ID
+                                                    </button>
+                                                </div>
                                             )}
-                                        </button>
 
-                                        <p className="text-xs text-[#565959] mt-2 text-center">
-                                            Need help? Contact us on WhatsApp:{' '}
-                                            <a href="https://wa.me/918595899215" className="text-[#007185] hover:underline font-medium">8595899215</a>
-                                        </p>
-                                    </div>
+                                            {/* GetCID Error */}
+                                            {getcidError && (
+                                                <div className="mb-4 p-3 bg-[#FCF4F4] border border-[#CC0C39] rounded flex items-center gap-2">
+                                                    <AlertTriangle className="w-4 h-4 text-[#CC0C39] flex-shrink-0" />
+                                                    <span className="text-[#CC0C39] text-sm">{getcidError}</span>
+                                                </div>
+                                            )}
 
-                                    {/* Video Tutorial Section */}
-                                    <div className="pt-6 border-t border-[#DDD]">
-                                        <h3 className="font-bold text-[#0F1111] text-sm mb-4 uppercase">
-                                            Video Tutorial
-                                        </h3>
-                                        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
-                                            <iframe
-                                                className="absolute inset-0 w-full h-full"
-                                                src="https://www.youtube.com/embed/5k2PsZ3mXoA"
-                                                title="Tutorial on How to Install Office Professional Plus 2021"
-                                                frameBorder="0"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                allowFullScreen
+                                            <div className="grid grid-cols-3 sm:grid-cols-9 gap-1 mb-4">
+                                                {installationIds.map((id, index) => (
+                                                    <input
+                                                        key={index}
+                                                        id={`install-id-${index}`}
+                                                        type="text"
+                                                        value={id}
+                                                        onChange={(e) => handleInstallationIdChange(index, e.target.value)}
+                                                        className="w-full px-1 py-2 text-center font-mono text-xs border border-[#888C8C] rounded focus:outline-none focus:ring-2 focus:ring-[#FF9900] bg-white"
+                                                        maxLength={7}
+                                                        placeholder="0000000"
+                                                    />
+                                                ))}
+                                            </div>
+
+                                            <button
+                                                onClick={handlePhoneActivation}
+                                                disabled={getcidLoading || !secretCode.trim()}
+                                                className="w-full py-2 bg-gradient-to-b from-[#FF9900] to-[#E47911] hover:from-[#FA8900] hover:to-[#D07910] text-white font-bold rounded border border-[#D07910] flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {getcidLoading ? (
+                                                    <>
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                        Generating...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Phone className="w-4 h-4" />
+                                                        GET CONFIRMATION ID
+                                                    </>
+                                                )}
+                                            </button>
+
+                                            <p className="text-xs text-[#565959] mt-2 text-center">
+                                                Need help? Contact us on WhatsApp:{' '}
+                                                <a href="https://wa.me/918595899215" className="text-[#007185] hover:underline font-medium">8595899215</a>
+                                            </p>
+                                        </div>
+
+                                        {/* Video Tutorial Section */}
+                                        <div className="pt-6 border-t border-[#DDD]">
+                                            <h3 className="font-bold text-[#0F1111] text-sm mb-4 uppercase">
+                                                Video Tutorial
+                                            </h3>
+                                            <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+                                                <iframe
+                                                    className="absolute inset-0 w-full h-full"
+                                                    src="https://www.youtube.com/embed/5k2PsZ3mXoA"
+                                                    title="Tutorial on How to Install Office Professional Plus 2021"
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                />
+                                            </div>
+                                            <p className="text-xs text-[#565959] mt-2 text-center">
+                                                Installation process is simple, please follow all the instructions correctly till the end for a smooth activation...
+                                            </p>
+                                        </div>
+
+                                        {/* Warranty Registration CTA */}
+                                        <div className="bg-[#CC0C39] text-white p-4 rounded-lg">
+                                            <p className="font-bold text-sm mb-2">
+                                                **DO THE WARRANTY REGISTRATION FOR FUTURE FREE SUPPORT
+                                            </p>
+                                            <a
+                                                href={`${process.env.NEXT_PUBLIC_APP_URL || ''}/warranty`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#CC0C39] text-sm font-bold rounded hover:bg-gray-100 transition-colors"
+                                            >
+                                                Register Warranty Now
+                                            </a>
+                                        </div>
+
+                                        {/* Dynamic Installation Guide */}
+                                        <div ref={installationGuideRef} className="pt-6 border-t border-[#DDD]">
+                                            <InstallationGuide
+                                                guideFile={getInstallationGuide(activationResult.comboFsn || activationResult.productInfo?.sku) || 'office2021.md'}
+                                                productName={activationResult.productInfo?.productName || undefined}
+                                                downloadLink={activationResult.productInfo?.downloadUrl || undefined}
                                             />
                                         </div>
-                                        <p className="text-xs text-[#565959] mt-2 text-center">
-                                            Installation process is simple, please follow all the instructions correctly till the end for a smooth activation...
-                                        </p>
                                     </div>
-
-                                    {/* Warranty Registration CTA */}
-                                    <div className="bg-[#CC0C39] text-white p-4 rounded-lg">
-                                        <p className="font-bold text-sm mb-2">
-                                            **DO THE WARRANTY REGISTRATION FOR FUTURE FREE SUPPORT
-                                        </p>
-                                        <a
-                                            href={`${process.env.NEXT_PUBLIC_APP_URL || ''}/warranty`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#CC0C39] text-sm font-bold rounded hover:bg-gray-100 transition-colors"
-                                        >
-                                            Register Warranty Now
-                                        </a>
-                                    </div>
-
-                                    {/* Dynamic Installation Guide */}
-                                    <div ref={installationGuideRef} className="pt-6 border-t border-[#DDD]">
-                                        <InstallationGuide
-                                            guideFile={getInstallationGuide(activationResult.productInfo?.sku) || 'office2021.md'}
-                                            productName={activationResult.productInfo?.productName || undefined}
-                                            downloadLink={activationResult.productInfo?.downloadUrl || undefined}
-                                        />
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         )}
                     </div>
