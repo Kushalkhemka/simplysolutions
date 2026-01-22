@@ -32,9 +32,9 @@ CREATE POLICY "Admins can view all multi-FSN orders"
     TO authenticated
     USING (
         EXISTS (
-            SELECT 1 FROM user_profiles
-            WHERE user_profiles.id = auth.uid()
-            AND user_profiles.role IN ('admin', 'super_admin')
+            SELECT 1 FROM profiles
+            WHERE profiles.id = auth.uid()
+            AND profiles.role IN ('admin', 'super_admin')
         )
     );
 
@@ -44,9 +44,9 @@ CREATE POLICY "Admins can update multi-FSN orders"
     TO authenticated
     USING (
         EXISTS (
-            SELECT 1 FROM user_profiles
-            WHERE user_profiles.id = auth.uid()
-            AND user_profiles.role IN ('admin', 'super_admin')
+            SELECT 1 FROM profiles
+            WHERE profiles.id = auth.uid()
+            AND profiles.role IN ('admin', 'super_admin')
         )
     );
 
