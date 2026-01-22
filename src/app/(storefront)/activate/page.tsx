@@ -18,8 +18,7 @@ import {
     Clock,
     XCircle,
     Shield,
-    Star,
-    Gift
+    Star
 } from 'lucide-react';
 import { toast } from 'sonner';
 import InstallationGuide from '@/components/InstallationGuide';
@@ -997,39 +996,36 @@ export default function ActivatePage() {
                                         {/* Warranty Registration CTA - Highlighted */}
                                         <a
                                             href="/digital-warranty"
-                                            className="block group overflow-hidden rounded-lg shadow-lg border-2 border-[#FFD700] bg-gradient-to-r from-[#FFF8DC] via-[#FFFACD] to-[#FFF8DC] hover:from-[#FFD700]/20 hover:via-[#FFD700]/30 hover:to-[#FFD700]/20 transition-all duration-500 transform hover:scale-[1.02]"
+                                            className="block group overflow-hidden rounded-lg shadow-lg border-2 border-[#067D62] bg-gradient-to-r from-[#F0FDF4] via-[#ECFDF5] to-[#F0FDF4] hover:from-[#067D62]/10 hover:via-[#067D62]/15 hover:to-[#067D62]/10 transition-all duration-500 transform hover:scale-[1.02]"
                                         >
                                             <div className="relative p-4">
                                                 {/* Decorative stars */}
                                                 <div className="absolute top-2 right-3 flex gap-1">
                                                     {[1, 2, 3, 4, 5].map((star) => (
-                                                        <Star key={star} className="w-4 h-4 text-[#FFD700] fill-[#FFD700] animate-pulse" style={{ animationDelay: `${star * 100}ms` }} />
+                                                        <Star key={star} className="w-4 h-4 text-[#FFD700] fill-[#FFD700]" />
                                                     ))}
                                                 </div>
 
                                                 <div className="flex items-center gap-4">
                                                     <div className="relative flex-shrink-0">
-                                                        <div className="w-14 h-14 bg-gradient-to-br from-[#FFD700] to-[#FFA500] rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                                                        <div className="w-14 h-14 bg-gradient-to-br from-[#067D62] to-[#0A9A77] rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
                                                             <Shield className="w-7 h-7 text-white" />
-                                                        </div>
-                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#CC0C39] rounded-full flex items-center justify-center">
-                                                            <Gift className="w-3 h-3 text-white" />
                                                         </div>
                                                     </div>
 
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-2">
-                                                            <h4 className="font-bold text-[#0F1111] text-base">Register Your Warranty</h4>
-                                                            <span className="px-2 py-0.5 bg-[#CC0C39] text-white text-[10px] font-bold uppercase rounded-full animate-bounce">Free Gift!</span>
+                                                            <h4 className="font-bold text-[#0F1111] text-base">Register Your Lifetime Warranty</h4>
+                                                            <span className="px-2 py-0.5 bg-[#067D62] text-white text-[10px] font-bold uppercase rounded-full">Important</span>
                                                         </div>
                                                         <p className="text-sm text-[#565959] mt-0.5">
-                                                            Complete warranty registration and get a <span className="font-bold text-[#067D62]">FREE bonus product!</span>
+                                                            Get <span className="font-bold text-[#067D62]">lifetime tech support, installation help & key replacements</span>
                                                         </p>
-                                                        <p className="text-xs text-[#FFB800] font-medium mt-1">⭐ Help us earn 5-star feedback!</p>
+                                                        <p className="text-xs text-[#565959] mt-1">✓ Your warranty status is checked on all future communications</p>
                                                     </div>
 
                                                     <div className="flex-shrink-0">
-                                                        <div className="px-4 py-2 bg-gradient-to-r from-[#FF9900] to-[#E47911] text-white font-bold rounded-lg text-sm shadow group-hover:shadow-lg transition-all">
+                                                        <div className="px-4 py-2 bg-gradient-to-r from-[#067D62] to-[#0A9A77] text-white font-bold rounded-lg text-sm shadow group-hover:shadow-lg transition-all">
                                                             Register Now →
                                                         </div>
                                                     </div>
@@ -1356,22 +1352,17 @@ export default function ActivatePage() {
                             {/* Warranty CTA in Success Popup */}
                             <a
                                 href="/digital-warranty"
-                                className="block mb-4 p-3 bg-gradient-to-r from-[#FFF8DC] to-[#FFFACD] border-2 border-[#FFD700] rounded-lg hover:shadow-lg transition-all group"
+                                className="block mb-4 p-3 bg-gradient-to-r from-[#F0FDF4] to-[#ECFDF5] border-2 border-[#067D62] rounded-lg hover:shadow-lg transition-all group"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-[#FFD700] to-[#FFA500] rounded-full flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-[#067D62] to-[#0A9A77] rounded-full flex items-center justify-center">
                                         <Shield className="w-5 h-5 text-white" />
                                     </div>
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-[#0F1111] text-sm">Register Warranty</span>
-                                            <span className="flex gap-0.5">
-                                                {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3 text-[#FFD700] fill-[#FFD700]" />)}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-[#565959]">Get a FREE bonus product! 🎁</p>
+                                        <span className="font-bold text-[#0F1111] text-sm">Register Lifetime Warranty</span>
+                                        <p className="text-xs text-[#565959]">Get tech support, installation help & key replacements</p>
                                     </div>
-                                    <span className="text-[#007185] group-hover:text-[#C7511F] font-bold text-sm">Register →</span>
+                                    <span className="text-[#067D62] group-hover:text-[#0A9A77] font-bold text-sm">Register →</span>
                                 </div>
                             </a>
 
