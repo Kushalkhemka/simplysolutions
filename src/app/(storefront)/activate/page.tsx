@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import {
     ShoppingCart,
@@ -318,6 +318,11 @@ export default function ActivatePage() {
 
             // Show success popup
             setShowSuccessPopup(true);
+
+            // Auto-close popup after 10 seconds
+            setTimeout(() => {
+                setShowSuccessPopup(false);
+            }, 10000);
 
             // Check for any existing replacement requests
             await checkReplacementStatus(secretCode.trim());
@@ -1311,8 +1316,16 @@ export default function ActivatePage() {
             {/* Success Popup Modal */}
             {showSuccessPopup && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="bg-gradient-to-r from-[#067D62] to-[#0A9A77] px-6 py-4">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300 relative">
+                        {/* Close button */}
+                        <button
+                            onClick={handleSuccessPopupClose}
+                            className="absolute top-3 right-3 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors z-10"
+                            title="Close"
+                        >
+                            <X className="w-5 h-5 text-white" />
+                        </button>
+                        <div className="bg-gradient-to-r from-[#067D62] to-[#0A9A77] px-6 py-4 pr-12">
                             <div className="flex items-center justify-center gap-3">
                                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                                     <CheckCircle className="w-7 h-7 text-white" />
