@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import InstallationGuide from '@/components/InstallationGuide';
 import { getInstallationGuide } from '@/lib/installation-guides';
 import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
+import { isComboProduct, getComponentFSNs } from '@/lib/amazon/combo-products';
 
 interface ProductInfo {
     productName: string | null;
@@ -145,7 +146,13 @@ export default function ActivatePage() {
             }
 
             // Check if this is a Windows product that needs installation type selection
-            if (data.fsn && WINDOWS_FSNS.includes(data.fsn)) {
+            // Also check if it's a combo that contains Windows
+            const containsWindows = data.fsn && (
+                WINDOWS_FSNS.includes(data.fsn) ||
+                (isComboProduct(data.fsn) && getComponentFSNs(data.fsn).some(fsn => WINDOWS_FSNS.includes(fsn)))
+            );
+
+            if (containsWindows) {
                 setPendingOrderFsn(data.fsn);
                 setShowWindowsTypeModal(true);
                 setIsLoading(false);

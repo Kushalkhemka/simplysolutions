@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { isComboProduct } from '@/lib/amazon/combo-products';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
         // since both are stored in the order_id field
         const { data: order } = await supabase
             .from('amazon_orders')
-            .select('id, order_id, getcid_used')
+            .select('id, order_id, fsn, quantity, getcid_used, getcid_count')
             .eq('order_id', cleanIdentifier)
             .single();
 
@@ -72,9 +73,18 @@ export async function POST(request: NextRequest) {
             }, { status: 404 });
         }
 
-        if (order.getcid_used) {
+        // Calculate max uses based on order quantity and product type
+        // Combo products have 2 items (Windows + Office), regular products have 1
+        // Each item gets 1 getcid use, so: quantity × items_per_order
+        const isCombo = order.fsn ? isComboProduct(order.fsn) : false;
+        const orderQuantity = order.quantity || 1;
+        const itemsPerOrder = isCombo ? 2 : 1;
+        const maxUses = orderQuantity * itemsPerOrder;
+        const currentUses = order.getcid_count || 0;
+
+        if (currentUses >= maxUses) {
             return NextResponse.json({
-                error: 'This code has already been used for Confirmation ID generation. Please contact support if you need assistance.'
+                error: `You have used all ${maxUses} Confirmation ID generation${maxUses > 1 ? 's' : ''} for this order (${orderQuantity} × ${itemsPerOrder} product${itemsPerOrder > 1 ? 's' : ''}). Please contact support if you need assistance.`
             }, { status: 403 });
         }
 
@@ -103,18 +113,26 @@ export async function POST(request: NextRequest) {
             user_agent: request.headers.get('user-agent')
         });
 
-        // Mark as used ONLY on success
+        // Increment usage count ONLY on success
         if (isSuccess) {
-            // Update using order_id
+            const newCount = currentUses + 1;
+            // Update using order_id - set getcid_used=true when all uses are exhausted
             await supabase
                 .from('amazon_orders')
-                .update({ getcid_used: true, getcid_used_at: new Date().toISOString() })
+                .update({
+                    getcid_count: newCount,
+                    getcid_used: newCount >= maxUses,
+                    getcid_used_at: new Date().toISOString()
+                })
                 .eq('order_id', cleanIdentifier);
 
+            const remainingUses = maxUses - newCount;
             return NextResponse.json({
                 success: true,
                 confirmationId: trimmedResponse,
-                message: 'Confirmation ID generated successfully!'
+                message: 'Confirmation ID generated successfully!',
+                remainingUses,
+                maxUses
             });
         }
 
