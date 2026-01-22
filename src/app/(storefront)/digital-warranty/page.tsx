@@ -28,6 +28,7 @@ function DigitalWarrantyContent() {
 
     const sellerInputRef = useRef<HTMLInputElement>(null);
     const reviewInputRef = useRef<HTMLInputElement>(null);
+    const uploadSectionRef = useRef<HTMLDivElement>(null);
 
     // Check for existing warranty status on page load if orderId is provided
     useEffect(() => {
@@ -113,6 +114,8 @@ function DigitalWarrantyContent() {
         } else {
             if (!sellerFeedback || !productReview) {
                 toast.error('Please upload both screenshots');
+                // Scroll to upload section
+                uploadSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 return;
             }
             // Prevent uploading the same file in both fields
@@ -383,12 +386,11 @@ function DigitalWarrantyContent() {
                                 </h3>
                                 <div className="rounded-xl overflow-hidden border border-gray-200">
                                     <Image
-                                        src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/uploads/warranty-reference/seller-feedback-reference.png`}
+                                        src="/assets/seller_feedback.png"
                                         alt="Seller Feedback Reference - Check seller name, rate 5 stars, write comment"
                                         width={600}
                                         height={400}
                                         className="w-full h-auto"
-                                        unoptimized
                                     />
                                 </div>
                             </div>
@@ -403,12 +405,11 @@ function DigitalWarrantyContent() {
                                 </h3>
                                 <div className="rounded-xl overflow-hidden border border-gray-200">
                                     <Image
-                                        src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/uploads/warranty-reference/product-review-reference.png`}
+                                        src="/assets/product_review_image.png"
                                         alt="Product Review Reference - Create review, rate 5 stars, add headline and written review"
                                         width={600}
                                         height={400}
                                         className="w-full h-auto"
-                                        unoptimized
                                     />
                                 </div>
                             </div>
@@ -416,7 +417,7 @@ function DigitalWarrantyContent() {
                     </div>
 
                     {/* Screenshot Upload Section */}
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8 mb-8">
+                    <div ref={uploadSectionRef} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8 mb-8">
                         <h3 className="font-bold text-gray-900 text-xl mb-6 text-center">
                             {isResubmission ? 'Upload Missing Screenshot(s)' : 'Upload Your Screenshots'}
                         </h3>

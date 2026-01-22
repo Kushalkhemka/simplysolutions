@@ -258,9 +258,9 @@ export async function sendWarrantyResubmissionEmail(data: WarrantyResubmissionDa
     try {
         const { customerEmail, orderId, productName, missingSeller, missingReview, adminNotes } = data;
 
-        // Build reference image URLs
-        const sellerRefImage = `${supabaseUrl}/storage/v1/object/public/uploads/warranty-reference/seller-feedback-reference.png`;
-        const reviewRefImage = `${supabaseUrl}/storage/v1/object/public/uploads/warranty-reference/product-review-reference.png`;
+        // Build reference image URLs from public assets
+        const sellerRefImage = `${appUrl}/assets/seller_feedback.png`;
+        const reviewRefImage = `${appUrl}/assets/product_review_image.png`;
 
         let missingItems = [];
         if (missingSeller) missingItems.push('Seller Feedback Screenshot');
