@@ -1,8 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { isComboProduct, getComponentFSNs } from '@/lib/amazon/combo-products';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+interface LicenseResult {
+    licenseKey: string;
+    fsn: string;
+    productName: string | null;
+    productImage: string | null;
+    downloadUrl: string | null;
+    installationDoc: string | null;
+}
 
 export async function POST(request: NextRequest) {
     try {
@@ -29,36 +39,45 @@ export async function POST(request: NextRequest) {
             }, { status: 404 });
         }
 
-        // Check if already has a license key assigned
-        const { data: existingKey } = await supabase
+        // Check if already has license keys assigned
+        const { data: existingKeys } = await supabase
             .from('amazon_activation_license_keys')
-            .select('license_key, fsn, product_name, download_url')
-            .eq('order_id', orderId.trim())
-            .single();
+            .select('license_key, fsn')
+            .eq('order_id', orderId.trim());
 
-        if (existingKey) {
-            // Get product info from products_data using FSN
-            const { data: productData } = await supabase
-                .from('products_data')
-                .select('product_title, download_link, installation_doc, product_image')
-                .eq('fsn', existingKey.fsn)
-                .single();
+        if (existingKeys && existingKeys.length > 0) {
+            // Already redeemed - return existing keys with product info
+            const licenses: LicenseResult[] = [];
+
+            for (const key of existingKeys) {
+                const { data: productData } = await supabase
+                    .from('products_data')
+                    .select('product_title, download_link, installation_doc, product_image')
+                    .eq('fsn', key.fsn)
+                    .single();
+
+                licenses.push({
+                    licenseKey: key.license_key,
+                    fsn: key.fsn,
+                    productName: productData?.product_title || null,
+                    productImage: productData?.product_image || null,
+                    downloadUrl: productData?.download_link || null,
+                    installationDoc: productData?.installation_doc
+                        ? `/installation-docs/${productData.installation_doc}`
+                        : null
+                });
+            }
 
             return NextResponse.json({
                 success: true,
                 alreadyRedeemed: true,
-                licenseKey: existingKey.license_key,
-                productInfo: {
-                    productName: productData?.product_title || 'Microsoft Office',
-                    productImage: productData?.product_image || null,
-                    downloadUrl: productData?.download_link || null,
-                    installationDoc: productData?.installation_doc ? `/installation-docs/${productData.installation_doc}` : null
-                }
+                isCombo: licenses.length > 1,
+                licenses
             });
         }
 
-        // Get FSN from ASIN mapping (ASIN comes from the synced order)
-        let fsn = order.fsn; // Order may already have FSN from sync
+        // Get FSN from order
+        let fsn = order.fsn;
 
         if (order.asin && !fsn) {
             // Look up FSN from ASIN mapping
@@ -80,49 +99,63 @@ export async function POST(request: NextRequest) {
             }, { status: 404 });
         }
 
-        // Find an available license key for this FSN
-        const { data: availableKey, error: keyError } = await supabase
-            .from('amazon_activation_license_keys')
-            .select('id, license_key, fsn')
-            .eq('fsn', fsn)
-            .is('order_id', null)
-            .eq('is_redeemed', false)
-            .limit(1)
-            .single();
+        // Check if this is a combo product
+        const isCombo = isComboProduct(fsn);
+        const componentFSNs = getComponentFSNs(fsn);
 
-        if (keyError || !availableKey) {
-            return NextResponse.json({
-                success: false,
-                needsContactInfo: true,
-                error: 'No license keys available for this product. Please contact support.',
-                orderId: orderId.trim(),
-                fsn: fsn
-            }, { status: 503 });
+        // Fetch one available key for EACH component
+        const availableKeys: Array<{ id: string; license_key: string; fsn: string }> = [];
+
+        for (const componentFSN of componentFSNs) {
+            const { data: availableKey, error: keyError } = await supabase
+                .from('amazon_activation_license_keys')
+                .select('id, license_key, fsn')
+                .eq('fsn', componentFSN)
+                .is('order_id', null)
+                .eq('is_redeemed', false)
+                .limit(1)
+                .single();
+
+            if (keyError || !availableKey) {
+                return NextResponse.json({
+                    success: false,
+                    needsContactInfo: true,
+                    error: `No license keys available for ${componentFSN}. Please contact support.`,
+                    orderId: orderId.trim(),
+                    fsn: fsn,
+                    missingComponent: componentFSN
+                }, { status: 503 });
+            }
+
+            availableKeys.push(availableKey);
         }
 
-        // Assign the key to this order
-        const { error: updateError } = await supabase
-            .from('amazon_activation_license_keys')
-            .update({
-                order_id: orderId.trim(),
-                is_redeemed: true
-            })
-            .eq('id', availableKey.id);
+        // Assign ALL keys to this order
+        for (const key of availableKeys) {
+            const { error: updateError } = await supabase
+                .from('amazon_activation_license_keys')
+                .update({
+                    order_id: orderId.trim(),
+                    is_redeemed: true,
+                    redeemed_at: new Date().toISOString()
+                })
+                .eq('id', key.id);
 
-        if (updateError) {
-            console.error('Error assigning key:', updateError);
-            return NextResponse.json({
-                success: false,
-                error: 'Failed to assign license key. Please try again.'
-            }, { status: 500 });
+            if (updateError) {
+                console.error('Error assigning key:', updateError);
+                return NextResponse.json({
+                    success: false,
+                    error: 'Failed to assign license key. Please try again.'
+                }, { status: 500 });
+            }
         }
 
-        // Update amazon_orders with the license key reference
+        // Update amazon_orders with the first license key reference (for compatibility)
         const { error: orderUpdateError } = await supabase
             .from('amazon_orders')
             .update({
-                confirmation_id: availableKey.id,
-                license_key_id: availableKey.id,
+                confirmation_id: availableKeys[0].id,
+                license_key_id: availableKeys[0].id,
                 updated_at: new Date().toISOString()
             })
             .eq('order_id', orderId.trim());
@@ -131,24 +164,34 @@ export async function POST(request: NextRequest) {
             console.error('Error updating order with license key:', orderUpdateError);
         }
 
-        // Get product info from products_data using FSN
-        const { data: productData } = await supabase
-            .from('products_data')
-            .select('product_title, download_link, installation_doc, product_image')
-            .eq('fsn', fsn)
-            .single();
+        // Build license results with product info
+        const licenses: LicenseResult[] = [];
+
+        for (const key of availableKeys) {
+            const { data: productData } = await supabase
+                .from('products_data')
+                .select('product_title, download_link, installation_doc, product_image')
+                .eq('fsn', key.fsn)
+                .single();
+
+            licenses.push({
+                licenseKey: key.license_key,
+                fsn: key.fsn,
+                productName: productData?.product_title || null,
+                productImage: productData?.product_image || null,
+                downloadUrl: productData?.download_link || null,
+                installationDoc: productData?.installation_doc
+                    ? `/installation-docs/${productData.installation_doc}`
+                    : null
+            });
+        }
 
         return NextResponse.json({
             success: true,
             alreadyRedeemed: false,
-            licenseKey: availableKey.license_key,
+            isCombo,
             fulfillmentType: order.fulfillment_type || null,
-            productInfo: {
-                productName: productData?.product_title || 'Microsoft Office',
-                productImage: productData?.product_image || null,
-                downloadUrl: productData?.download_link || null,
-                installationDoc: productData?.installation_doc ? `/installation-docs/${productData.installation_doc}` : null
-            }
+            licenses
         });
 
     } catch (error) {

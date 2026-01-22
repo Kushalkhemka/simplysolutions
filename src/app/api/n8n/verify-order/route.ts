@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { isComboProduct, getComponentFSNs, COMBO_DISPLAY_NAMES } from '@/lib/amazon/combo-products';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -161,6 +162,9 @@ export async function POST(request: NextRequest) {
             product: {
                 fsn: order.fsn,
                 asin: order.asin,
+                isCombo: order.fsn ? isComboProduct(order.fsn) : false,
+                componentFSNs: order.fsn ? getComponentFSNs(order.fsn) : [],
+                comboDisplayName: order.fsn ? COMBO_DISPLAY_NAMES[order.fsn] : null,
                 ...productInfo
             },
 
@@ -212,6 +216,12 @@ function getSuggestedActions(order: any, licenseInfo: any): string[] {
 
     if (order.has_activation_issue) {
         actions.push(`🔧 Customer has reported activation issue. Status: ${order.issue_status}`);
+    }
+
+    // Check if combo product
+    if (order.fsn && isComboProduct(order.fsn)) {
+        const components = getComponentFSNs(order.fsn);
+        actions.push(`🎁 This is a COMBO product. Customer receives ${components.length} license keys: ${components.join(' + ')}`);
     }
 
     if (licenseInfo?.isRedeemed) {

@@ -22,13 +22,25 @@ interface ProductInfo {
     productImage: string | null;
     downloadUrl: string | null;
     sku?: string;
+    installationDoc?: string | null;
+}
+
+interface LicenseInfo {
+    licenseKey: string;
+    fsn: string;
+    productName: string | null;
+    productImage: string | null;
+    downloadUrl: string | null;
+    installationDoc: string | null;
 }
 
 interface ActivationResult {
     success: boolean;
-    licenseKey: string;
-    productInfo: ProductInfo;
+    licenseKey?: string; // For backward compatibility
+    productInfo?: ProductInfo;
     alreadyRedeemed?: boolean;
+    isCombo?: boolean;
+    licenses?: LicenseInfo[];
 }
 
 export default function ActivatePage() {
@@ -124,12 +136,30 @@ export default function ActivatePage() {
                 setFulfillmentType(data.fulfillmentType);
             }
 
-            setActivationResult({
-                success: true,
-                licenseKey: data.licenseKey,
-                productInfo: data.productInfo || {},
-                alreadyRedeemed: data.alreadyRedeemed,
-            });
+            // Handle new multi-license format
+            if (data.licenses && data.licenses.length > 0) {
+                setActivationResult({
+                    success: true,
+                    isCombo: data.isCombo,
+                    licenses: data.licenses,
+                    // For backward compatibility, use first license
+                    licenseKey: data.licenses[0].licenseKey,
+                    productInfo: {
+                        productName: data.licenses[0].productName,
+                        productImage: data.licenses[0].productImage,
+                        downloadUrl: data.licenses[0].downloadUrl,
+                    },
+                    alreadyRedeemed: data.alreadyRedeemed,
+                });
+            } else {
+                // Fallback for old format
+                setActivationResult({
+                    success: true,
+                    licenseKey: data.licenseKey,
+                    productInfo: data.productInfo || {},
+                    alreadyRedeemed: data.alreadyRedeemed,
+                });
+            }
 
             // Show success popup
             setShowSuccessPopup(true);
@@ -351,41 +381,99 @@ export default function ActivatePage() {
                                 </div>
 
                                 <div className="p-6 space-y-6">
-                                    {/* Product Card */}
-                                    <div className="flex items-start gap-4 p-4 bg-[#F7F8FA] rounded border border-[#DDD]">
-                                        <div className="w-16 h-16 bg-white rounded flex items-center justify-center flex-shrink-0 border border-[#DDD]">
-                                            {activationResult.productInfo?.productImage ? (
-                                                <Image src={activationResult.productInfo.productImage} alt="Product" width={60} height={60} className="object-contain" />
-                                            ) : (
-                                                <div className="text-2xl">📦</div>
+                                    {/* Product Card(s) - Handle multiple licenses for combos */}
+                                    {activationResult.licenses && activationResult.licenses.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {activationResult.isCombo && (
+                                                <div className="bg-[#232F3E] text-white px-4 py-2 rounded-lg text-center text-sm font-medium">
+                                                    🎁 Combo Package - {activationResult.licenses.length} License Keys
+                                                </div>
                                             )}
-                                        </div>
+                                            {activationResult.licenses.map((license, index) => (
+                                                <div key={index} className="p-4 bg-[#F7F8FA] rounded border border-[#DDD]">
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-16 h-16 bg-white rounded flex items-center justify-center flex-shrink-0 border border-[#DDD]">
+                                                            {license.productImage ? (
+                                                                <Image src={license.productImage} alt="Product" width={60} height={60} className="object-contain" />
+                                                            ) : (
+                                                                <div className="text-2xl">{index === 0 ? '🪟' : '📝'}</div>
+                                                            )}
+                                                        </div>
 
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm text-[#565959]">
-                                                <span className="font-bold text-[#0F1111]">Product: </span>
-                                                {activationResult.productInfo?.productName || 'Microsoft Office Professional Plus'}
-                                            </p>
-                                            <div className="mt-2 p-2 bg-[#FCF5EE] border border-[#FF9900] rounded">
-                                                <p className="text-xs text-[#565959] mb-1">Your License Key:</p>
-                                                <div className="flex items-center gap-2">
-                                                    <code className="font-mono text-sm font-bold text-[#0F1111] break-all">
-                                                        {activationResult.licenseKey}
-                                                    </code>
-                                                    <button onClick={handleCopyKey} className="p-1.5 hover:bg-[#FF9900]/20 rounded" title="Copy">
-                                                        <Copy className="w-4 h-4 text-[#FF9900]" />
-                                                    </button>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-bold text-[#0F1111] mb-1">
+                                                                {license.productName || `Product ${index + 1}`}
+                                                            </p>
+                                                            <div className="p-2 bg-[#FCF5EE] border border-[#FF9900] rounded">
+                                                                <p className="text-xs text-[#565959] mb-1">License Key {index + 1}:</p>
+                                                                <div className="flex items-center gap-2">
+                                                                    <code className="font-mono text-sm font-bold text-[#0F1111] break-all">
+                                                                        {license.licenseKey}
+                                                                    </code>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            navigator.clipboard.writeText(license.licenseKey);
+                                                                            toast.success('License key copied!');
+                                                                        }}
+                                                                        className="p-1.5 hover:bg-[#FF9900]/20 rounded"
+                                                                        title="Copy"
+                                                                    >
+                                                                        <Copy className="w-4 h-4 text-[#FF9900]" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            {license.downloadUrl && (
+                                                                <a
+                                                                    href={license.downloadUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="mt-2 inline-flex items-center gap-1 text-xs text-[#007185] hover:underline"
+                                                                >
+                                                                    <Download className="w-3 h-3" /> Download
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        /* Single license fallback */
+                                        <div className="flex items-start gap-4 p-4 bg-[#F7F8FA] rounded border border-[#DDD]">
+                                            <div className="w-16 h-16 bg-white rounded flex items-center justify-center flex-shrink-0 border border-[#DDD]">
+                                                {activationResult.productInfo?.productImage ? (
+                                                    <Image src={activationResult.productInfo.productImage} alt="Product" width={60} height={60} className="object-contain" />
+                                                ) : (
+                                                    <div className="text-2xl">📦</div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-[#565959]">
+                                                    <span className="font-bold text-[#0F1111]">Product: </span>
+                                                    {activationResult.productInfo?.productName || 'Microsoft Office Professional Plus'}
+                                                </p>
+                                                <div className="mt-2 p-2 bg-[#FCF5EE] border border-[#FF9900] rounded">
+                                                    <p className="text-xs text-[#565959] mb-1">Your License Key:</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <code className="font-mono text-sm font-bold text-[#0F1111] break-all">
+                                                            {activationResult.licenseKey}
+                                                        </code>
+                                                        <button onClick={handleCopyKey} className="p-1.5 hover:bg-[#FF9900]/20 rounded" title="Copy">
+                                                            <Copy className="w-4 h-4 text-[#FF9900]" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {activationResult.productInfo?.downloadUrl && (
-                                            <button onClick={handleDownload} className="flex flex-col items-center gap-1 p-2 hover:bg-[#F0F2F2] rounded">
-                                                <Download className="w-5 h-5 text-[#007185]" />
-                                                <span className="text-xs text-[#007185]">Download</span>
-                                            </button>
-                                        )}
-                                    </div>
+                                            {activationResult.productInfo?.downloadUrl && (
+                                                <button onClick={handleDownload} className="flex flex-col items-center gap-1 p-2 hover:bg-[#F0F2F2] rounded">
+                                                    <Download className="w-5 h-5 text-[#007185]" />
+                                                    <span className="text-xs text-[#007185]">Download</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Multiple Keys Note */}
                                     <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
