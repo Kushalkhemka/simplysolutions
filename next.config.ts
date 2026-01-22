@@ -42,6 +42,11 @@ const nextConfig: NextConfig = {
         hostname: 'qcsdnlakugvnwlflhwpo.supabase.co',
         pathname: '/storage/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.simplysolutions.co.in',
+        pathname: '/storage/**',
+      },
     ],
   },
   // Performance optimizations

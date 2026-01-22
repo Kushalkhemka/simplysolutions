@@ -100,7 +100,8 @@ export default function ActivatePage() {
                 return;
             }
 
-            if (data.isAlreadyRedeemed && data.licenseKey) {
+            // For already redeemed orders, still call handleGenerateKey to get all licenses (important for combos)
+            if (data.isAlreadyRedeemed) {
                 // Check if it's a subscription product
                 const subConfig = data.fsn ? getSubscriptionConfig(data.fsn) : null;
 
@@ -118,18 +119,14 @@ export default function ActivatePage() {
                     return;
                 }
 
-                // Store fulfillment type
+                // Store fulfillment type and call handleGenerateKey for proper multi-license handling
                 if (data.fulfillmentType) {
                     setFulfillmentType(data.fulfillmentType);
                 }
-                setActivationResult({
-                    success: true,
-                    licenseKey: data.licenseKey,
-                    productInfo: data.productInfo || {},
-                    alreadyRedeemed: true,
-                });
+
+                // Call handleGenerateKey to get all licenses properly (important for combo products)
+                await handleGenerateKey();
                 toast.success('Your license key was already generated!');
-                setIsLoading(false);
                 return;
             }
 
@@ -195,6 +192,8 @@ export default function ActivatePage() {
 
             // Handle new multi-license format
             if (data.licenses && data.licenses.length > 0) {
+                console.log('DEBUG: Setting activation result with', data.licenses.length, 'licenses');
+                console.log('DEBUG: isCombo=', data.isCombo, 'licenses=', data.licenses);
                 setActivationResult({
                     success: true,
                     isCombo: data.isCombo,
