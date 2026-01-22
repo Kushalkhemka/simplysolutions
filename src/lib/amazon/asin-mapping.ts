@@ -83,7 +83,7 @@ export async function getProductByFsn(fsn: string) {
 /**
  * Map FSN to installation documentation paths
  */
-export const fsnToInstallDoc: Record<string, string> = {
+export const fsnToInstallDoc: Record<string, string | null> = {
     'WINDOWS11': 'win11-win10pro_upgrade',
     'OPSG3TNK9HZDZEM9': 'win11-win10pro_upgrade', // Windows 10 Pro
     'WIN11HOME': 'win11-win10pro_upgrade',
