@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink } from 'lucide-react';
+import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink, Clock, Search, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CompletedRequest {
@@ -23,6 +23,7 @@ export default function Enterprise365Page() {
     const [completedRequest, setCompletedRequest] = useState<CompletedRequest | null>(null);
     const [isVerifying, setIsVerifying] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isPendingRequest, setIsPendingRequest] = useState(false);
 
     // Check if request is already completed
     const handleVerifyOrder = async () => {
@@ -30,6 +31,7 @@ export default function Enterprise365Page() {
 
         setIsVerifying(true);
         setError(null);
+        setIsPendingRequest(false);
 
         try {
             const response = await fetch('/api/365enterprise/verify', {
@@ -41,15 +43,28 @@ export default function Enterprise365Page() {
             const data = await response.json();
 
             if (data.success && data.isCompleted) {
-                setCompletedRequest({
-                    generatedEmail: data.generatedEmail,
-                    generatedPassword: data.generatedPassword,
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                });
-                toast.success('Your Microsoft 365 account is ready!');
+                // Check if credentials are available
+                if (data.generatedEmail && data.generatedPassword) {
+                    setCompletedRequest({
+                        generatedEmail: data.generatedEmail,
+                        generatedPassword: data.generatedPassword,
+                        firstName: data.firstName || '',
+                        lastName: data.lastName || '',
+                    });
+                    toast.success('Your Microsoft 365 account is ready!');
+                } else {
+                    // Legacy order - credentials were sent by email but not stored
+                    setCompletedRequest({
+                        generatedEmail: 'Check your email',
+                        generatedPassword: 'Check your email',
+                        firstName: data.firstName || '',
+                        lastName: data.lastName || '',
+                    });
+                    toast.info('Your request was completed. Please check your email for credentials.');
+                }
             } else if (data.success && data.isPending) {
-                setError('Your request is being processed. You will be notified via email/WhatsApp once ready.');
+                setIsPendingRequest(true);
+                toast.info('Your request is being processed');
             }
         } catch (err) {
             console.error('Verify error:', err);
@@ -202,6 +217,18 @@ export default function Enterprise365Page() {
                                     </p>
                                 </div>
 
+                                {/* Installation Guide Link */}
+                                <a
+                                    href="https://simplysolutions.co.in/office365"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full py-3 bg-[#232F3E] hover:bg-[#37475A] text-white font-bold rounded-lg transition-all"
+                                >
+                                    <BookOpen className="w-5 h-5" />
+                                    View Setup Guide
+                                    <ExternalLink className="w-4 h-4" />
+                                </a>
+
                                 {/* Support */}
                                 <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
                                     <p className="text-xs text-[#B12704]">
@@ -270,6 +297,73 @@ export default function Enterprise365Page() {
         );
     }
 
+    // Pending Request UI - Show processing status
+    if (isPendingRequest) {
+        return (
+            <div className="min-h-screen bg-[#EAEDED]">
+                <div className="bg-[#007185] text-white py-3 px-4">
+                    <div className="container-dense flex items-center justify-center gap-2 text-sm font-medium">
+                        <Clock className="w-5 h-5" />
+                        <span className="font-bold">Processing Request</span>
+                        <span className="hidden sm:inline">Your Microsoft 365 account is being set up</span>
+                    </div>
+                </div>
+
+                <div className="bg-[#232F3E] py-4 border-b-4 border-[#FF9900]">
+                    <div className="container-dense">
+                        <h1 className="text-2xl md:text-3xl font-bold text-center text-white uppercase tracking-wider">
+                            Microsoft 365 Enterprise
+                        </h1>
+                    </div>
+                </div>
+
+                <div className="container-dense py-8 md:py-12">
+                    <div className="max-w-2xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-lg border border-[#DDD] overflow-hidden">
+                            <div className="bg-[#007185] text-white px-6 py-4 flex items-center gap-3">
+                                <Clock className="w-6 h-6 animate-pulse" />
+                                <div>
+                                    <p className="font-bold">Request Being Processed</p>
+                                    <p className="text-sm opacity-90">Order: {orderId}</p>
+                                </div>
+                            </div>
+
+                            <div className="p-6 space-y-4">
+                                <div className="text-center py-4">
+                                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#F0F2F2] flex items-center justify-center">
+                                        <Loader2 className="w-8 h-8 text-[#007185] animate-spin" />
+                                    </div>
+                                    <p className="text-[#0F1111] font-medium">Your Microsoft 365 account is being created</p>
+                                    <p className="text-sm text-[#565959] mt-2">This typically takes 2-4 hours. You will receive an email and WhatsApp notification once your account is ready.</p>
+                                </div>
+
+                                <div className="bg-[#FFF4E5] border-l-4 border-[#FF9900] p-4">
+                                    <p className="text-sm text-[#0F1111]">
+                                        <strong>Tip:</strong> You can return to this page anytime and enter your Order ID to check the status of your request.
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={() => { setIsPendingRequest(false); setOrderId(''); }}
+                                    className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all"
+                                >
+                                    Check Different Order
+                                </button>
+
+                                <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
+                                    <p className="text-xs text-[#B12704]">
+                                        <span className="font-bold">Need Help?</span> WhatsApp:{' '}
+                                        <a href="https://wa.me/918595899215" className="font-bold underline">8595899215</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     // Request Form UI - Amazon Theme
     return (
         <div className="min-h-screen bg-[#EAEDED]">
@@ -318,10 +412,19 @@ export default function Enterprise365Page() {
                                             maxLength={25}
                                         />
                                     </div>
-                                    {isVerifying && (
-                                        <p className="text-xs text-[#007185] mt-1 flex items-center gap-1">
-                                            <Loader2 className="w-3 h-3 animate-spin" /> Verifying...
+                                    {isVerifying ? (
+                                        <p className="text-xs text-[#007185] mt-2 flex items-center gap-1">
+                                            <Loader2 className="w-3 h-3 animate-spin" /> Checking request status...
                                         </p>
+                                    ) : orderId.trim().length > 10 && (
+                                        <button
+                                            type="button"
+                                            onClick={handleVerifyOrder}
+                                            className="mt-2 text-sm text-[#007185] hover:text-[#C7511F] hover:underline flex items-center gap-1"
+                                        >
+                                            <Search className="w-4 h-4" />
+                                            Already submitted? Click here to check your request status
+                                        </button>
                                     )}
                                 </div>
 

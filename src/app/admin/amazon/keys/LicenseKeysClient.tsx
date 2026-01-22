@@ -44,6 +44,23 @@ export default function LicenseKeysClient() {
     const [newFsn, setNewFsn] = useState('');
     const [productName, setProductName] = useState('');
     const [addResult, setAddResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
+    const [multiplyQuantity, setMultiplyQuantity] = useState<number | ''>('');
+
+    // Suffix characters for generating unique keys (5 keys per character)
+    const SUFFIX_CHARS = ['-', '~', "'", '=', '+', '_', '*', '#', '@', '!'];
+
+    // Generate unique keys by appending suffixes
+    const generateUniqueKeys = (baseKey: string, quantity: number): string[] => {
+        const keys: string[] = [];
+        for (let i = 0; i < quantity; i++) {
+            const charIndex = Math.floor(i / 5); // Change character every 5 keys
+            const repeatCount = (i % 5) + 1; // Repeat 1-5 times
+            const suffixChar = SUFFIX_CHARS[charIndex % SUFFIX_CHARS.length];
+            const suffix = suffixChar.repeat(repeatCount);
+            keys.push(`${baseKey}${suffix}`);
+        }
+        return keys;
+    };
 
     // Stats
     const [availableCount, setAvailableCount] = useState(0);
@@ -173,10 +190,22 @@ export default function LicenseKeysClient() {
         setAddResult(null);
 
         // Parse keys from textarea - split by newlines and filter empty lines
-        const keysToAdd = newKeys
+        // Also remove leading single quotes (') as supplier sometimes provides keys with them
+        let keysToAdd = newKeys
             .split('\n')
             .map(key => key.trim())
+            .map(key => key.startsWith("'") ? key.slice(1) : key) // Remove leading quote
             .filter(key => key.length > 0);
+
+        // If quantity multiplier is set, generate unique variants for each base key
+        if (multiplyQuantity && multiplyQuantity > 0) {
+            const expandedKeys: string[] = [];
+            for (const baseKey of keysToAdd) {
+                const uniqueKeys = generateUniqueKeys(baseKey, multiplyQuantity);
+                expandedKeys.push(...uniqueKeys);
+            }
+            keysToAdd = expandedKeys;
+        }
 
         if (keysToAdd.length === 0) {
             setIsSubmitting(false);
@@ -241,6 +270,7 @@ export default function LicenseKeysClient() {
                 setNewFsn('');
                 setProductName('');
                 setAddResult(null);
+                setMultiplyQuantity('');
                 setIsModalOpen(false);
             }, 1500);
         }
@@ -524,6 +554,30 @@ export default function LicenseKeysClient() {
                                 <p className="text-xs text-muted-foreground mt-1">
                                     Enter one license key per line. Empty lines will be ignored.
                                 </p>
+                            </div>
+
+                            {/* Quantity Multiplier */}
+                            <div className="p-4 bg-muted/30 rounded-lg border border-dashed">
+                                <label className="block text-sm font-medium mb-2">Multiply Keys (Optional)</label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="50"
+                                        value={multiplyQuantity}
+                                        onChange={(e) => setMultiplyQuantity(e.target.value ? parseInt(e.target.value) : '')}
+                                        placeholder="Quantity"
+                                        className="w-32 px-3 py-2 border rounded-lg bg-background text-sm"
+                                    />
+                                    <span className="text-xs text-muted-foreground flex-1">
+                                        Enter quantity to create unique variants with suffixes (-, ~, &apos;, =, +, _)
+                                    </span>
+                                </div>
+                                {multiplyQuantity && multiplyQuantity > 0 && (
+                                    <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                                        Will generate {multiplyQuantity} unique keys per line = {newKeys.split('\n').filter(k => k.trim()).length * multiplyQuantity} total keys
+                                    </div>
+                                )}
                             </div>
 
                             <div>

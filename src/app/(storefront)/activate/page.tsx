@@ -843,11 +843,14 @@ export default function ActivatePage() {
                                                     })}
                                                 </>
                                             ) : (
-                                                /* Single product: Show one guide */
+                                                /* Single product: Show one guide - use license FSN if available */
                                                 <InstallationGuide
-                                                    guideFile={getInstallationGuide(activationResult.productInfo?.sku) || 'office2021.md'}
-                                                    productName={activationResult.productInfo?.productName || undefined}
-                                                    downloadLink={activationResult.productInfo?.downloadUrl || undefined}
+                                                    guideFile={getInstallationGuide(
+                                                        activationResult.licenses?.[0]?.fsn ||
+                                                        activationResult.productInfo?.sku
+                                                    ) || 'office2021.md'}
+                                                    productName={activationResult.licenses?.[0]?.productName || activationResult.productInfo?.productName || undefined}
+                                                    downloadLink={activationResult.licenses?.[0]?.downloadUrl || activationResult.productInfo?.downloadUrl || undefined}
                                                 />
                                             )}
                                         </div>
@@ -867,7 +870,7 @@ export default function ActivatePage() {
                             </div>
                             <div className="p-4">
                                 <p className="text-sm text-[#565959] mb-3">
-                                    Search <span className="font-bold text-[#FF9900]">"Square Keys"</span> in your Amazon registered email inbox
+                                    Search <span className="font-bold text-[#FF9900]">"BitByte"</span> in your Amazon registered email inbox
                                 </p>
 
                                 <div className="bg-[#F7F8FA] rounded border border-[#DDD] p-3 text-sm">
@@ -878,8 +881,10 @@ export default function ActivatePage() {
                                         <span className="font-medium">Subject:</span> Your Order - Pro Retail License Key
                                     </p>
 
-                                    <div className="p-2 bg-[#FEF8F2] border-l-4 border-[#FF9900] text-xs">
-                                        <p className="text-[#CC0C39] font-bold">Your Unique Secret Code → XXXXXXXXXXXXXXX</p>
+                                    <div className="p-2 bg-[#FEF8F2] border-l-4 border-[#FF9900] text-xs space-y-1">
+                                        <p className="text-[#CC0C39] font-bold">Your Secret Code → XXXXXXXXXXXXXXX</p>
+                                        <p className="text-[#565959] font-bold text-center">OR</p>
+                                        <p className="text-[#CC0C39] font-bold">Your Amazon Order ID → 40X-XXXXXXX-XXXXXXX</p>
                                     </div>
                                 </div>
 

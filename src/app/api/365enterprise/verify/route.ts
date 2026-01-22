@@ -26,13 +26,12 @@ export async function POST(request: NextRequest) {
             .eq('order_id', cleanOrderId)
             .single();
 
+        // Handle database errors gracefully - treat as "no request found" if table doesn't exist or other issues
         if (requestError && requestError.code !== 'PGRST116') {
             // PGRST116 = no rows returned, which is expected if not found
-            console.error('Error fetching 365 request:', requestError);
-            return NextResponse.json(
-                { error: 'Database error' },
-                { status: 500 }
-            );
+            // For other errors (like table not existing), log but continue to check amazon_orders
+            console.error('Error fetching 365 request (may be table issue):', requestError.message);
+            // Don't return 500 - continue to check if order exists in amazon_orders
         }
 
         if (request365) {
@@ -48,6 +47,33 @@ export async function POST(request: NextRequest) {
                 });
             } else {
                 // Request exists but not completed
+                return NextResponse.json({
+                    success: true,
+                    isCompleted: false,
+                    isPending: true,
+                    message: 'Your request is being processed'
+                });
+            }
+        }
+
+        // Fallback: Check product_requests table for legacy 365e5 requests
+        const { data: productRequest } = await supabase
+            .from('product_requests')
+            .select('*')
+            .eq('order_id', cleanOrderId)
+            .eq('request_type', '365e5')
+            .single();
+
+        if (productRequest) {
+            if (productRequest.is_completed) {
+                // Completed but credentials might be in product_request or we need to check
+                return NextResponse.json({
+                    success: true,
+                    isCompleted: true,
+                    isPending: false,
+                    message: 'Your request has been completed. Please check your email for credentials.'
+                });
+            } else {
                 return NextResponse.json({
                     success: true,
                     isCompleted: false,
