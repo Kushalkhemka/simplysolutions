@@ -13,7 +13,7 @@
 [/color][/color][/font][/size]
 [font=Verdana][color=#555555][color=#000000][size=3]4) Wait until the installation of Office 2021 gets completed.[/size][/color][/color][/font]
 
-[center][img=350x250]https://i.postimg.cc/xjXSyTqG/office-professional-plus-2021-1-pc-lifetime-validity-microsoft-original-imagq22hqbh5epzy.jpg[/img]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/office-professional-plus-2021-1-pc-lifetime-validity-microsoft-original-imagq22hqbh5epzy.jpg[/img]
 [/center]
 
 [size=3][font=Verdana]5) [color=#000000]Open any microsoft app after installation such as word, excel, outlook (recommended) , access(recommended)[/color][/font][/size]
@@ -21,7 +21,7 @@
 [font=Verdana][size=3]6) As soon as the app is opened it will prompt to enter license key. Enter above license key and click on activate office.[/size][/font]
 
 
-[center][img=350x250]https://i.postimg.cc/YCbWN9Lf/free-microsoft-office-2021-product-key.png[/img]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/free-microsoft-office-2021-product-key.png[/img]
 [/center]
 
 [size=3]7)  If you don't get the option to enter product key, sign out the all the logged in account in application from top right corner
@@ -75,19 +75,19 @@
 [/font][/size][/color][/center]
 [color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]3. In the Select your region window, select the country (i.e. INDIA) and click Next.[/font][/size][/color]
 
-[center][img=350x200]https://i.postimg.cc/63Lnx71f/1-1.jpg[/img][/center]
+[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/1-1.jpg[/img][/center]
 
 
 [left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]4) Now, click on Next to get your 63 Digit Installation ID as shown below. Enter this installation ID on this website by scrolling up, You will get a Option to Enter Installation ID.[/font][/size][/color][/left]
 [left]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x200]https://www.augmastudio.com/wp-content/uploads/2021/02/3-1170x603.jpg[/img][/font][/size][/color][/center]
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/3-1170x603.jpg[/img][/font][/size][/color][/center]
 [center][img=350x150]https://i.postimg.cc/pLRybHWg/Screenshot-2024-07-09-194825.png[/img][/center]
 [center]
 
 [left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]5) After Inserting your Installation ID, wait for 2-3 minutes for the system to generate your Confirmation ID. After it is being generated, it will be visible on this website. Enter it in your system by click on ENTER CONFIRMATION ID.
 
 [/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x200]https://www.augmastudio.com/wp-content/uploads/2021/02/4.jpg[/img]
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/4.jpg[/img]
 
 [/font][/size][/color]
 [left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]6) Voila! Your Windows will be activated. Thanks![/font][/size][/color][/left]

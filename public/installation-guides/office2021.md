@@ -13,7 +13,7 @@
 [/color][/color][/font][/size]
 [font=Verdana][color=#555555][color=#000000][size=3]4) Wait until the installation of Office 2021 gets completed.[/size][/color][/color][/font]
 
-[center][img=350x250]https://i.postimg.cc/xjXSyTqG/office-professional-plus-2021-1-pc-lifetime-validity-microsoft-original-imagq22hqbh5epzy.jpg[/img]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/office-professional-plus-2021-1-pc-lifetime-validity-microsoft-original-imagq22hqbh5epzy.jpg[/img]
 [/center]
 
 [size=3][font=Verdana]5) [color=#000000]Open any microsoft app after installation such as word, excel, outlook (recommended) , access(recommended)[/color][/font][/size]
@@ -21,7 +21,7 @@
 [font=Verdana][size=3]6) As soon as the app is opened it will prompt to enter license key. Enter above license key and click on activate office.[/size][/font]
 
 
-[center][img=350x250]https://i.postimg.cc/YCbWN9Lf/free-microsoft-office-2021-product-key.png[/img]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/free-microsoft-office-2021-product-key.png[/img]
 [/center]
 
 [size=3]7)  If you don't get the option to enter product key, sign out the all the logged in account in application from top right corner
@@ -37,12 +37,12 @@
 
 [size=3]11) [color=#333333][font=Arial, sans-serif]Select: "I want to activate the software by telephone" and click "Next"[/font][/color][/size]
 
-[center][color=#333333][size=3][font=Arial, sans-serif][img=350x350]https://i.postimg.cc/Jh7pTm99/1.png[/img]
+[center][color=#333333][size=3][font=Arial, sans-serif][img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/1.png[/img]
 [/font][/size][/color][/center]
 
 [size=3]12) In the next window, in the drop-down menu, select your country of location (e.g., India).[/size]
 
-[center][img=350x350]https://i.postimg.cc/mDJV29ts/2.png[/img][/center]
+[center][img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/2.png[/img][/center]
 
 [size=3]13) [b][u][color=#ff0000]Then, scroll up this page[/color][/u][/b] and you will get the option to enter the installation id (shown in the PHONE ACTIVATION section above) which is currently reflecting on your screen.[/size]
 
@@ -50,15 +50,15 @@
 
 [size=3]15) After entering your installation id on this page, [b]wait for 3-4 mins[/b] while your confirmation id gets generated from the MICROSOFT server. (IT WILL BE VISIBLE ON THIS PAGE)[/size]
 
-[center][img=350x260]https://i.postimg.cc/pdtHy95K/installation-id-ss-2.png[/img][/center]
-[center][img=350x250]https://i.postimg.cc/xdM6TM4T/maxresdefault-4.jpg[/img][/center]
+[center][img=350x260]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/installation-id-ss-2.png[/img][/center]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/maxresdefault-4.jpg[/img][/center]
 
 [size=3]16) After the confirmation id is visible [b]on this page[/b], [b]enter it in the columns reflected[/b] on your screen and then click on [b]Next[/b] Button.[/size]
 
 [size=3]17) Voila! Your Office Professional Plus 2021 for lifetime is activated![/size]
 
-[center][img=350x350]https://i.postimg.cc/Cxr8ggZy/4.png[/img][/center]
-[center][img=350x200]https://i.postimg.cc/kX1GVy7K/5.png[/img][/center]
+[center][img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/4.png[/img][/center]
+[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/5.png[/img][/center]
 
 
 In case of any error or query, feel free to reach out to us at +91-8595899215 (only whatsapp) or mail us at support@simplysolutions.co.in

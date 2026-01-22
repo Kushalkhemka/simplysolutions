@@ -39,8 +39,8 @@
 
 If you face error with error code [b]0xc004c008[/b], then you can follow the below steps -
 
-[center][img=350x250]https://i.postimg.cc/zv12jP8X/e08597ec-214a-42ef-ad78-5ec48a21b5d1.png[/img][/center]
-[center][img=350x50]https://i.postimg.cc/PJhKZpQC/88483-2012619efb9a246b442e3b6d41cd0644-1.webp[/img][/center]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/e08597ec-214a-42ef-ad78-5ec48a21b5d1.png[/img][/center]
+[center][img=350x50]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/88483-2012619efb9a246b442e3b6d41cd0644-1.webp[/img][/center]
 
 (THIS METHOD CAN ALSO BE USED FOR [u][b]OFFLINE[/b] ACTIVATION OF WINDOWS[/u])
 
@@ -51,17 +51,17 @@ If you face error with error code [b]0xc004c008[/b], then you can follow the bel
 [/center]
 3. In the Select your region window, select the country (i.e. INDIA) and click Next.
 
-[center][img=350x200]https://i.postimg.cc/63Lnx71f/1-1.jpg[/img]
+[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/1-1.jpg[/img]
 
 [left]4) Now, click on Next to get your 63 Digit Installation ID as shown below. Enter this installation ID on this website by scrolling up, You will get a Option to Enter Installation ID.[/left]
 [left]
-[center][img=350x200]https://www.augmastudio.com/wp-content/uploads/2021/02/3-1170x603.jpg[/img][/center]
-[center][img=350x180]https://i.postimg.cc/3JzQW3Lj/Screenshot-2024-12-03-171018.png[/img][/center]
+[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/3-1170x603.jpg[/img][/center]
+[center][img=350x180]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-03-171018.png[/img][/center]
 [center]
 
 [left]5) After Inserting your Installation ID, wait for 2-3 minutes for the system to generate your Confirmation ID. After it is being generated, it will be visible on this website. Enter it in your system by click on ENTER CONFIRMATION ID.
 
-[center][img=350x200]https://www.augmastudio.com/wp-content/uploads/2021/02/4.jpg[/img]
+[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/4.jpg[/img]
 
 [left]6) Voila! Your Windows will be activated. Thanks!
 [/left]

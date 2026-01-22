@@ -7,14 +7,14 @@
 [/font][/size][b][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif]NOTE: IF YOU FACE ISSUE IN DOWNLOADING THIS TOOL, USE INCOGNITO MODE OR TRY IN DIFFERENT BROWSER. [/font][/size][/color][/b]
 
 [/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle][img=350x250]https://i.postimg.cc/DfSxZmfD/mac-Office-Issue-using-License-Removal-Tool.webp[/img]
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/mac-Office-Issue-using-License-Removal-Tool.webp[/img]
 [/font][/size][/color]
 [/font][/size][/color]
 [left][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle]Run the office license removal tool for mac and follow instructions on-screen.
 
 [/font][/size][/color]
 [/font][/size][/color]
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x225]https://i.postimg.cc/25TZddGw/c6e7669c-f638-40a8-99c1-fc0fb16d8805.png[/img]
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/c6e7669c-f638-40a8-99c1-fc0fb16d8805.png[/img]
 [/font][/size][/color][/center]
 [/left]
 [/center]
@@ -26,41 +26,41 @@
 Link 2 (serializer) ---> [url=https://tinyurl.com/office24-serializer][b]https://tinyurl.com/office24-serializer[/b][/url][/font][/size][/font][/size]
 
 [center][size=2][font=Verdana, Arial, Helvetica, sans-serif][size=3][font=Adelle]FOR SERIALIZER[/font][/size][/font][/size][/center]
-[center][img=350x200]https://i.ibb.co/vh57FCP/Screenshot-2024-12-07-225840.png[/img]
+[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-07-225840.png[/img]
 
 FOR INSTALLER.PKG
-[img=350x200]https://i.ibb.co/xSjw1qk/Screenshot-2024-12-07-225747.png[/img][/center]
+[img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-07-225747.png[/img][/center]
 
 [size=3][font=Adelle][b][color=#ff0000]NOTE: If you face the issues in unzipping the downloaded file as shown in below image then you can download the unzipper tool from APPLE STORE. [/color][/b]
 
 [/font][/size]
-[center][size=3][font=Adelle][img=350x100]https://i.postimg.cc/rpxxLhyb/Whats-App-Image-2024-07-22-at-09-51-25-b5f54657.jpg[/img]
+[center][size=3][font=Adelle][img=350x100]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Whats-App-Image-2024-07-22-at-09-51-25-b5f54657.jpg[/img]
 
 
 [/font][/size][/center]
 [color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][size=3][color=#201010][font=Adelle]3) After extracting the downloaded ZIP FILE, [b]Open the extracted file folder.[/b][/font][/color][/size][/font][/size][/color]
 
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][size=3][color=#201010][font=Adelle][img=350x225]https://i.postimg.cc/9QNy7Yfj/Screenshot-2024-07-16-010206.png[/img][/font][/color][/size][/font][/size][/color][/center]
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][size=3][color=#201010][font=Adelle][img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-010206.png[/img][/font][/color][/size][/font][/size][/color][/center]
 
 [color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle]3) Run the[b] installer.pkg[/b] file of about ([b]2.43 GB)[/b] as shown in above image >> Follow instructions displayed on screen.[/font][/size][/color][/font][/size][/color]
 
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle][img=350x215]https://i.postimg.cc/G2PBqFbt/Screenshot-2024-07-16-010101.png[/img]
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle][img=350x215]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-010101.png[/img]
 
-[img=350x225]https://i.postimg.cc/pVFktTBB/Screenshot-2024-07-16-010932.png[/img]
+[img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-010932.png[/img]
 [/font][/size][/color][/font][/size][/color][/center]
 [color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle]4)To activate the office, Run the another file named "[b]Microsoft_Office_Preview_Serializer.pkg[/b]" (about 9 MB) as shown in below image >> Follow instructions again on screen.[/font][/size][/color][/font][/size][/color]
 
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle][img=350x210]https://i.postimg.cc/MpLHmWjn/Screenshot-2024-07-16-010207.png[/img]
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle][img=350x210]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-010207.png[/img]
 
-[img=350x225]https://i.postimg.cc/Sx4b0HFg/Screenshot-2024-07-16-011240.png[/img]
+[img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-011240.png[/img]
 [/font][/size][/color][/font][/size][/color][/center]
 [color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][color=#201010][size=3][font=Adelle]5) [b]Voila! Your Office LTSC 2024 Preview for Mac will be activated for lifetime[/b][/font][/size][/color][/font][/size][/color]
 
 [color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][size=3][color=#201010][font=Adelle]6) You can verify the same by opening any MS Office app (e.g. Excel) >> Click on Excel on top left corner >> Click on About Excel >> You will get the Licensing Details of [b]OFFICE 2024 LTSC PREVIEW. [/b][/font][/color][/size][/font][/size][/color]
 
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][size=3][color=#201010][font=Adelle][img=350x250]https://i.postimg.cc/d3S3NvSN/Screenshot-2024-07-16-011313.png[/img]
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][size=3][color=#201010][font=Adelle][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-011313.png[/img]
 
-[img=350x350]https://i.postimg.cc/rmVp8zBY/Screenshot-2024-07-16-011429.png[/img][/font][/color][/size][/font][/size][/color][/center]
+[img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-011429.png[/img][/font][/color][/size][/font][/size][/color][/center]
 
 
 [color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][b][size=3]In case of any error or query, feel free to reach out to us at +91-9711397918 or mail us at support@simplysolutions.co.in[/size][/b][/font][/size][/color]

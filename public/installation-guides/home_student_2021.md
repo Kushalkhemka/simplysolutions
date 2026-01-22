@@ -7,7 +7,7 @@ Installation process is simple please follow all the instructions correctly till
 2) Install Downloaded Office Suite. (It takes usually 10-20 mins)
 
 
-[center][img=350x250]https://i.postimg.cc/xjXSyTqG/office-professional-plus-2021-1-pc-lifetime-validity-microsoft-original-imagq22hqbh5epzy.jpg[/img]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/office-professional-plus-2021-1-pc-lifetime-validity-microsoft-original-imagq22hqbh5epzy.jpg[/img]
 [/center]
 
 3) Open any app like Word or excel or powerpoint.
@@ -15,12 +15,12 @@ Installation process is simple please follow all the instructions correctly till
 4) As soon as the app is opened it will prompt to enter license key. Enter above license key and click on activate office.
 
 
-[center][img=350x250]https://i.postimg.cc/YCbWN9Lf/free-microsoft-office-2021-product-key.png[/img]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/free-microsoft-office-2021-product-key.png[/img]
 [/center]
 
 5)In next screen, activation wizard will open. Select Activate Over Internet (Recommended)
 
-[center][img=350x250]https://i.postimg.cc/X7pWPTHz/Whats-App-Image-2023-04-06-at-19-07-51.jpg[/img][/center]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Whats-App-Image-2023-04-06-at-19-07-51.jpg[/img][/center]
 
 
 8) Then, Click on Activate over Internet and Your Microsoft Office Product will get successfully activated. 

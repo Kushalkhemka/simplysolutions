@@ -18,30 +18,30 @@
 [color=#000000](In case of any issues) [b]REFER TO STEP-WISE SCREENSHOT BELOW [/b][/color]
 
 [center]CLICK ON [b]CHANGE[/b] BUTTON[/center]
-[center][color=#000000][b][img=350x225]https://i.postimg.cc/2yqPT90Y/STEP1.png[/img]
+[center][color=#000000][b][img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/STEP1.png[/img]
 
 USE UPGRADE KEY FIRST
-[img=350x225]https://i.postimg.cc/mZpcDmJS/STEP2.png[/img]
+[img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/STEP2.png[/img]
 
 CLICK ON START BUTTON
-[img=350x225]https://i.postimg.cc/LXCsJsCs/STEP-3.png[/img]
+[img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/STEP-3.png[/img]
 
 WAIT FOR 30-45 MINS
-[img=350x210]https://i.postimg.cc/tTtMkZQX/step-5.png[/img]
+[img=350x210]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/step-5.png[/img]
 
 THIS IS NORMAL ERROR - DON'T WORRY
-[img=350x210]https://i.postimg.cc/J4ddpCgB/step-6.png[/img]
+[img=350x210]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/step-6.png[/img]
 
 CLICK ON CHANGE 
-[img=350x210]https://i.postimg.cc/rswQ9fNJ/step-7.png[/img]
+[img=350x210]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/step-7.png[/img]
 
 NOW , THIS TIME INSERT ACTIVATION KEY THEN, CLICK ON ACTIVATE
-[img=350x210]https://i.postimg.cc/43CGF9Mt/step-8.png[/img]
+[img=350x210]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/step-8.png[/img]
 
-[img=350x210]https://i.postimg.cc/Y0SBmfGc/step-9.png[/img]
+[img=350x210]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/step-9.png[/img]
 
 VOILA! WINDOWS IS ACTIVATED
-[img=350x210]https://i.postimg.cc/1tJLPnWv/step-10.png[/img]
+[img=350x210]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/step-10.png[/img]
 [/b][/color][/center]
 [center][hr]
 [/center]
@@ -62,8 +62,8 @@ VOILA! WINDOWS IS ACTIVATED
 
 If you face error with error code [b]0xc004c008[/b], then you can follow the below steps -
 
-[center][img=350x50]https://i.postimg.cc/PJhKZpQC/88483-2012619efb9a246b442e3b6d41cd0644-1.webp[/img][/center]
-[center][img=350x250]https://i.postimg.cc/zv12jP8X/e08597ec-214a-42ef-ad78-5ec48a21b5d1.png[/img]
+[center][img=350x50]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/88483-2012619efb9a246b442e3b6d41cd0644-1.webp[/img][/center]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/e08597ec-214a-42ef-ad78-5ec48a21b5d1.png[/img]
 [/center]
 (THIS METHOD CAN ALSO BE USED FOR [u][b]OFFLINE[/b] ACTIVATION OF WINDOWS[/u])
 
@@ -74,17 +74,17 @@ If you face error with error code [b]0xc004c008[/b], then you can follow the bel
 [/center]
 3. In the Select your region window, select the country (i.e. INDIA) and click Next.
 
-[center][img=350x200]https://i.postimg.cc/63Lnx71f/1-1.jpg[/img]
+[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/1-1.jpg[/img]
 
 [left]4) Now, click on Next to get your 63 Digit Installation ID as shown below. Enter this installation ID on this website by scrolling up, You will get a Option to Enter Installation ID.[/left]
 [left]
-[center][img=350x200]https://www.augmastudio.com/wp-content/uploads/2021/02/3-1170x603.jpg[/img][/center]
-[center][img=350x150]https://i.postimg.cc/rmyNwXV4/INSTALLATION-ID-SS.png[/img][/center]
+[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/3-1170x603.jpg[/img][/center]
+[center][img=350x150]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/INSTALLATION-ID-SS.png[/img][/center]
 [center]
 
 [left]5) After Inserting your Installation ID, wait for 2-3 minutes for the system to generate your Confirmation ID. After it is being generated, it will be visible on this website. Enter it in your system by click on ENTER CONFIRMATION ID.
 
-[center][img=350x200]https://www.augmastudio.com/wp-content/uploads/2021/02/4.jpg[/img]
+[center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/4.jpg[/img]
 
 [left]6) Voila! Your Windows will be activated. Thanks!
 [/left]

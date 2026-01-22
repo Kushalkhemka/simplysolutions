@@ -8,7 +8,7 @@
 [size=2][font=Verdana, Arial, Helvetica, sans-serif][b]NOTE: IF YOU FACE ISSUE IN DOWNLOADING THIS TOOL, USE INCOGNITO MODE OR TRY IN DIFFERENT BROWSER. [/b][/font][/size]
 
 
-[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=400x250]https://i.postimg.cc/qR8WRx2m/Screenshot-2025-06-01-171331.png[/img]
+[center][color=#111111][size=2][font=Verdana, Arial, Helvetica, sans-serif][img=400x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2025-06-01-171331.png[/img]
 
 [/font][/size][/color]
 [left][font=Verdana, Arial, Helvetica, sans-serif][size=2]2) After download the office removal tool, select "[/size][b][size=2][color=#111111]All Office Version[/color][/size][/b][size=2]" and Click on "[/size][b][size=2][color=#111111]Next[/color][/size][/b][size=2]" and wait for approx 30-45 mins to run this program completely.[/size]
@@ -20,14 +20,14 @@
 [left][size=3][font=Arial][color=#000000]3) Visit the website [/color][url=https://www.portal.office.com][b][color=#0000ff]https://www.portal.office.com[/color][/b][/url][color=#000000] [b]OR[/b] [/color][url=https://www.office.com][b][color=#0000ff]https://www.office.com[/color][/b][/url][/font]
 
 4) Sign in with the generated 365 login credentials[/size][/left]
-[left][center][img=350x250]https://i.postimg.cc/6Ts70w86/c74a0daa48309143749575edf3127e00.png[/img]
+[left][center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/c74a0daa48309143749575edf3127e00.png[/img]
 
-[img=350x250]https://i.postimg.cc/fyrCT4tx/tinywow-37e282b4c28240ea499fe92e2aa4dce3-62490462.png[/img]
+[img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-37e282b4c28240ea499fe92e2aa4dce3-62490462.png[/img]
 
 [left]2) [color=#232323][size=3][font=Roboto]At your first login, you are required to change your password to ensure that only you can access your account. [[b]TIP[/b]- Make sure to remember this password & save it somewhere in system or note it]
 
 [/font][/size][/color]
-[center][img=350x300]https://i.postimg.cc/xTYgnSxV/tinywow-b1bb1109b94e51e960a73bf6117a2305-62490588.png[/img][/center]
+[center][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-b1bb1109b94e51e960a73bf6117a2305-62490588.png[/img][/center]
 [/left]
 
 
@@ -39,7 +39,7 @@
 [color=#032eed][font=Roboto][u][b][b][url=https://mysignins.microsoft.com/security-info][/url][color=#032eed][size=3][u][url=https://mysignins.microsoft.com/security-info]https://mysignins.microsoft.com/security-info[/url][/u][/size][/color][/b][/b][/u][/font][/color]
 [/b][/font]
 [/color]
-[center][color=#232323][color=#111111][font=Verdana, Arial, Helvetica, sans-serif][font=Verdana, Arial, Helvetica, sans-serif][b][img=350x300]https://i.postimg.cc/VNjdY2Z2/tinywow-314613142838e260ed058209288a2b52-62490540.png[/img]
+[center][color=#232323][color=#111111][font=Verdana, Arial, Helvetica, sans-serif][font=Verdana, Arial, Helvetica, sans-serif][b][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-314613142838e260ed058209288a2b52-62490540.png[/img]
 [/b][/font][/font][/color]
 [/color]
 
@@ -47,39 +47,39 @@
 [/center]
 [/left]
 [/center]
-[center][size=3][img=350x250]https://i.postimg.cc/KvfXyf5Q/tinywow-64cb4226fa191cc10138e552b1b01aa8-62490771.png[/img]
+[center][size=3][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-64cb4226fa191cc10138e552b1b01aa8-62490771.png[/img]
 
 [/size]
 [left][size=3][color=#232323][font=Josefin Sans]4) Click the [/font][/color][b][color=#ff0000][font=Josefin Sans][b]Install and more[/b][/font][/color][/b][color=#232323][font=Josefin Sans] in the upper right corner and select [/font][/color][b][color=#ff0000][font=Josefin Sans][b]Install Microsoft 365 apps[/b][/font][/color][/b][/size][color=#232323][font=Josefin Sans][size=3] to install Office 365 Professional Plus.[/size]
 
 [/font][/color]
-[center][img=350x250]https://i.postimg.cc/tTpffVV8/tinywow-8df6b51e7dc09b8019e2374f75a36ea7-62500581.png[/img]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-8df6b51e7dc09b8019e2374f75a36ea7-62500581.png[/img]
 [/center]
 [/left]
 [/center]
 [size=3]**If you don't see such option and see Buy Microsoft 365 or Go Premium Option then follow as below otherwise skip this 5th step.[/size][/left]
-[left][center][img=350x300]https://i.postimg.cc/RhrT8k8h/Screenshot-2024-08-17-000724.png[/img][/center]
+[left][center][img=350x300]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-08-17-000724.png[/img][/center]
 [size=3]5) [/size][size=3]Click on Profile Icon on top-right corner of the window and switch the account and sign in with generated 365 account (NOT YOUR PERSONAL ACCOUNT) by click on "[/size][b][size=3]Sign in with a different account[/size][/b][size=3]".[/size][/left]
-[size=3][img=350x200]https://i.postimg.cc/BbXGY1r4/Screenshot-2024-08-17-000445.png[/img]
+[size=3][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-08-17-000445.png[/img]
 
 
 [/size]
 [left][size=3]6) Now, after clicking Install 365 apps >> Click on [b]Install Office[/b] in next windows as shown and again click on [b]Install Office[/b].[/size][/left]
-[size=3][img=350x250]https://i.postimg.cc/5yDLjTLv/tinywow-aea0cffe80f004ebf4d7f36c01a0a115-62501236.png[/img]
+[size=3][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-aea0cffe80f004ebf4d7f36c01a0a115-62501236.png[/img]
 [/size]
-[img=350x200]https://i.postimg.cc/QN47FGST/Screenshot-2024-08-17-001716.png[/img]
+[img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-08-17-001716.png[/img]
 [/center]
 [size=3]7) A OfficeSetup.exe will be downloaded, run that file and Click on Yes when prompted. The download & installation will start.[/size]
 
-[center][img=350x225]https://i.postimg.cc/ZKRyhbkQ/Screenshot-2024-08-17-001852.png[/img][/center]
-[center][img=350x225]https://i.postimg.cc/yd0YHGnW/Screenshot-2024-08-17-002431.png[/img][/center]
+[center][img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-08-17-001852.png[/img][/center]
+[center][img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-08-17-002431.png[/img][/center]
 [center][left]8) Now after installation, [size=3][b][color=#232323][font=Roboto][b]Open any Office apps[/b][/font][/color][/b][color=#232323][font=Roboto], we will use Word for example.[/font][/color][/size][/left]
 [left][size=3][color=#232323][font=Roboto]9) Click on Sign in when prompted or [b]Click on Sign in[/b] on top right corner of windows as shown below and sign in with the 365 generated account.[/font][/color][/size][/left]
 [left][b]TIP[/b] - You can sign in with multiple account in office application, this will allow you to fetch the old data from other personal/work accounts and work in activated office as long as you keep the generated 365 account signed in background (means you keep it in the list of multiple signed in accounts)[/left]
-[left][center][img=350x200]https://i.postimg.cc/Z5PcWYRL/Screenshot-2024-08-17-002650.png[/img][/center]
-[center][img=350x250]https://i.postimg.cc/6Ts70w86/c74a0daa48309143749575edf3127e00.png[/img][/center]
+[left][center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-08-17-002650.png[/img][/center]
+[center][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/c74a0daa48309143749575edf3127e00.png[/img][/center]
 [size=3]10) Your Office 365 will be activated for lifetime.[/size][/left]
-[left][center][img=350x200]https://i.postimg.cc/wB5C2dBq/tinywow-d4d6504cd45a68e701db9c5b30041ea1-62491022.png[/img][/center]
+[left][center][img=350x200]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-d4d6504cd45a68e701db9c5b30041ea1-62491022.png[/img][/center]
 [size=3]
 ** [b]To access Onedrive Storage[/b], download Onedrive app or visit [url=https://onedrive.live.com/][b][color=#0000ff]https://onedrive.live.com/[/color][/b][/url] . Remember you need to sign in with the generated 365 account in order to enjoy the cloud storage access.[/size][/left]
 [left][hr]
@@ -90,22 +90,22 @@
 [left][size=3][color=#e03e2d][size=2][font=Roboto][size=4][b][b][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif]If you already have any Office 365 pre-installed programs on your computer, follow these steps[/font][/b][/b][/size][/font][/size][/color][color=#e03e2d][size=2][font=Roboto][b][b][size=4].[/size][/b][/b][/font][/size][/color][/size][/left]
 [left][size=3][color=#000000][font=Arial][b][b][b]1) [color=#232323][font=Roboto]Open any Office apps[/font][/color][/b][/b][color=#232323][font=Roboto], we will use Word for example.[/font][/color][/b][/font][/color][/size][/left]
 [left][color=#000000][font=Arial][b][color=#232323][size=3][font=Roboto][color=#232323][font=Roboto]2A. If you are using a Windows, click on File Menu then click on [/font][/color][b][color=#232323][font=Roboto][b]Account[/b][/font][/color][/b][color=#232323][font=Roboto] option at the lower left corner of the screen and then click [/font][/color][b][color=#232323][font=Roboto][b]Activate Product[/b][/font][/color][/b][color=#232323][font=Roboto] just below the Office logo on the upper right.[/font][/color][/font][/size][/color][/b][/font][/color][/left]
-[img=350x225]https://i.postimg.cc/TYX8F9KN/tinywow-c299b52a0cb60debb86057808a2bec55-62490867.png[/img][/center]
+[img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-c299b52a0cb60debb86057808a2bec55-62490867.png[/img][/center]
 [center]
 [left][size=3][color=#000000][font=Arial][b][color=#232323][font=Roboto][color=#232323][font=Roboto][color=#232323][font=Roboto]2B. If you are using Mac, click [/font][/color][b][color=#232323][font=Roboto][b]Activate[/b][/font][/color][/b][color=#232323][font=Roboto] denoted by a key icon at the lower left corner of the screen. It will open a new window. Click [/font][/color][b][color=#232323][font=Roboto][b]Already bought Office? Sign in[/b][/font][/color][/b][color=#232323][font=Roboto].[/font][/color][/font][/color][/font][/color][/b][/font][/color][/size][/left]
 [/center]
-[center][img=350x350]https://i.postimg.cc/T3gKGQ0y/tinywow-2a9f845fd3044a84a0bca48fc8df8b29-62490938.png[/img][/center]
+[center][img=350x350]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-2a9f845fd3044a84a0bca48fc8df8b29-62490938.png[/img][/center]
 [center]
 [left][color=#000000][font=Arial][b][color=#232323][font=Roboto][color=#232323][font=Roboto][color=#232323][size=3][font=Roboto]3) [color=#232323][font=Roboto]This will open a sign in window. You will need to sign in using the credentials that you purchased from us. If you are logged in using a different account, click [/font][/color][b][color=#232323][font=Roboto][b]Use a different account[/b][/font][/color][/b][color=#232323][font=Roboto] otherwise, continue [/font][/color][b][color=#232323][font=Roboto][b]signing in[/b][/font][/color][/b][color=#232323][font=Roboto].[/font][/color][/font][/size][/color][/font][/color][/font][/color][/b][/font][/color][/left]
-[color=#000000][size=4][font=Arial][b][color=#232323][size=2][font=Roboto][color=#232323][size=2][font=Roboto][color=#232323][size=2][font=Roboto][color=#232323][size=2][font=Roboto][img=350x250]https://i.postimg.cc/XYGzvBBB/8d78d83d5e5a8c011aec3801f92b3ba1.png[/img][/font][/size][/color][/font][/size][/color][/font][/size][/color][/font][/size][/color][/b][/font][/size][/color]
+[color=#000000][size=4][font=Arial][b][color=#232323][size=2][font=Roboto][color=#232323][size=2][font=Roboto][color=#232323][size=2][font=Roboto][color=#232323][size=2][font=Roboto][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/8d78d83d5e5a8c011aec3801f92b3ba1.png[/img][/font][/size][/color][/font][/size][/color][/font][/size][/color][/font][/size][/color][/b][/font][/size][/color]
 
 
 
 [left][size=3][font=Roboto][b][color=#232323][color=#232323]4)[font=Roboto] Then [/font][/color][/color][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#232323]login using the account credential I sent you. [/color][color=#e03e2d]Refer to the steps discussed earlier for sign in process[/color][/font][/b][/font][/size][/left]
-[size=2][font=Roboto][b][size=2][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#e03e2d][img=350x250]https://i.postimg.cc/6Ts70w86/c74a0daa48309143749575edf3127e00.png[/img]
+[size=2][font=Roboto][b][size=2][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#e03e2d][img=350x250]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/c74a0daa48309143749575edf3127e00.png[/img]
 [/color][/font][/size][/b][/font][/size]
 [left][font=Roboto][b][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#e03e2d][color=#232323][size=3][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif]5. After logging in, the activation is complete.[/font][/size][/color][/color][/font][/b][/font][/left]
-[font=Roboto][b][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#e03e2d][color=#232323][size=3][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][img=350x225]https://i.postimg.cc/wB5C2dBq/tinywow-d4d6504cd45a68e701db9c5b30041ea1-62491022.png[/img]
+[font=Roboto][b][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][color=#e03e2d][color=#232323][size=3][font=-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif][img=350x225]https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-d4d6504cd45a68e701db9c5b30041ea1-62491022.png[/img]
 [/font][/size][/color][/color][/font][/b][/font]
 [left][hr]
 [color=#ff0000][size=4][font=Arial][b]For Android Phone/Tablet - Download Office 365 App from playstore and you can also download excel, word, powerpoint apps separately. Login with generated 365 account and it will be activated.[/b][/font][/size][/color][/left]
