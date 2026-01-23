@@ -21,31 +21,63 @@ import { OrganizationJsonLd, WebSiteJsonLd, FAQJsonLd } from '@/components/seo/J
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co.in';
 
-// Homepage SEO Metadata for better rankings
+// Homepage SEO Metadata for maximum organic traffic
 export const metadata: Metadata = {
-    title: 'Buy Genuine Digital License Keys Online India | Microsoft Software | SimplySolutions',
-    description: 'Buy genuine Microsoft digital license keys at lowest prices in India. Windows 11, Office 2024, Microsoft 365 with instant delivery. 100% authentic software keys with lifetime validity.',
+    title: 'Buy Genuine Microsoft License Keys Online India | Windows 11, Office 2024 Digital Keys | SimplySolutions',
+    description: 'India\'s #1 trusted store for genuine Microsoft digital license keys. Buy Windows 11 Pro, Windows 10, Office 2024, Office 2021, Microsoft 365 at lowest prices with instant email delivery. 100% authentic product keys, lifetime validity, free activation support. Activate your software in minutes! Money-back guarantee.',
     keywords: [
+        // Primary target keywords
         'digital key',
         'digital license key',
+        'software license key',
+        'product key online',
+        'activation key India',
+        'Microsoft license keys',
         'Microsoft license keys India',
-        'buy software license key online',
-        'Windows digital key',
-        'Office license key',
-        'genuine Microsoft keys',
+        'genuine software key',
+        // Windows keywords
+        'Windows 11 key',
+        'Windows 11 Pro key India',
+        'Windows 11 license cheap',
+        'buy Windows 10 key',
+        'Windows activation key',
+        'Windows digital license',
+        // Office keywords
+        'Office 2024 key',
+        'Office 2024 license India',
+        'Office 2021 product key',
+        'Microsoft Office key cheap',
+        'Office activation key',
+        // Microsoft 365
+        'Microsoft 365 subscription',
+        'Office 365 license India',
+        'M365 Family key',
+        // Purchase intent
+        'buy license key online',
+        'cheap software license India',
+        'lowest price Windows key',
         'instant delivery license',
+        'software store India',
     ],
     openGraph: {
-        title: 'SimplySolutions - Buy Digital License Keys Online India',
-        description: 'India\'s trusted store for genuine Microsoft digital license keys. Windows, Office & more with instant delivery.',
+        title: 'Buy Genuine Digital License Keys - Windows 11, Office 2024 | SimplySolutions India',
+        description: 'India\'s most trusted store for genuine Microsoft digital license keys. Windows 11 Pro, Office 2024 & more with instant email delivery. 100% authentic keys.',
         url: BASE_URL,
         type: 'website',
+        locale: 'en_IN',
+        siteName: 'SimplySolutions',
         images: [{
             url: `${BASE_URL}/logo.png`,
             width: 1200,
             height: 630,
-            alt: 'SimplySolutions - Digital License Keys India',
+            alt: 'SimplySolutions - Buy Genuine Microsoft License Keys India',
         }],
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Buy Genuine Microsoft License Keys India | SimplySolutions',
+        description: 'Windows 11, Office 2024, Microsoft 365 - Instant delivery, lowest prices, 100% genuine.',
+        images: [`${BASE_URL}/logo.png`],
     },
     alternates: {
         canonical: BASE_URL,

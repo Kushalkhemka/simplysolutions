@@ -15,46 +15,101 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "SimplySolutions - Genuine Microsoft Software Licenses | Buy Windows & Office Keys India",
-    template: "%s | SimplySolutions",
+    default: "Buy Genuine Microsoft Software License Keys Online India | Windows 11, Office 2024 | SimplySolutions",
+    template: "%s | SimplySolutions - Digital License Keys India",
   },
-  description: "India's #1 trusted destination for genuine Microsoft software licenses. Buy Windows 11 Pro, Office 2024, Microsoft 365 & more at lowest prices with instant digital delivery. 100% authentic digital keys with lifetime validity & free support.",
+  description: "India's #1 trusted store for genuine Microsoft digital license keys. Buy Windows 11 Pro, Windows 10, Office 2024, Office 2021, Microsoft 365 at lowest prices. Instant email delivery, lifetime validity, 24/7 support. 100% authentic product keys with money-back guarantee. Activate your software in minutes!",
   keywords: [
-    // HIGH-VALUE TARGET KEYWORDS
+    // === HIGH-VALUE TARGET KEYWORDS ===
     "digital key",
     "digital license key",
+    "software license key",
+    "product key",
+    "activation key",
     "Microsoft license keys",
     "Microsoft license keys India",
-    "software license key online",
-    "buy license key online India",
-    // Primary keywords
-    "Microsoft software",
-    "genuine software license India",
-    "buy Windows 11 license India",
-    "Windows 10 Pro key online",
-    "Office 2024 license key",
-    "Office 2021 product key India",
-    "Microsoft 365 subscription",
-    // Long-tail keywords
-    "buy genuine Windows key online India",
-    "cheap Microsoft Office license",
-    "instant delivery software license",
-    "lifetime Windows license India",
-    "affordable Office 365 subscription",
-    "authentic Microsoft product key",
-    "digital license instant download",
-    "buy Windows key cheap India",
-    "Office license key instant delivery",
-    // Product-specific
-    "Windows 11 Pro activation key",
-    "Windows 10 Home license",
-    "Office Home and Business 2024",
-    "Microsoft 365 Family India",
+    "genuine license key",
+    "authentic software key",
+
+    // === WINDOWS KEYWORDS ===
+    "Windows 11 key",
+    "Windows 11 Pro key",
+    "Windows 11 Home key",
+    "Windows 11 license",
+    "Windows 11 product key",
+    "Windows 11 activation key",
+    "Windows 11 Pro license India",
+    "buy Windows 11 key online",
+    "cheap Windows 11 license",
     "Windows 11 digital key",
-    "Office 2024 digital license",
-    // Brand
+    "Windows 10 key",
+    "Windows 10 Pro key",
+    "Windows 10 Home key",
+    "Windows 10 license India",
+    "Windows 10 product key cheap",
+    "Windows 10 activation key online",
+
+    // === OFFICE KEYWORDS ===
+    "Office 2024 key",
+    "Office 2024 license",
+    "Office 2024 product key",
+    "Office 2024 Pro Plus key",
+    "Microsoft Office 2024 India",
+    "Office 2021 key",
+    "Office 2021 license",
+    "Office 2021 Pro Plus",
+    "Office 2021 Home and Business",
+    "Office 2019 key",
+    "cheap Office license India",
+    "Office license key instant delivery",
+
+    // === MICROSOFT 365 KEYWORDS ===
+    "Microsoft 365",
+    "Microsoft 365 subscription",
+    "Microsoft 365 Family",
+    "Microsoft 365 Personal",
+    "Microsoft 365 Business",
+    "Office 365 subscription India",
+    "M365 license cheap",
+
+    // === PRICING & PURCHASE KEYWORDS ===
+    "buy software license online India",
+    "cheap software license",
+    "affordable license key",
+    "lowest price Windows key",
+    "discount Office license",
+    "best price Microsoft license",
+    "software key low price India",
+
+    // === DELIVERY & TRUST KEYWORDS ===
+    "instant delivery license key",
+    "instant download software",
+    "email delivery license",
+    "genuine software India",
+    "authentic Microsoft key",
+    "100% genuine license",
+    "lifetime license key",
+    "permanent activation key",
+    "legal software license",
+
+    // === INDIA SPECIFIC ===
+    "software license India",
+    "Microsoft India",
+    "Windows key India",
+    "Office key India",
+    "buy license India",
+    "software store India",
+    "digital software India",
+
+    // === MAC KEYWORDS ===
+    "Office for Mac",
+    "Office 2024 Mac",
+    "Microsoft Office Mac license",
+
+    // === BRAND ===
     "SimplySolutions",
     "SimplySolutions India",
+    "SimplySolutions software",
   ],
   applicationName: "SimplySolutions",
   authors: [{ name: "SimplySolutions", url: BASE_URL }],
