@@ -117,14 +117,14 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
 
     const hasActiveFilters = statusFilter !== 'all' || typeFilter !== 'all' || searchQuery || dateFilter !== 'all';
 
-    // Consistent color scheme - using slate/indigo theme
+    // Type badge colors - theme compatible
     const getTypeBadge = (type: string | null) => {
         const displayType = type || 'other';
         const colors: Record<string, string> = {
-            autocad: 'bg-rose-500/20 text-rose-400 border border-rose-500/30',
-            canva: 'bg-violet-500/20 text-violet-400 border border-violet-500/30',
-            '365e5': 'bg-sky-500/20 text-sky-400 border border-sky-500/30',
-            other: 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+            autocad: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+            canva: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
+            '365e5': 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
+            other: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
         };
         return (
             <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${colors[displayType] || colors.other}`}>
@@ -328,17 +328,17 @@ Email - ${request.email || '-'}`;
             </div>
 
             {/* Filters Bar */}
-            <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4 shadow-lg">
+            <div className="bg-card border rounded-xl p-4 shadow-sm">
                 <div className="flex flex-wrap items-center gap-3">
                     {/* Search */}
                     <div className="relative flex-1 min-w-[200px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search by email, order ID, or phone..."
-                            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900/50 border border-slate-600 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-background border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
 
@@ -346,7 +346,7 @@ Email - ${request.email || '-'}`;
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as any)}
-                        className="px-4 py-2.5 rounded-lg bg-slate-900/50 border border-slate-600 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="px-4 py-2.5 rounded-lg bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
@@ -357,7 +357,7 @@ Email - ${request.email || '-'}`;
                     <select
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className="px-4 py-2.5 rounded-lg bg-slate-900/50 border border-slate-600 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="px-4 py-2.5 rounded-lg bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="all">All Types</option>
                         {types.map(type => (
@@ -369,7 +369,7 @@ Email - ${request.email || '-'}`;
                     <select
                         value={dateFilter}
                         onChange={(e) => setDateFilter(e.target.value as any)}
-                        className="px-4 py-2.5 rounded-lg bg-slate-900/50 border border-slate-600 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="px-4 py-2.5 rounded-lg bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="all">All Time</option>
                         <option value="today">Today</option>
@@ -381,7 +381,7 @@ Email - ${request.email || '-'}`;
                     {hasActiveFilters && (
                         <button
                             onClick={clearFilters}
-                            className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                             <X className="h-4 w-4" />
                             Clear
@@ -391,114 +391,110 @@ Email - ${request.email || '-'}`;
 
                 {/* Active Filters Summary */}
                 {hasActiveFilters && (
-                    <div className="mt-3 pt-3 border-t border-slate-700">
-                        <p className="text-sm text-slate-400">
-                            Showing <span className="font-semibold text-indigo-400">{filteredRequests.length}</span> of {requests.length} requests
+                    <div className="mt-3 pt-3 border-t">
+                        <p className="text-sm text-muted-foreground">
+                            Showing <span className="font-semibold text-primary">{filteredRequests.length}</span> of {requests.length} requests
                         </p>
                     </div>
                 )}
             </div>
 
             {/* Table */}
-            <div className="bg-slate-900/50 backdrop-blur border border-slate-700 rounded-xl overflow-hidden shadow-lg">
-                <table className="w-full">
-                    <thead className="bg-slate-800/80 border-b border-slate-700">
-                        <tr>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Email</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Order ID</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Type</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">FSN</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Mobile</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700/50">
-                        {filteredRequests.map((request, index) => (
-                            <tr
-                                key={request.id}
-                                className={`transition-colors ${index % 2 === 0
-                                        ? 'bg-slate-800/30'
-                                        : 'bg-slate-800/10'
-                                    } ${!request.is_completed
-                                        ? 'hover:bg-amber-900/20'
-                                        : 'hover:bg-slate-700/50'
-                                    }`}
-                            >
-                                <td className="px-4 py-3.5 text-sm text-slate-200 font-medium">
-                                    {request.email || 'NA'}
-                                </td>
-                                <td className="px-4 py-3.5 font-mono text-sm text-slate-300">
-                                    {request.order_id || '-'}
-                                </td>
-                                <td className="px-4 py-3.5">{getTypeBadge(request.request_type)}</td>
-                                <td className="px-4 py-3.5">
-                                    {request.fsn && (
-                                        <span className="px-2 py-1 rounded text-xs font-mono bg-slate-700/50 text-slate-300 border border-slate-600">
-                                            {request.fsn}
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="px-4 py-3.5 text-sm text-slate-300">
-                                    {request.mobile_number || '-'}
-                                </td>
-                                <td className="px-4 py-3.5">
-                                    {request.is_completed ? (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                            <CheckCircle className="h-3 w-3" /> Completed
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                                            <Clock className="h-3 w-3" /> Pending
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="px-4 py-3.5 text-sm text-slate-400">
-                                    {new Date(request.created_at).toLocaleDateString('en-IN', {
-                                        day: '2-digit',
-                                        month: 'short',
-                                        year: 'numeric'
-                                    })}
-                                </td>
-                                <td className="px-4 py-3.5">
-                                    <div className="flex items-center gap-2">
-                                        {/* View Customer Data Button */}
-                                        <button
-                                            onClick={() => handleViewCustomerData(request)}
-                                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-colors"
-                                            title="View Customer Data"
-                                        >
-                                            <Eye className="h-3.5 w-3.5" />
-                                            View
-                                        </button>
-
-                                        {/* Complete Button */}
-                                        {!request.is_completed ? (
-                                            <button
-                                                onClick={() => handleOpenCompleteModal(request)}
-                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-colors"
-                                                title="Complete Request & Send Notification"
-                                            >
-                                                <Send className="h-3.5 w-3.5" /> Complete
-                                            </button>
-                                        ) : (
-                                            <span className="text-xs text-slate-500">Completed</span>
-                                        )}
-                                    </div>
-                                </td>
+            <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-muted/50 border-b">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Order ID</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">FSN</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Mobile</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                            {filteredRequests.map((request) => (
+                                <tr
+                                    key={request.id}
+                                    className="hover:bg-muted/50 transition-colors"
+                                >
+                                    <td className="px-4 py-3 text-sm font-medium">
+                                        {request.email || 'NA'}
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-sm text-muted-foreground">
+                                        {request.order_id || '-'}
+                                    </td>
+                                    <td className="px-4 py-3">{getTypeBadge(request.request_type)}</td>
+                                    <td className="px-4 py-3">
+                                        {request.fsn && (
+                                            <span className="px-2 py-1 rounded text-xs font-mono bg-muted text-muted-foreground">
+                                                {request.fsn}
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                                        {request.mobile_number || '-'}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {request.is_completed ? (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                                <CheckCircle className="h-3 w-3" /> Completed
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                                <Clock className="h-3 w-3" /> Pending
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                                        {new Date(request.created_at).toLocaleDateString('en-IN', {
+                                            day: '2-digit',
+                                            month: 'short',
+                                            year: 'numeric'
+                                        })}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="flex items-center gap-2">
+                                            {/* View Customer Data Button */}
+                                            <button
+                                                onClick={() => handleViewCustomerData(request)}
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                                                title="View Customer Data"
+                                            >
+                                                <Eye className="h-3.5 w-3.5" />
+                                                View
+                                            </button>
+
+                                            {/* Complete Button */}
+                                            {!request.is_completed ? (
+                                                <button
+                                                    onClick={() => handleOpenCompleteModal(request)}
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+                                                    title="Complete Request & Send Notification"
+                                                >
+                                                    <Send className="h-3.5 w-3.5" /> Complete
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground">Done</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
                 {filteredRequests.length === 0 && (
                     <div className="p-12 text-center">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-700/50 flex items-center justify-center">
-                            <Filter className="h-8 w-8 text-slate-500" />
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                            <Filter className="h-8 w-8 text-muted-foreground" />
                         </div>
-                        <p className="text-slate-400 font-medium">No requests found</p>
-                        <p className="text-sm text-slate-500 mt-1">Try adjusting your filters</p>
+                        <p className="text-muted-foreground font-medium">No requests found</p>
+                        <p className="text-sm text-muted-foreground mt-1">Try adjusting your filters</p>
                     </div>
                 )}
             </div>
@@ -528,8 +524,8 @@ Email - ${request.email || '-'}`;
                             <button
                                 onClick={handleCopyData}
                                 className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${copied
-                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                        : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30'
                                     }`}
                             >
                                 {copied ? (
