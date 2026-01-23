@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Mail, Send, CheckCircle, Loader2, ShoppingCart, HelpCircle, Package, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function AutoCADPage() {
+function AutoCADContent() {
     const searchParams = useSearchParams();
     const [orderId, setOrderId] = useState('');
     const [email, setEmail] = useState('');
@@ -313,5 +313,17 @@ export default function AutoCADPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function AutoCADPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#EAEDED] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-[#FF9900]" />
+            </div>
+        }>
+            <AutoCADContent />
+        </Suspense>
     );
 }

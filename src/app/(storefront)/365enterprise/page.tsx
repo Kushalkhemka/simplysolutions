@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink, Clock, Search, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,7 +12,7 @@ interface CompletedRequest {
     lastName: string;
 }
 
-export default function Enterprise365Page() {
+function Enterprise365Content() {
     const searchParams = useSearchParams();
     const [orderId, setOrderId] = useState('');
     const [email, setEmail] = useState('');
@@ -558,5 +558,17 @@ export default function Enterprise365Page() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function Enterprise365Page() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#EAEDED] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-[#FF9900]" />
+            </div>
+        }>
+            <Enterprise365Content />
+        </Suspense>
     );
 }

@@ -51,7 +51,12 @@ export default function ProductsClient() {
             console.error('Error fetching products:', error);
             toast.error('Failed to load products');
         } else {
-            setProducts(data || []);
+            // Map data to handle Supabase's array response for relations
+            const mappedProducts: Product[] = (data || []).map((p: any) => ({
+                ...p,
+                category: Array.isArray(p.category) ? p.category[0] || null : p.category
+            }));
+            setProducts(mappedProducts);
         }
         setIsLoading(false);
     };
@@ -300,8 +305,8 @@ export default function ProductsClient() {
                                 <button
                                     onClick={() => setBulkUpdateType('percent')}
                                     className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition ${bulkUpdateType === 'percent'
-                                            ? 'bg-primary text-primary-foreground border-primary'
-                                            : 'hover:bg-muted'
+                                        ? 'bg-primary text-primary-foreground border-primary'
+                                        : 'hover:bg-muted'
                                         }`}
                                 >
                                     <Percent className="h-4 w-4 inline mr-2" />
@@ -310,8 +315,8 @@ export default function ProductsClient() {
                                 <button
                                     onClick={() => setBulkUpdateType('fixed')}
                                     className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition ${bulkUpdateType === 'fixed'
-                                            ? 'bg-primary text-primary-foreground border-primary'
-                                            : 'hover:bg-muted'
+                                        ? 'bg-primary text-primary-foreground border-primary'
+                                        : 'hover:bg-muted'
                                         }`}
                                 >
                                     <DollarSign className="h-4 w-4 inline mr-2" />
@@ -324,8 +329,8 @@ export default function ProductsClient() {
                                 <button
                                     onClick={() => setBulkUpdateDirection('increase')}
                                     className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition ${bulkUpdateDirection === 'increase'
-                                            ? 'bg-green-600 text-white border-green-600'
-                                            : 'hover:bg-muted'
+                                        ? 'bg-green-600 text-white border-green-600'
+                                        : 'hover:bg-muted'
                                         }`}
                                 >
                                     ↑ Increase
@@ -333,8 +338,8 @@ export default function ProductsClient() {
                                 <button
                                     onClick={() => setBulkUpdateDirection('decrease')}
                                     className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition ${bulkUpdateDirection === 'decrease'
-                                            ? 'bg-red-600 text-white border-red-600'
-                                            : 'hover:bg-muted'
+                                        ? 'bg-red-600 text-white border-red-600'
+                                        : 'hover:bg-muted'
                                         }`}
                                 >
                                     ↓ Decrease
