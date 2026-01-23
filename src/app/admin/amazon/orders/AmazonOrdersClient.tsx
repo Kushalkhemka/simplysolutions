@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2 } from 'lucide-react';
+import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2, Edit2, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AmazonOrder {
     id: string;
@@ -43,6 +44,11 @@ export default function AmazonOrdersClient() {
     const [selectedOrder, setSelectedOrder] = useState<OrderDetails | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
+    // License key editing state
+    const [isEditingKeys, setIsEditingKeys] = useState(false);
+    const [editedKeys, setEditedKeys] = useState<{ id: string, license_key: string }[]>([]);
+    const [isSavingKeys, setIsSavingKeys] = useState(false);
 
     // Filter state
     const [filterFsn, setFilterFsn] = useState<string>('all');
@@ -159,6 +165,63 @@ export default function AmazonOrdersClient() {
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedOrder(null);
+        setIsEditingKeys(false);
+        setEditedKeys([]);
+    };
+
+    const startEditingKeys = () => {
+        if (selectedOrder?.license_keys) {
+            setEditedKeys(selectedOrder.license_keys.map(k => ({ id: k.id, license_key: k.license_key })));
+            setIsEditingKeys(true);
+        }
+    };
+
+    const cancelEditingKeys = () => {
+        setIsEditingKeys(false);
+        setEditedKeys([]);
+    };
+
+    const updateEditedKey = (id: string, newKey: string) => {
+        setEditedKeys(prev => prev.map(k => k.id === id ? { ...k, license_key: newKey } : k));
+    };
+
+    const saveLicenseKeys = async () => {
+        setIsSavingKeys(true);
+        try {
+            // Update each license key in the database
+            for (const key of editedKeys) {
+                const { error } = await supabase
+                    .from('amazon_activation_license_keys')
+                    .update({ license_key: key.license_key })
+                    .eq('id', key.id);
+
+                if (error) {
+                    throw error;
+                }
+            }
+
+            // Update the local state
+            if (selectedOrder) {
+                const updatedKeys = selectedOrder.license_keys?.map(k => {
+                    const edited = editedKeys.find(e => e.id === k.id);
+                    return edited ? { ...k, license_key: edited.license_key } : k;
+                });
+                setSelectedOrder({
+                    ...selectedOrder,
+                    license_keys: updatedKeys,
+                    license_key: updatedKeys?.[0] || null
+                });
+            }
+
+            toast.success('License keys updated successfully!');
+            setIsEditingKeys(false);
+            setEditedKeys([]);
+        } catch (error) {
+            console.error('Error updating license keys:', error);
+            toast.error('Failed to update license keys');
+        } finally {
+            setIsSavingKeys(false);
+        }
     };
 
     const getStatusBadge = (status: string) => {
@@ -413,29 +476,94 @@ export default function AmazonOrdersClient() {
                                         <Key className="h-5 w-5 text-green-600" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                                            License Key{selectedOrder.license_keys && selectedOrder.license_keys.length > 1 ? 's' : ''}
-                                            {selectedOrder.license_keys && selectedOrder.license_keys.length > 1 && (
-                                                <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                                                    {selectedOrder.license_keys.length} keys (Combo)
-                                                </span>
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                                                License Key{selectedOrder.license_keys && selectedOrder.license_keys.length > 1 ? 's' : ''}
+                                                {selectedOrder.license_keys && selectedOrder.license_keys.length > 1 && (
+                                                    <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                                        {selectedOrder.license_keys.length} keys (Combo)
+                                                    </span>
+                                                )}
+                                            </p>
+                                            {selectedOrder.license_keys && selectedOrder.license_keys.length > 0 && !isEditingKeys && (
+                                                <button
+                                                    onClick={startEditingKeys}
+                                                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                                                    title="Edit license keys"
+                                                >
+                                                    <Edit2 className="h-3 w-3" />
+                                                    Edit
+                                                </button>
                                             )}
-                                        </p>
+                                            {isEditingKeys && (
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={cancelEditingKeys}
+                                                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                                        disabled={isSavingKeys}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        onClick={saveLicenseKeys}
+                                                        disabled={isSavingKeys}
+                                                        className="flex items-center gap-1 text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transition-colors disabled:opacity-50"
+                                                    >
+                                                        {isSavingKeys ? (
+                                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                                        ) : (
+                                                            <Save className="h-3 w-3" />
+                                                        )}
+                                                        Save
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                         {selectedOrder.license_keys && selectedOrder.license_keys.length > 0 ? (
                                             <div className="space-y-2 mt-2">
-                                                {selectedOrder.license_keys.map((key, index) => (
-                                                    <div key={key.id} className="p-2 bg-white dark:bg-slate-800 rounded border">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-muted-foreground">#{index + 1}</span>
-                                                            {key.fsn && (
-                                                                <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
-                                                                    {key.fsn}
-                                                                </span>
-                                                            )}
+                                                {isEditingKeys ? (
+                                                    // Editable mode
+                                                    editedKeys.map((key, index) => {
+                                                        const originalKey = selectedOrder.license_keys?.find(k => k.id === key.id);
+                                                        return (
+                                                            <div key={key.id} className="p-2 bg-white dark:bg-slate-800 rounded border border-blue-300">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <span className="text-xs text-muted-foreground">#{index + 1}</span>
+                                                                    {originalKey?.fsn && (
+                                                                        <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                                                            {originalKey.fsn}
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                                                        Editing
+                                                                    </span>
+                                                                </div>
+                                                                <input
+                                                                    type="text"
+                                                                    value={key.license_key}
+                                                                    onChange={(e) => updateEditedKey(key.id, e.target.value)}
+                                                                    className="w-full font-mono text-sm p-2 border rounded bg-background focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                                    placeholder="Enter license key..."
+                                                                />
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    // View mode
+                                                    selectedOrder.license_keys.map((key, index) => (
+                                                        <div key={key.id} className="p-2 bg-white dark:bg-slate-800 rounded border">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs text-muted-foreground">#{index + 1}</span>
+                                                                {key.fsn && (
+                                                                    <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                                                        {key.fsn}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className="font-mono font-medium break-all mt-1">{key.license_key}</p>
                                                         </div>
-                                                        <p className="font-mono font-medium break-all mt-1">{key.license_key}</p>
-                                                    </div>
-                                                ))}
+                                                    ))
+                                                )}
                                             </div>
                                         ) : (
                                             <p className="font-mono font-medium break-all">
