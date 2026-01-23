@@ -45,27 +45,54 @@ export async function POST(request: NextRequest) {
 
         // Check if order exists and if GetCID was already used
         // Identifier can be either:
-        // - order_id (Digital: 15-17 digit secret code)
+        // - order_id (Digital: 14-17 digit secret code)
         // - amazon_order_id (FBA: XXX-XXXXXXX-XXXXXXX format)
-        const cleanIdentifier = identifier.trim();
-        const isSecretCode = /^\d{15,17}$/.test(cleanIdentifier);
+        // Trim whitespace thoroughly
+        const cleanIdentifier = identifier.trim().replace(/\s+/g, '');
+
+        // Secret code: 14-17 digits (no hyphens)
+        const isSecretCode = /^\d{14,17}$/.test(cleanIdentifier);
+        // Amazon Order ID: XXX-XXXXXXX-XXXXXXX (any digits, with hyphens at fixed positions)
         const isAmazonOrderId = /^\d{3}-\d{7}-\d{7}$/.test(cleanIdentifier);
+
+        console.log(`GetCID lookup: identifier="${cleanIdentifier}", isSecretCode=${isSecretCode}, isAmazonOrderId=${isAmazonOrderId}`);
 
         if (!isSecretCode && !isAmazonOrderId) {
             return NextResponse.json({
-                error: 'Invalid format. Please enter a 15-digit secret code OR Amazon Order ID (e.g., 408-1234567-1234567).'
+                error: 'Invalid format. Please enter a 14-17 digit secret code OR Amazon Order ID (e.g., 403-1234567-1234567).'
             }, { status: 400 });
         }
 
         // Search by order_id for both secret codes and Amazon Order IDs
         // since both are stored in the order_id field
-        const { data: order } = await supabase
+        // Try exact match first, then fallback to case-insensitive search
+        let order = null;
+
+        // First try exact match
+        const { data: exactMatch } = await supabase
             .from('amazon_orders')
             .select('id, order_id, fsn, quantity, getcid_used, getcid_count')
             .eq('order_id', cleanIdentifier)
             .single();
 
+        if (exactMatch) {
+            order = exactMatch;
+        } else {
+            // Fallback: try case-insensitive search with ilike
+            const { data: ilikeMatch } = await supabase
+                .from('amazon_orders')
+                .select('id, order_id, fsn, quantity, getcid_used, getcid_count')
+                .ilike('order_id', cleanIdentifier)
+                .single();
+
+            if (ilikeMatch) {
+                order = ilikeMatch;
+            }
+        }
+
         if (!order) {
+            // Log for debugging
+            console.error(`Order not found: ${cleanIdentifier}, isAmazonOrderId: ${isAmazonOrderId}`);
             return NextResponse.json({
                 error: isAmazonOrderId
                     ? 'Amazon Order ID not found. Please check your order ID.'

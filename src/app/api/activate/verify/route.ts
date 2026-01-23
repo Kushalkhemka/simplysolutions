@@ -29,18 +29,32 @@ export async function POST(request: NextRequest) {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         let order = null;
-        let orderError = null;
 
         // Search in amazon_orders by order_id (works for both secret codes and amazon order IDs)
-        const result = await supabase
+        // Try exact match first
+        const { data: exactMatch } = await supabase
             .from('amazon_orders')
             .select('id, order_id, fsn, license_key_id, fulfillment_type')
             .eq('order_id', cleanCode)
             .single();
-        order = result.data;
-        orderError = result.error;
 
-        if (orderError || !order) {
+        if (exactMatch) {
+            order = exactMatch;
+        } else {
+            // Fallback: try case-insensitive search
+            const { data: ilikeMatch } = await supabase
+                .from('amazon_orders')
+                .select('id, order_id, fsn, license_key_id, fulfillment_type')
+                .ilike('order_id', cleanCode)
+                .single();
+
+            if (ilikeMatch) {
+                order = ilikeMatch;
+            }
+        }
+
+        if (!order) {
+            console.error(`Order not found in verify: ${cleanCode}`);
             return NextResponse.json({
                 valid: false,
                 error: isAmazonOrderId

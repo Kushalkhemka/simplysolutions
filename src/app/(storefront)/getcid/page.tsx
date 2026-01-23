@@ -30,13 +30,15 @@ export default function GetCIDPage() {
             return;
         }
 
-        // Validate format: either 15-17 digit secret code OR Amazon Order ID (XXX-XXXXXXX-XXXXXXX)
-        const cleanCode = secretCode.trim();
-        const isSecretCode = /^\d{15,17}$/.test(cleanCode);
+        // Clean code: remove all whitespace
+        const cleanCode = secretCode.trim().replace(/\s+/g, '');
+
+        // Validate format: either 14-17 digit secret code OR Amazon Order ID (XXX-XXXXXXX-XXXXXXX)
+        const isSecretCode = /^\d{14,17}$/.test(cleanCode);
         const isAmazonOrderId = /^\d{3}-\d{7}-\d{7}$/.test(cleanCode);
 
         if (!isSecretCode && !isAmazonOrderId) {
-            toast.error('Please enter a valid 15-digit secret code or Amazon Order ID');
+            toast.error('Please enter a valid 14-17 digit secret code or Amazon Order ID');
             return;
         }
 
