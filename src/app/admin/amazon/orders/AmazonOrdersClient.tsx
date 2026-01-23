@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2, Edit2, Save } from 'lucide-react';
+import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2, Edit2, Save, Phone } from 'lucide-react';
 import { toast } from 'sonner';
+import { isComboProduct } from '@/lib/amazon/combo-products';
 
 interface AmazonOrder {
     id: string;
@@ -14,6 +15,8 @@ interface AmazonOrder {
     warranty_status: string;
     fulfillment_type: string;
     getcid_used: boolean;
+    getcid_count: number | null;
+    quantity: number | null;
     installation_id: string | null;
     confirmation_id: string | null;
     product_title: string | null;
@@ -641,17 +644,42 @@ export default function AmazonOrdersClient() {
                                         <div className="mt-1">{getStatusBadge(selectedOrder.warranty_status)}</div>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">GetCID Status</p>
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">GetCID Usage</p>
                                         <div className="mt-1">
-                                            {selectedOrder.getcid_used ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    <CheckCircle className="h-3 w-3" /> Used
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                    Not Used
-                                                </span>
-                                            )}
+                                            {(() => {
+                                                const isCombo = selectedOrder.fsn ? isComboProduct(selectedOrder.fsn) : false;
+                                                const qty = selectedOrder.quantity || 1;
+                                                const itemsPerOrder = isCombo ? 2 : 1;
+                                                const maxUses = qty * itemsPerOrder;
+                                                const usedCount = selectedOrder.getcid_count || 0;
+                                                const remaining = maxUses - usedCount;
+
+                                                return (
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-1">
+                                                            <Phone className="h-3 w-3 text-muted-foreground" />
+                                                            <span className={`font-bold ${usedCount >= maxUses ? 'text-red-600' : 'text-green-600'}`}>
+                                                                {usedCount}
+                                                            </span>
+                                                            <span className="text-muted-foreground">/</span>
+                                                            <span className="font-medium">{maxUses}</span>
+                                                        </div>
+                                                        {usedCount >= maxUses ? (
+                                                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                                Exhausted
+                                                            </span>
+                                                        ) : usedCount > 0 ? (
+                                                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                                {remaining} left
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                                Not Used
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
