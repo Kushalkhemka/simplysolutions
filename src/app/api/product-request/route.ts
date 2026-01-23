@@ -157,16 +157,25 @@ export async function POST(request: NextRequest) {
         const fsn = order.fsn || REQUEST_TYPE_TO_FSN[requestType] || `${requestType.toUpperCase()}-REQ`;
 
         // Create new request in product_requests
+        const insertData: any = {
+            email: email.trim(),
+            order_id: cleanOrderId,
+            fsn: fsn,
+            mobile_number: mobileNumber || null,
+            is_completed: false,
+            request_type: requestType
+        };
+
+        // For 365e5, also save the name fields
+        if (requestType === '365e5') {
+            insertData.first_name = firstName?.trim() || null;
+            insertData.last_name = lastName?.trim() || null;
+            insertData.username_prefix = usernamePrefix?.toLowerCase().trim() || null;
+        }
+
         const { data, error } = await supabase
             .from('product_requests')
-            .insert({
-                email: email.trim(),
-                order_id: cleanOrderId,
-                fsn: fsn,
-                mobile_number: mobileNumber || null,
-                is_completed: false,
-                request_type: requestType // Store the type (canva, autocad, 365e5, etc.)
-            })
+            .insert(insertData)
             .select()
             .single();
 
