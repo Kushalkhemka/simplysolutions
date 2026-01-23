@@ -98,6 +98,11 @@ const nextConfig: NextConfig = {
         destination: '/admin',
         permanent: true,
       },
+      {
+        source: '/get-cid',
+        destination: '/getcid',
+        permanent: true,
+      },
     ];
   },
 };
