@@ -8,7 +8,7 @@ interface CategoryPageProps {
     params: Promise<{ slug: string }>;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.in';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co.in';
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
     const { slug } = await params;

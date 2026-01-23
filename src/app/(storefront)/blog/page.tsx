@@ -5,7 +5,7 @@ import { BLOG_POSTS } from '@/data/blog-posts';
 import { ArrowRight, Calendar, User } from 'lucide-react';
 import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.in';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co.in';
 
 export const metadata: Metadata = {
     title: 'Knowledge Hub - Software Guides & Tips | SimplySolutions',

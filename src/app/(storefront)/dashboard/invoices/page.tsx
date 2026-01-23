@@ -44,7 +44,7 @@ export default function InvoicesPage() {
 INVOICE
 =====================================
 SimplySolutions
-support@simplysolutions.store
+support@simplysolutions.co.in
 =====================================
 
 Invoice Number: INV-${order.order_number}

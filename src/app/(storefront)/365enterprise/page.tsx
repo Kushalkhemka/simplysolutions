@@ -551,8 +551,8 @@ function Enterprise365Content() {
                     <div className="mt-6 text-center">
                         <p className="text-sm text-[#565959]">
                             Need help? Contact us at{' '}
-                            <a href="mailto:support@simplysolutions.store" className="text-[#007185] hover:underline">
-                                support@simplysolutions.store
+                            <a href="mailto:support@simplysolutions.co.in" className="text-[#007185] hover:underline">
+                                support@simplysolutions.co.in
                             </a>
                         </p>
                     </div>
