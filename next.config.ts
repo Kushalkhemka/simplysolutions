@@ -79,6 +79,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/office2024mac',
+        destination: '/installation-docs/office2024mac',
+        permanent: true,
+      },
+      {
         source: '/warranty',
         destination: '/digital-warranty',
         permanent: true,
