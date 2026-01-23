@@ -11,9 +11,33 @@ export default async function ProductRequestsPage() {
         .order('created_at', { ascending: false })
         .limit(500);
 
+    // For 365e5 requests, fetch additional data from office365_requests
+    const requestsWithNames = await Promise.all(
+        (requests || []).map(async (req) => {
+            // If it's a 365e5 request and doesn't have name data, fetch from office365_requests
+            if (req.request_type === '365e5' && (!req.first_name || !req.last_name)) {
+                const { data: office365Data } = await supabase
+                    .from('office365_requests')
+                    .select('first_name, last_name, username_prefix')
+                    .eq('order_id', req.order_id)
+                    .single();
+
+                if (office365Data) {
+                    return {
+                        ...req,
+                        first_name: req.first_name || office365Data.first_name,
+                        last_name: req.last_name || office365Data.last_name,
+                        username_prefix: req.username_prefix || office365Data.username_prefix,
+                    };
+                }
+            }
+            return req;
+        })
+    );
+
     return (
         <RequestsClient
-            requests={requests || []}
+            requests={requestsWithNames}
             totalCount={count || 0}
         />
     );

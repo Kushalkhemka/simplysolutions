@@ -190,6 +190,17 @@ Email - ${request.email || '-'}`;
         }
     };
 
+    // Quick copy from table row (no modal needed)
+    const handleQuickCopy = async (request: ProductRequest) => {
+        const data = getFormattedCustomerData(request);
+        try {
+            await navigator.clipboard.writeText(data);
+            toast.success('Copied!');
+        } catch (err) {
+            toast.error('Failed to copy');
+        }
+    };
+
     const handleCompleteRequest = async () => {
         if (!selectedRequest) return;
 
@@ -457,28 +468,36 @@ Email - ${request.email || '-'}`;
                                         })}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1.5">
+                                            {/* Quick Copy Button */}
+                                            <button
+                                                onClick={() => handleQuickCopy(request)}
+                                                className="inline-flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                                                title="Copy customer data"
+                                            >
+                                                <Copy className="h-3.5 w-3.5" />
+                                            </button>
+
                                             {/* View Customer Data Button */}
                                             <button
                                                 onClick={() => handleViewCustomerData(request)}
-                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                                                title="View Customer Data"
+                                                className="inline-flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                                                title="View customer data"
                                             >
                                                 <Eye className="h-3.5 w-3.5" />
-                                                View
                                             </button>
 
                                             {/* Complete Button */}
                                             {!request.is_completed ? (
                                                 <button
                                                     onClick={() => handleOpenCompleteModal(request)}
-                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
-                                                    title="Complete Request & Send Notification"
+                                                    className="inline-flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+                                                    title="Complete request"
                                                 >
-                                                    <Send className="h-3.5 w-3.5" /> Complete
+                                                    <Send className="h-3.5 w-3.5" />
                                                 </button>
                                             ) : (
-                                                <span className="text-xs text-muted-foreground">Done</span>
+                                                <span className="text-xs text-green-600 dark:text-green-400">✓</span>
                                             )}
                                         </div>
                                     </td>
@@ -501,31 +520,31 @@ Email - ${request.email || '-'}`;
 
             {/* View Customer Data Modal */}
             {showViewModal && viewRequest && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div className="p-5 border-b border-slate-700 flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                <Eye className="h-5 w-5 text-cyan-400" />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="bg-card border rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="p-4 border-b flex items-center justify-between">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <Eye className="h-5 w-5 text-primary" />
                                 Customer Data
                             </h3>
                             <button
                                 onClick={() => setShowViewModal(false)}
-                                className="text-slate-400 hover:text-white transition-colors"
+                                className="p-1 hover:bg-muted rounded transition-colors"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="p-5">
-                            <div className="bg-slate-900/50 border border-slate-600 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap text-slate-200">
+                        <div className="p-4">
+                            <div className="bg-muted rounded-lg p-4 font-mono text-sm whitespace-pre-wrap">
                                 {getFormattedCustomerData(viewRequest)}
                             </div>
 
                             <button
                                 onClick={handleCopyData}
-                                className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${copied
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                    : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30'
+                                className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all ${copied
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-primary text-primary-foreground hover:bg-primary/90'
                                     }`}
                             >
                                 {copied ? (
@@ -539,15 +558,6 @@ Email - ${request.email || '-'}`;
                                         Copy to Clipboard
                                     </>
                                 )}
-                            </button>
-                        </div>
-
-                        <div className="p-4 bg-slate-900/50 border-t border-slate-700">
-                            <button
-                                onClick={() => setShowViewModal(false)}
-                                className="w-full px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
-                            >
-                                Close
                             </button>
                         </div>
                     </div>
