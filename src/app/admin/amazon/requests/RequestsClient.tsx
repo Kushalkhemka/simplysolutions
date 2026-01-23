@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CheckCircle, Clock, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle, Eye, Copy, Check } from 'lucide-react';
+import { CheckCircle, Clock, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle, Eye, Copy, Check, Mail, Key, User, Lock, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -41,6 +41,7 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
     const [showViewModal, setShowViewModal] = useState(false);
     const [viewRequest, setViewRequest] = useState<ProductRequest | null>(null);
     const [copied, setCopied] = useState(false);
+    const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
     // Filter states
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all');
@@ -198,6 +199,34 @@ Email - ${request.email || '-'}`;
             toast.success('Copied!');
         } catch (err) {
             toast.error('Failed to copy');
+        }
+    };
+
+    // Delete request
+    const handleDeleteRequest = async (request: ProductRequest) => {
+        if (!confirm(`Are you sure you want to delete this request?\n\nEmail: ${request.email}\nOrder: ${request.order_id || 'N/A'}\n\nThis action cannot be undone.`)) {
+            return;
+        }
+
+        setIsDeleting(request.id);
+        try {
+            const response = await fetch(`/api/admin/product-requests/${request.id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to delete request');
+            }
+
+            // Remove from local state
+            setRequests(prev => prev.filter(r => r.id !== request.id));
+            toast.success('Request deleted successfully');
+        } catch (error) {
+            console.error('Error deleting request:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to delete request');
+        } finally {
+            setIsDeleting(null);
         }
     };
 
@@ -468,37 +497,53 @@ Email - ${request.email || '-'}`;
                                         })}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <div className="flex items-center gap-1.5">
+                                        <div className="flex items-center gap-1">
                                             {/* Quick Copy Button */}
                                             <button
                                                 onClick={() => handleQuickCopy(request)}
-                                                className="inline-flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                                                className="w-8 h-8 inline-flex items-center justify-center rounded text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
                                                 title="Copy customer data"
                                             >
-                                                <Copy className="h-3.5 w-3.5" />
+                                                <Copy className="h-4 w-4" />
                                             </button>
 
                                             {/* View Customer Data Button */}
                                             <button
                                                 onClick={() => handleViewCustomerData(request)}
-                                                className="inline-flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                                                className="w-8 h-8 inline-flex items-center justify-center rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                                                 title="View customer data"
                                             >
-                                                <Eye className="h-3.5 w-3.5" />
+                                                <Eye className="h-4 w-4" />
                                             </button>
 
-                                            {/* Complete Button */}
-                                            {!request.is_completed ? (
-                                                <button
-                                                    onClick={() => handleOpenCompleteModal(request)}
-                                                    className="inline-flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
-                                                    title="Complete request"
-                                                >
-                                                    <Send className="h-3.5 w-3.5" />
-                                                </button>
-                                            ) : (
-                                                <span className="text-xs text-green-600 dark:text-green-400">✓</span>
-                                            )}
+                                            {/* Complete Button - fixed width container */}
+                                            <div className="w-8 h-8 flex items-center justify-center">
+                                                {!request.is_completed ? (
+                                                    <button
+                                                        onClick={() => handleOpenCompleteModal(request)}
+                                                        className="w-8 h-8 inline-flex items-center justify-center rounded text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+                                                        title="Complete request"
+                                                    >
+                                                        <Send className="h-4 w-4" />
+                                                    </button>
+                                                ) : (
+                                                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                                )}
+                                            </div>
+
+                                            {/* Delete Button */}
+                                            <button
+                                                onClick={() => handleDeleteRequest(request)}
+                                                disabled={isDeleting === request.id}
+                                                className="w-8 h-8 inline-flex items-center justify-center rounded text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50"
+                                                title="Delete request"
+                                            >
+                                                {isDeleting === request.id ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Trash2 className="h-4 w-4" />
+                                                )}
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -567,95 +612,123 @@ Email - ${request.email || '-'}`;
             {/* Completion Modal */}
             {showCompleteModal && selectedRequest && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div className="p-6 border-b border-slate-700">
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                <CheckCircle className="h-5 w-5 text-indigo-400" />
-                                Complete Request
-                            </h3>
-                            <p className="text-sm text-slate-400 mt-1">
-                                Order: <span className="font-mono text-slate-300">{selectedRequest.order_id || 'N/A'}</span>
-                            </p>
+                    <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                        {/* Header */}
+                        <div className="p-5 border-b border-border">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                                    <CheckCircle className="h-5 w-5 text-emerald-500" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-foreground">Complete Request</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Order: <code className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">{selectedRequest.order_id || 'N/A'}</code>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="p-6 space-y-4">
-                            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                        <div className="p-5 space-y-4">
+                            {/* Action Summary */}
+                            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
                                 <div className="flex items-start gap-3">
-                                    <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-                                    <div className="text-sm text-amber-200">
-                                        <p className="font-medium">Action Summary:</p>
-                                        <ul className="list-disc ml-4 mt-1 space-y-1 opacity-90">
-                                            <li>Mark request as completed</li>
-                                            <li>Update Amazon Order with "Subscription processed"</li>
-                                            <li>Send confirmation email to customer</li>
+                                    <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2">This will:</p>
+                                        <ul className="space-y-1.5 text-sm text-amber-600/80 dark:text-amber-400/80">
+                                            <li className="flex items-center gap-2">
+                                                <span className="w-1 h-1 rounded-full bg-amber-500"></span>
+                                                Mark request as completed
+                                            </li>
+                                            <li className="flex items-center gap-2">
+                                                <span className="w-1 h-1 rounded-full bg-amber-500"></span>
+                                                Update Amazon Order status
+                                            </li>
+                                            <li className="flex items-center gap-2">
+                                                <span className="w-1 h-1 rounded-full bg-amber-500"></span>
+                                                Send confirmation email
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                            {/* Subscription Email */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                                    <Mail className="h-4 w-4 text-muted-foreground" />
                                     Subscription Email
                                 </label>
                                 <input
                                     type="email"
                                     value={subscriptionEmail}
                                     onChange={(e) => setSubscriptionEmail(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-900/50 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                                    placeholder="email@example.com"
+                                    className="w-full px-3 py-2.5 rounded-lg border border-border bg-muted/50 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none transition-colors"
+                                    placeholder="customer@email.com"
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
-                                    The email where the subscription was activated (sent in notification)
+                                <p className="text-xs text-muted-foreground">
+                                    Email where the subscription was activated
                                 </p>
                             </div>
 
                             {selectedRequest.request_type === '365e5' && (
-                                <div className="space-y-4 pt-4 border-t border-slate-700">
-                                    <div className="bg-sky-500/10 border border-sky-500/30 rounded-lg p-3">
-                                        <p className="text-sm text-sky-300 font-medium">
-                                            Microsoft 365 Credentials Required
-                                        </p>
+                                <div className="space-y-4 pt-4 border-t border-border">
+                                    {/* Microsoft 365 Section */}
+                                    <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-3">
+                                        <div className="flex items-center gap-2">
+                                            <Key className="h-4 w-4 text-blue-500" />
+                                            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                                Microsoft 365 Credentials
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+
+                                    {/* Generated Email */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                                            <User className="h-4 w-4 text-muted-foreground" />
                                             Generated Email
                                         </label>
                                         <input
                                             type="email"
                                             value={generatedEmail}
                                             onChange={(e) => setGeneratedEmail(e.target.value)}
-                                            className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-900/50 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
+                                            className="w-full px-3 py-2.5 rounded-lg border border-border bg-muted/50 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none transition-colors font-mono text-sm"
                                             placeholder="username@tenant.onmicrosoft.com"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+
+                                    {/* Generated Password */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                                            <Lock className="h-4 w-4 text-muted-foreground" />
                                             Generated Password
                                         </label>
                                         <input
                                             type="text"
                                             value={generatedPassword}
                                             onChange={(e) => setGeneratedPassword(e.target.value)}
-                                            className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-900/50 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
-                                            placeholder="Temporary Password"
+                                            className="w-full px-3 py-2.5 rounded-lg border border-border bg-muted/50 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none transition-colors font-mono text-sm"
+                                            placeholder="Enter temporary password"
                                         />
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-4 bg-slate-900/50 border-t border-slate-700 flex justify-end gap-3">
+                        {/* Footer */}
+                        <div className="p-4 bg-muted/30 border-t border-border flex items-center justify-end gap-3">
                             <button
                                 onClick={() => setShowCompleteModal(false)}
                                 disabled={isCompleting}
-                                className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white disabled:opacity-50 transition-colors"
+                                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg disabled:opacity-50 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleCompleteRequest}
                                 disabled={isCompleting}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isCompleting ? (
                                     <>

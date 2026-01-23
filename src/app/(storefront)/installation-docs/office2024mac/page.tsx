@@ -78,7 +78,7 @@ export default function Office2024MacGuidePage() {
                         <div className="ml-14">
                             <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img1.webp"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/mac-Office-Issue-using-License-Removal-Tool.webp"
                                     alt="Office Removal Tool for Mac"
                                     width={500}
                                     height={350}
@@ -88,7 +88,7 @@ export default function Office2024MacGuidePage() {
                             </div>
                             <div className="mt-4 relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img2.png"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/c6e7669c-f638-40a8-99c1-fc0fb16d8805.png"
                                     alt="Follow on-screen instructions"
                                     width={500}
                                     height={350}
@@ -128,7 +128,7 @@ export default function Office2024MacGuidePage() {
                                     <p className="font-medium text-sm text-muted-foreground">FOR SERIALIZER:</p>
                                     <div className="relative rounded-xl overflow-hidden border shadow-lg">
                                         <Image
-                                            src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img3.png"
+                                            src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-07-225840.png"
                                             alt="Download Serializer"
                                             width={350}
                                             height={250}
@@ -141,7 +141,7 @@ export default function Office2024MacGuidePage() {
                                     <p className="font-medium text-sm text-muted-foreground">FOR INSTALLER.PKG:</p>
                                     <div className="relative rounded-xl overflow-hidden border shadow-lg">
                                         <Image
-                                            src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img4.png"
+                                            src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-12-07-225747.png"
                                             alt="Download Installer"
                                             width={350}
                                             height={250}
@@ -157,7 +157,7 @@ export default function Office2024MacGuidePage() {
                             </div>
                             <div className="relative w-full max-w-md mx-auto rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img5.jpg"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Whats-App-Image-2024-07-22-at-09-51-25-b5f54657.jpg"
                                     alt="Unzip Issue"
                                     width={350}
                                     height={200}
@@ -180,7 +180,7 @@ export default function Office2024MacGuidePage() {
                         <div className="ml-14">
                             <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img6.png"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-010206.png"
                                     alt="Extracted Files"
                                     width={500}
                                     height={300}
@@ -203,7 +203,7 @@ export default function Office2024MacGuidePage() {
                         <div className="ml-14 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="relative rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img7.png"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-010101.png"
                                     alt="Run Installer"
                                     width={350}
                                     height={250}
@@ -213,7 +213,7 @@ export default function Office2024MacGuidePage() {
                             </div>
                             <div className="relative rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img8.png"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-010932.png"
                                     alt="Installation Progress"
                                     width={350}
                                     height={250}
@@ -236,7 +236,7 @@ export default function Office2024MacGuidePage() {
                         <div className="ml-14 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="relative rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img9.png"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-010207.png"
                                     alt="Run Serializer"
                                     width={350}
                                     height={250}
@@ -246,7 +246,7 @@ export default function Office2024MacGuidePage() {
                             </div>
                             <div className="relative rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img10.png"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-011240.png"
                                     alt="Serializer Installation"
                                     width={350}
                                     height={250}
@@ -282,7 +282,7 @@ export default function Office2024MacGuidePage() {
                         <div className="ml-14 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="relative rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img11.png"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-011313.png"
                                     alt="About Excel Menu"
                                     width={350}
                                     height={250}
@@ -292,7 +292,7 @@ export default function Office2024MacGuidePage() {
                             </div>
                             <div className="relative rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://supabase-supabase2.exxngc.easypanel.host/storage/v1/object/public/product-assets/installation-guide-images/office2024mac_img12.png"
+                                    src="https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-011429.png"
                                     alt="Office Activated - Licensing Details"
                                     width={350}
                                     height={250}
