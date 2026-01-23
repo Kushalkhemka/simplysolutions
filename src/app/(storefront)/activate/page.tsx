@@ -1088,7 +1088,7 @@ export default function ActivatePage() {
                                                         type="text"
                                                         value={id}
                                                         onChange={(e) => handleInstallationIdChange(index, e.target.value)}
-                                                        className="w-full px-1 py-2 text-center font-mono text-xs border border-[#888C8C] rounded focus:outline-none focus:ring-2 focus:ring-[#FF9900] bg-white"
+                                                        className="w-full px-1 py-2 text-center font-mono text-xs border border-[#888C8C] rounded focus:outline-none focus:ring-2 focus:ring-[#FF9900] bg-white text-[#0F1111] placeholder:text-[#888C8C]"
                                                         maxLength={7}
                                                         placeholder="0000000"
                                                     />
