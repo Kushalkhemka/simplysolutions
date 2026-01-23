@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import type { Metadata } from 'next';
 import { ProductCard } from '@/components/product/ProductCard';
 import { HeroGrid } from '@/components/home/HeroGrid';
 import { BannerSlider } from '@/components/home/BannerSlider';
@@ -16,7 +17,60 @@ import { TrustpilotWidget } from '@/components/home/TrustpilotWidget';
 import { TestimonialsSection } from '@/components/home/TestimonialsSection';
 import { AmazonActivationBanner } from '@/components/home/AmazonActivationBanner';
 import { createClient } from '@/lib/supabase/server';
-import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/JsonLd';
+import { OrganizationJsonLd, WebSiteJsonLd, FAQJsonLd } from '@/components/seo/JsonLd';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co.in';
+
+// Homepage SEO Metadata for better rankings
+export const metadata: Metadata = {
+    title: 'Buy Genuine Digital License Keys Online India | Microsoft Software | SimplySolutions',
+    description: 'Buy genuine Microsoft digital license keys at lowest prices in India. Windows 11, Office 2024, Microsoft 365 with instant delivery. 100% authentic software keys with lifetime validity.',
+    keywords: [
+        'digital key',
+        'digital license key',
+        'Microsoft license keys India',
+        'buy software license key online',
+        'Windows digital key',
+        'Office license key',
+        'genuine Microsoft keys',
+        'instant delivery license',
+    ],
+    openGraph: {
+        title: 'SimplySolutions - Buy Digital License Keys Online India',
+        description: 'India\'s trusted store for genuine Microsoft digital license keys. Windows, Office & more with instant delivery.',
+        url: BASE_URL,
+        type: 'website',
+        images: [{
+            url: `${BASE_URL}/logo.png`,
+            width: 1200,
+            height: 630,
+            alt: 'SimplySolutions - Digital License Keys India',
+        }],
+    },
+    alternates: {
+        canonical: BASE_URL,
+    },
+};
+
+// FAQ data for rich snippets
+const homeFAQs = [
+    {
+        question: 'What is a digital license key?',
+        answer: 'A digital license key is a unique alphanumeric code that activates and authenticates your software. When you purchase from SimplySolutions, you receive your key instantly via email for immediate activation.',
+    },
+    {
+        question: 'Are your Microsoft license keys genuine?',
+        answer: 'Yes, all our Microsoft license keys are 100% genuine and authentic. We are an authorized reseller providing legitimate product keys with full Microsoft support and lifetime validity.',
+    },
+    {
+        question: 'How quickly will I receive my license key?',
+        answer: 'You will receive your digital license key instantly after payment. Our automated system delivers keys within minutes to your email address.',
+    },
+    {
+        question: 'Do your license keys work in India?',
+        answer: 'Yes, all our license keys work perfectly in India and worldwide. We specifically cater to Indian customers with localized pricing and support.',
+    },
+];
 
 async function getProducts(query: any, limit = 4) {
     const supabase = await createClient();
@@ -47,6 +101,7 @@ export default async function HomePage() {
             {/* JSON-LD Structured Data */}
             <OrganizationJsonLd />
             <WebSiteJsonLd />
+            <FAQJsonLd items={homeFAQs} />
 
             <div className="bg-background min-h-screen pb-12">
                 {/* 0. Trustpilot Widget (Top Strip) */}

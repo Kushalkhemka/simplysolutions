@@ -18,8 +18,15 @@ export const metadata: Metadata = {
     default: "SimplySolutions - Genuine Microsoft Software Licenses | Buy Windows & Office Keys India",
     template: "%s | SimplySolutions",
   },
-  description: "India's #1 trusted destination for genuine Microsoft software licenses. Buy Windows 11 Pro, Office 2024, Microsoft 365 & more at lowest prices with instant digital delivery. 100% authentic keys with lifetime validity & free support.",
+  description: "India's #1 trusted destination for genuine Microsoft software licenses. Buy Windows 11 Pro, Office 2024, Microsoft 365 & more at lowest prices with instant digital delivery. 100% authentic digital keys with lifetime validity & free support.",
   keywords: [
+    // HIGH-VALUE TARGET KEYWORDS
+    "digital key",
+    "digital license key",
+    "Microsoft license keys",
+    "Microsoft license keys India",
+    "software license key online",
+    "buy license key online India",
     // Primary keywords
     "Microsoft software",
     "genuine software license India",
@@ -36,11 +43,15 @@ export const metadata: Metadata = {
     "affordable Office 365 subscription",
     "authentic Microsoft product key",
     "digital license instant download",
+    "buy Windows key cheap India",
+    "Office license key instant delivery",
     // Product-specific
     "Windows 11 Pro activation key",
     "Windows 10 Home license",
     "Office Home and Business 2024",
     "Microsoft 365 Family India",
+    "Windows 11 digital key",
+    "Office 2024 digital license",
     // Brand
     "SimplySolutions",
     "SimplySolutions India",
