@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
     ShoppingCart,
@@ -58,6 +59,7 @@ interface ActivationResult {
 }
 
 export default function ActivatePage() {
+    const router = useRouter();
     const [secretCode, setSecretCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showOSModal, setShowOSModal] = useState(false);
@@ -187,6 +189,32 @@ export default function ActivatePage() {
                 setError(data.error || 'Invalid secret code');
                 setIsLoading(false);
                 return;
+            }
+
+            // Check if this is a subscription product that needs to be redirected to its specific page
+            if (data.fsn) {
+                const fsnUpper = data.fsn.toUpperCase();
+
+                // Redirect CANVA products to /canva page
+                if (fsnUpper.startsWith('CANVA')) {
+                    toast.info('Redirecting to Canva activation page...');
+                    router.push(`/canva?orderId=${encodeURIComponent(secretCode.trim())}`);
+                    return;
+                }
+
+                // Redirect AUTOCAD products to /autocad page
+                if (fsnUpper.startsWith('AUTOCAD')) {
+                    toast.info('Redirecting to AutoCAD activation page...');
+                    router.push(`/autocad?orderId=${encodeURIComponent(secretCode.trim())}`);
+                    return;
+                }
+
+                // Redirect 365E5 products to /365enterprise page
+                if (fsnUpper.startsWith('365E5') || fsnUpper.startsWith('365E')) {
+                    toast.info('Redirecting to Microsoft 365 Enterprise activation page...');
+                    router.push(`/365enterprise?orderId=${encodeURIComponent(secretCode.trim())}`);
+                    return;
+                }
             }
 
             // For already redeemed orders, still call handleGenerateKey to get all licenses (important for combos)

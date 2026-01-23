@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink, Clock, Search, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -12,6 +13,7 @@ interface CompletedRequest {
 }
 
 export default function Enterprise365Page() {
+    const searchParams = useSearchParams();
     const [orderId, setOrderId] = useState('');
     const [email, setEmail] = useState('');
     const [displayName, setDisplayName] = useState('');
@@ -24,6 +26,15 @@ export default function Enterprise365Page() {
     const [isVerifying, setIsVerifying] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isPendingRequest, setIsPendingRequest] = useState(false);
+
+    // Auto-fill order ID from query parameter
+    useEffect(() => {
+        const orderIdParam = searchParams.get('orderId');
+        if (orderIdParam) {
+            setOrderId(orderIdParam);
+            toast.info('Order ID filled from your previous entry');
+        }
+    }, [searchParams]);
 
     // Check if request is already completed
     const handleVerifyOrder = async () => {

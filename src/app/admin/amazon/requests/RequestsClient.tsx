@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CheckCircle, Clock, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle } from 'lucide-react';
+import { CheckCircle, Clock, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle, Eye, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -14,6 +14,10 @@ interface ProductRequest {
     mobile_number: string | null;
     is_completed: boolean;
     created_at: string;
+    prefix: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    username_prefix: string | null;
 }
 
 interface RequestsClientProps {
@@ -32,6 +36,11 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
     const [generatedPassword, setGeneratedPassword] = useState('');
     const [isCompleting, setIsCompleting] = useState(false);
     const [showCompleteModal, setShowCompleteModal] = useState(false);
+
+    // View Customer Data Modal State
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [viewRequest, setViewRequest] = useState<ProductRequest | null>(null);
+    const [copied, setCopied] = useState(false);
 
     // Filter states
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all');
@@ -112,10 +121,10 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
     const getTypeBadge = (type: string | null) => {
         const displayType = type || 'other';
         const colors: Record<string, string> = {
-            autocad: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
-            canva: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20',
-            '365e5': 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20',
-            other: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
+            autocad: 'bg-rose-500/20 text-rose-400 border border-rose-500/30',
+            canva: 'bg-violet-500/20 text-violet-400 border border-violet-500/30',
+            '365e5': 'bg-sky-500/20 text-sky-400 border border-sky-500/30',
+            other: 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
         };
         return (
             <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${colors[displayType] || colors.other}`}>
@@ -131,6 +140,54 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
         setGeneratedEmail('');
         setGeneratedPassword('');
         setShowCompleteModal(true);
+    };
+
+    // Generate formatted customer data for copying
+    const getFormattedCustomerData = (request: ProductRequest): string => {
+        const requestType = request.request_type?.toLowerCase();
+
+        if (requestType === '365e5') {
+            // Get product name based on FSN
+            const productName = request.fsn?.toUpperCase() || '365E5';
+            return `Product Name - ${productName}
+First Name - ${request.first_name || '-'}
+Last Name - ${request.last_name || '-'}
+Username - ${request.username_prefix || '-'}`;
+        } else if (requestType === 'autocad') {
+            // Determine if 1 year or 3 year based on FSN
+            let duration = '1 YEAR';
+            if (request.fsn?.toLowerCase().includes('3year')) {
+                duration = '3 YEAR';
+            }
+            return `Product Name - AUTOCAD ${duration}
+Email - ${request.email || '-'}`;
+        } else if (requestType === 'canva') {
+            return `Product Name - CANVA
+Email - ${request.email || '-'}`;
+        } else {
+            return `Product Type - ${request.request_type?.toUpperCase() || 'OTHER'}
+Email - ${request.email || '-'}`;
+        }
+    };
+
+    const handleViewCustomerData = (request: ProductRequest) => {
+        setViewRequest(request);
+        setCopied(false);
+        setShowViewModal(true);
+    };
+
+    const handleCopyData = async () => {
+        if (!viewRequest) return;
+
+        const data = getFormattedCustomerData(viewRequest);
+        try {
+            await navigator.clipboard.writeText(data);
+            setCopied(true);
+            toast.success('Customer data copied to clipboard!');
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            toast.error('Failed to copy to clipboard');
+        }
     };
 
     const handleCompleteRequest = async () => {
@@ -271,7 +328,7 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
             </div>
 
             {/* Filters Bar */}
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+            <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4 shadow-lg">
                 <div className="flex flex-wrap items-center gap-3">
                     {/* Search */}
                     <div className="relative flex-1 min-w-[200px]">
@@ -281,7 +338,7 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search by email, order ID, or phone..."
-                            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900/50 border border-slate-600 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                     </div>
 
@@ -289,7 +346,7 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as any)}
-                        className="px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="px-4 py-2.5 rounded-lg bg-slate-900/50 border border-slate-600 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
@@ -300,7 +357,7 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                     <select
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className="px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="px-4 py-2.5 rounded-lg bg-slate-900/50 border border-slate-600 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                         <option value="all">All Types</option>
                         {types.map(type => (
@@ -312,7 +369,7 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                     <select
                         value={dateFilter}
                         onChange={(e) => setDateFilter(e.target.value as any)}
-                        className="px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="px-4 py-2.5 rounded-lg bg-slate-900/50 border border-slate-600 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                         <option value="all">All Time</option>
                         <option value="today">Today</option>
@@ -324,7 +381,7 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                     {hasActiveFilters && (
                         <button
                             onClick={clearFilters}
-                            className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-400 hover:text-white transition-colors"
                         >
                             <X className="h-4 w-4" />
                             Clear
@@ -334,65 +391,70 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
 
                 {/* Active Filters Summary */}
                 {hasActiveFilters && (
-                    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            Showing <span className="font-semibold text-indigo-600 dark:text-indigo-400">{filteredRequests.length}</span> of {requests.length} requests
+                    <div className="mt-3 pt-3 border-t border-slate-700">
+                        <p className="text-sm text-slate-400">
+                            Showing <span className="font-semibold text-indigo-400">{filteredRequests.length}</span> of {requests.length} requests
                         </p>
                     </div>
                 )}
             </div>
 
             {/* Table */}
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-slate-900/50 backdrop-blur border border-slate-700 rounded-xl overflow-hidden shadow-lg">
                 <table className="w-full">
-                    <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+                    <thead className="bg-slate-800/80 border-b border-slate-700">
                         <tr>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Order ID</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">FSN</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Mobile</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Email</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Order ID</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Type</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">FSN</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Mobile</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                        {filteredRequests.map((request) => (
+                    <tbody className="divide-y divide-slate-700/50">
+                        {filteredRequests.map((request, index) => (
                             <tr
                                 key={request.id}
-                                className={`hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${!request.is_completed ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''
+                                className={`transition-colors ${index % 2 === 0
+                                        ? 'bg-slate-800/30'
+                                        : 'bg-slate-800/10'
+                                    } ${!request.is_completed
+                                        ? 'hover:bg-amber-900/20'
+                                        : 'hover:bg-slate-700/50'
                                     }`}
                             >
-                                <td className="px-4 py-3.5 text-sm text-slate-900 dark:text-slate-100 font-medium">
+                                <td className="px-4 py-3.5 text-sm text-slate-200 font-medium">
                                     {request.email || 'NA'}
                                 </td>
-                                <td className="px-4 py-3.5 font-mono text-sm text-slate-600 dark:text-slate-300">
+                                <td className="px-4 py-3.5 font-mono text-sm text-slate-300">
                                     {request.order_id || '-'}
                                 </td>
                                 <td className="px-4 py-3.5">{getTypeBadge(request.request_type)}</td>
                                 <td className="px-4 py-3.5">
                                     {request.fsn && (
-                                        <span className="px-2 py-1 rounded text-xs font-mono bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                        <span className="px-2 py-1 rounded text-xs font-mono bg-slate-700/50 text-slate-300 border border-slate-600">
                                             {request.fsn}
                                         </span>
                                     )}
                                 </td>
-                                <td className="px-4 py-3.5 text-sm text-slate-600 dark:text-slate-300">
+                                <td className="px-4 py-3.5 text-sm text-slate-300">
                                     {request.mobile_number || '-'}
                                 </td>
                                 <td className="px-4 py-3.5">
                                     {request.is_completed ? (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                                             <CheckCircle className="h-3 w-3" /> Completed
                                         </span>
                                     ) : (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
                                             <Clock className="h-3 w-3" /> Pending
                                         </span>
                                     )}
                                 </td>
-                                <td className="px-4 py-3.5 text-sm text-slate-500 dark:text-slate-400">
+                                <td className="px-4 py-3.5 text-sm text-slate-400">
                                     {new Date(request.created_at).toLocaleDateString('en-IN', {
                                         day: '2-digit',
                                         month: 'short',
@@ -400,17 +462,30 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                                     })}
                                 </td>
                                 <td className="px-4 py-3.5">
-                                    {!request.is_completed ? (
+                                    <div className="flex items-center gap-2">
+                                        {/* View Customer Data Button */}
                                         <button
-                                            onClick={() => handleOpenCompleteModal(request)}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
-                                            title="Complete Request & Send Notification"
+                                            onClick={() => handleViewCustomerData(request)}
+                                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-colors"
+                                            title="View Customer Data"
                                         >
-                                            <Send className="h-4 w-4" /> Complete
+                                            <Eye className="h-3.5 w-3.5" />
+                                            View
                                         </button>
-                                    ) : (
-                                        <span className="text-xs text-slate-400 dark:text-slate-500">Completed</span>
-                                    )}
+
+                                        {/* Complete Button */}
+                                        {!request.is_completed ? (
+                                            <button
+                                                onClick={() => handleOpenCompleteModal(request)}
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-colors"
+                                                title="Complete Request & Send Notification"
+                                            >
+                                                <Send className="h-3.5 w-3.5" /> Complete
+                                            </button>
+                                        ) : (
+                                            <span className="text-xs text-slate-500">Completed</span>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -419,34 +494,89 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
 
                 {filteredRequests.length === 0 && (
                     <div className="p-12 text-center">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                            <Filter className="h-8 w-8 text-slate-400" />
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-700/50 flex items-center justify-center">
+                            <Filter className="h-8 w-8 text-slate-500" />
                         </div>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium">No requests found</p>
-                        <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Try adjusting your filters</p>
+                        <p className="text-slate-400 font-medium">No requests found</p>
+                        <p className="text-sm text-slate-500 mt-1">Try adjusting your filters</p>
                     </div>
                 )}
             </div>
 
+            {/* View Customer Data Modal */}
+            {showViewModal && viewRequest && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="p-5 border-b border-slate-700 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <Eye className="h-5 w-5 text-cyan-400" />
+                                Customer Data
+                            </h3>
+                            <button
+                                onClick={() => setShowViewModal(false)}
+                                className="text-slate-400 hover:text-white transition-colors"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-5">
+                            <div className="bg-slate-900/50 border border-slate-600 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap text-slate-200">
+                                {getFormattedCustomerData(viewRequest)}
+                            </div>
+
+                            <button
+                                onClick={handleCopyData}
+                                className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${copied
+                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                        : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30'
+                                    }`}
+                            >
+                                {copied ? (
+                                    <>
+                                        <Check className="h-4 w-4" />
+                                        Copied!
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy className="h-4 w-4" />
+                                        Copy to Clipboard
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        <div className="p-4 bg-slate-900/50 border-t border-slate-700">
+                            <button
+                                onClick={() => setShowViewModal(false)}
+                                className="w-full px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Completion Modal */}
             {showCompleteModal && selectedRequest && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-                        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <CheckCircle className="h-5 w-5 text-indigo-500" />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="p-6 border-b border-slate-700">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <CheckCircle className="h-5 w-5 text-indigo-400" />
                                 Complete Request
                             </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                Order: <span className="font-mono">{selectedRequest.order_id || 'N/A'}</span>
+                            <p className="text-sm text-slate-400 mt-1">
+                                Order: <span className="font-mono text-slate-300">{selectedRequest.order_id || 'N/A'}</span>
                             </p>
                         </div>
 
                         <div className="p-6 space-y-4">
-                            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-lg p-4">
+                            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
-                                    <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                                    <div className="text-sm text-amber-800 dark:text-amber-200">
+                                    <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                                    <div className="text-sm text-amber-200">
                                         <p className="font-medium">Action Summary:</p>
                                         <ul className="list-disc ml-4 mt-1 space-y-1 opacity-90">
                                             <li>Mark request as completed</li>
@@ -458,49 +588,49 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                <label className="block text-sm font-medium text-slate-300 mb-1.5">
                                     Subscription Email
                                 </label>
                                 <input
                                     type="email"
                                     value={subscriptionEmail}
                                     onChange={(e) => setSubscriptionEmail(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-900/50 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                                     placeholder="email@example.com"
                                 />
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                <p className="text-xs text-slate-500 mt-1">
                                     The email where the subscription was activated (sent in notification)
                                 </p>
                             </div>
 
                             {selectedRequest.request_type === '365e5' && (
-                                <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                                    <div className="bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800 rounded-lg p-3">
-                                        <p className="text-sm text-sky-800 dark:text-sky-300 font-medium">
-                                            Microsof 365 Credentials Required
+                                <div className="space-y-4 pt-4 border-t border-slate-700">
+                                    <div className="bg-sky-500/10 border border-sky-500/30 rounded-lg p-3">
+                                        <p className="text-sm text-sky-300 font-medium">
+                                            Microsoft 365 Credentials Required
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                        <label className="block text-sm font-medium text-slate-300 mb-1.5">
                                             Generated Email
                                         </label>
                                         <input
                                             type="email"
                                             value={generatedEmail}
                                             onChange={(e) => setGeneratedEmail(e.target.value)}
-                                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
+                                            className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-900/50 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
                                             placeholder="username@tenant.onmicrosoft.com"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                        <label className="block text-sm font-medium text-slate-300 mb-1.5">
                                             Generated Password
                                         </label>
                                         <input
                                             type="text"
                                             value={generatedPassword}
                                             onChange={(e) => setGeneratedPassword(e.target.value)}
-                                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
+                                            className="w-full px-3 py-2 rounded-lg border border-slate-600 bg-slate-900/50 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
                                             placeholder="Temporary Password"
                                         />
                                     </div>
@@ -508,18 +638,18 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
                             )}
                         </div>
 
-                        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3">
+                        <div className="p-4 bg-slate-900/50 border-t border-slate-700 flex justify-end gap-3">
                             <button
                                 onClick={() => setShowCompleteModal(false)}
                                 disabled={isCompleting}
-                                className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-50"
+                                className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white disabled:opacity-50 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleCompleteRequest}
                                 disabled={isCompleting}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isCompleting ? (
                                     <>

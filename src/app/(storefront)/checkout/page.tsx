@@ -16,6 +16,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { toast } from 'sonner';
 import { LoyaltyWidget } from '@/components/checkout/LoyaltyWidget';
 import { GiftCheckout, GiftDetails } from '@/components/checkout/GiftCheckout';
+import { CheckoutUpsell } from '@/components/checkout/CheckoutUpsell';
 
 declare global {
     interface Window {
@@ -514,6 +515,14 @@ export default function CheckoutPage() {
                                 />
                             </a>
                             <p className="text-xs text-muted-foreground text-center">256-bit SSL encryption</p>
+                        </div>
+
+                        {/* Upsell Section */}
+                        <div className="mt-4">
+                            <CheckoutUpsell
+                                cartProductIds={items.map(item => item.product_id)}
+                                cartProductNames={items.map(item => item.product?.name || '')}
+                            />
                         </div>
                     </div>
                 </div>

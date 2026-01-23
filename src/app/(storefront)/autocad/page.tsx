@@ -1,15 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Mail, Send, CheckCircle, Loader2, ShoppingCart, HelpCircle, Package, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AutoCADPage() {
+    const searchParams = useSearchParams();
     const [orderId, setOrderId] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+
+    // Auto-fill order ID from query parameter
+    useEffect(() => {
+        const orderIdParam = searchParams.get('orderId');
+        if (orderIdParam) {
+            setOrderId(orderIdParam);
+            toast.info('Order ID filled from your previous entry');
+        }
+    }, [searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
