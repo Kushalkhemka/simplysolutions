@@ -427,11 +427,12 @@ function Enterprise365Content() {
                                         <p className="text-xs text-[#007185] mt-2 flex items-center gap-1">
                                             <Loader2 className="w-3 h-3 animate-spin" /> Checking request status...
                                         </p>
-                                    ) : orderId.trim().length > 10 && (
+                                    ) : (
                                         <button
                                             type="button"
                                             onClick={handleVerifyOrder}
-                                            className="mt-2 text-sm text-[#007185] hover:text-[#C7511F] hover:underline flex items-center gap-1"
+                                            disabled={!orderId.trim()}
+                                            className="mt-2 text-sm text-[#007185] hover:text-[#C7511F] hover:underline flex items-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:no-underline disabled:hover:text-[#007185]"
                                         >
                                             <Search className="w-4 h-4" />
                                             Already submitted? Click here to check your request status

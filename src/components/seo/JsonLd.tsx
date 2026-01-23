@@ -1,6 +1,6 @@
 import Script from 'next/script';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.in';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co.in';
 
 // Organization Schema
 export function OrganizationJsonLd() {
@@ -10,19 +10,25 @@ export function OrganizationJsonLd() {
         name: 'SimplySolutions',
         url: BASE_URL,
         logo: `${BASE_URL}/logo.png`,
-        description: 'Your trusted destination for genuine Microsoft software licenses with instant digital delivery.',
-        email: 'support@simplysolutions.in',
+        description: 'India\'s trusted destination for genuine Microsoft software licenses with instant digital delivery.',
+        email: 'support@simplysolutions.co.in',
+        telephone: '+91-8595899215',
+        address: {
+            '@type': 'PostalAddress',
+            addressCountry: 'IN',
+            addressLocality: 'India',
+        },
         sameAs: [
-            'https://facebook.com/simplysolutions',
-            'https://twitter.com/simplysolutions',
-            'https://instagram.com/simplysolutions',
+            'https://wa.me/918595899215',
         ],
         contactPoint: {
             '@type': 'ContactPoint',
-            telephone: '+91-XXXXXXXXXX',
+            telephone: '+91-8595899215',
             contactType: 'customer service',
             availableLanguage: ['English', 'Hindi'],
+            areaServed: 'IN',
         },
+        priceRange: '₹₹',
     };
 
     return (

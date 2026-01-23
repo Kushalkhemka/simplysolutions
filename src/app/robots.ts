@@ -1,13 +1,27 @@
 import { MetadataRoute } from 'next';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.in';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co.in';
 
 export default function robots(): MetadataRoute.Robots {
     return {
         rules: [
             {
                 userAgent: '*',
-                allow: '/',
+                allow: [
+                    '/',
+                    '/products',
+                    '/products/*',
+                    '/categories/*',
+                    '/deals',
+                    '/bundles',
+                    '/installation-docs',
+                    '/installation-docs/*',
+                    '/activate',
+                    '/getcid',
+                    '/digital-warranty',
+                    '/blog',
+                    '/blog/*',
+                ],
                 disallow: [
                     '/admin/',
                     '/admin',
@@ -19,6 +33,7 @@ export default function robots(): MetadataRoute.Robots {
                     '/login',
                     '/register',
                     '/forgot-password',
+                    '/reset-password',
                 ],
             },
             {

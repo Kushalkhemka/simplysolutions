@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { BLOG_POSTS } from '@/data/blog-posts';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.in';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co.in';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const supabase = await createClient();
@@ -28,16 +28,53 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.8,
         },
         {
-            url: `${BASE_URL}/login`,
+            url: `${BASE_URL}/bundles`,
             lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.3,
+            changeFrequency: 'weekly',
+            priority: 0.8,
         },
         {
-            url: `${BASE_URL}/register`,
+            url: `${BASE_URL}/activate`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
-            priority: 0.3,
+            priority: 0.7,
+        },
+        {
+            url: `${BASE_URL}/getcid`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        {
+            url: `${BASE_URL}/digital-warranty`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        // Installation Docs
+        {
+            url: `${BASE_URL}/installation-docs`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.7,
+        },
+        {
+            url: `${BASE_URL}/installation-docs/office365`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        {
+            url: `${BASE_URL}/installation-docs/office2024win`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        {
+            url: `${BASE_URL}/installation-docs/office2024mac`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
         },
     ];
 
