@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Eye, DollarSign, Check, X, Loader2, Percent } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, Edit, Eye, DollarSign, Check, X, Loader2, Percent, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Product {
@@ -30,6 +31,13 @@ export default function ProductsClient() {
     const [bulkUpdateValue, setBulkUpdateValue] = useState('');
     const [bulkUpdateDirection, setBulkUpdateDirection] = useState<'increase' | 'decrease'>('increase');
     const [isUpdating, setIsUpdating] = useState(false);
+
+    // Inline edit state
+    const [editingPrice, setEditingPrice] = useState<string | null>(null);
+    const [editingStock, setEditingStock] = useState<string | null>(null);
+    const [editPriceValue, setEditPriceValue] = useState('');
+    const [editStockValue, setEditStockValue] = useState('');
+    const [isSavingInline, setIsSavingInline] = useState(false);
 
     const supabase = createClient();
 
@@ -148,6 +156,79 @@ export default function ProductsClient() {
             }));
     };
 
+    // Inline edit handlers
+    const startEditPrice = (product: Product) => {
+        setEditingPrice(product.id);
+        setEditPriceValue(product.price.toString());
+    };
+
+    const startEditStock = (product: Product) => {
+        setEditingStock(product.id);
+        setEditStockValue(product.stock_quantity.toString());
+    };
+
+    const cancelEditPrice = () => {
+        setEditingPrice(null);
+        setEditPriceValue('');
+    };
+
+    const cancelEditStock = () => {
+        setEditingStock(null);
+        setEditStockValue('');
+    };
+
+    const saveInlinePrice = async (productId: string) => {
+        const newPrice = parseFloat(editPriceValue);
+        if (isNaN(newPrice) || newPrice < 0) {
+            toast.error('Invalid price');
+            return;
+        }
+
+        setIsSavingInline(true);
+        const { error } = await supabase
+            .from('products')
+            .update({ price: newPrice })
+            .eq('id', productId);
+
+        if (error) {
+            toast.error('Failed to update price');
+        } else {
+            toast.success('Price updated');
+            setProducts(products.map(p =>
+                p.id === productId ? { ...p, price: newPrice } : p
+            ));
+        }
+        setEditingPrice(null);
+        setEditPriceValue('');
+        setIsSavingInline(false);
+    };
+
+    const saveInlineStock = async (productId: string) => {
+        const newStock = parseInt(editStockValue);
+        if (isNaN(newStock) || newStock < 0) {
+            toast.error('Invalid stock quantity');
+            return;
+        }
+
+        setIsSavingInline(true);
+        const { error } = await supabase
+            .from('products')
+            .update({ stock_quantity: newStock })
+            .eq('id', productId);
+
+        if (error) {
+            toast.error('Failed to update stock');
+        } else {
+            toast.success('Stock updated');
+            setProducts(products.map(p =>
+                p.id === productId ? { ...p, stock_quantity: newStock } : p
+            ));
+        }
+        setEditingStock(null);
+        setEditStockValue('');
+        setIsSavingInline(false);
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center p-8">
@@ -233,19 +314,105 @@ export default function ProductsClient() {
                                     <td className="p-4 text-muted-foreground hidden md:table-cell">{product.sku}</td>
                                     <td className="p-4 hidden lg:table-cell">{product.category?.name || '-'}</td>
                                     <td className="p-4 text-right">
-                                        <div>
-                                            <span className="font-medium">₹{product.price.toLocaleString('en-IN')}</span>
-                                            {product.mrp > product.price && (
-                                                <span className="text-xs text-muted-foreground line-through ml-2 hidden sm:inline">
-                                                    ₹{product.mrp.toLocaleString('en-IN')}
-                                                </span>
-                                            )}
-                                        </div>
+                                        {editingPrice === product.id ? (
+                                            <div className="flex items-center justify-end gap-1">
+                                                <Input
+                                                    type="number"
+                                                    value={editPriceValue}
+                                                    onChange={(e) => setEditPriceValue(e.target.value)}
+                                                    className="w-24 h-8 text-right"
+                                                    autoFocus
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') saveInlinePrice(product.id);
+                                                        if (e.key === 'Escape') cancelEditPrice();
+                                                    }}
+                                                />
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-7 w-7 text-green-600"
+                                                    onClick={() => saveInlinePrice(product.id)}
+                                                    disabled={isSavingInline}
+                                                >
+                                                    <Check className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-7 w-7 text-red-500"
+                                                    onClick={cancelEditPrice}
+                                                    disabled={isSavingInline}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-end gap-1 group">
+                                                <div>
+                                                    <span className="font-medium">₹{product.price.toLocaleString('en-IN')}</span>
+                                                    {product.mrp > product.price && (
+                                                        <span className="text-xs text-muted-foreground line-through ml-2 hidden sm:inline">
+                                                            ₹{product.mrp.toLocaleString('en-IN')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={() => startEditPrice(product)}
+                                                    className="p-1 hover:bg-muted rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    title="Edit price"
+                                                >
+                                                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="p-4 text-center hidden sm:table-cell">
-                                        <span className={`font-medium ${product.stock_quantity < 10 ? 'text-red-500' : ''}`}>
-                                            {product.stock_quantity}
-                                        </span>
+                                        {editingStock === product.id ? (
+                                            <div className="flex items-center justify-center gap-1">
+                                                <Input
+                                                    type="number"
+                                                    value={editStockValue}
+                                                    onChange={(e) => setEditStockValue(e.target.value)}
+                                                    className="w-20 h-8 text-center"
+                                                    autoFocus
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') saveInlineStock(product.id);
+                                                        if (e.key === 'Escape') cancelEditStock();
+                                                    }}
+                                                />
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-7 w-7 text-green-600"
+                                                    onClick={() => saveInlineStock(product.id)}
+                                                    disabled={isSavingInline}
+                                                >
+                                                    <Check className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-7 w-7 text-red-500"
+                                                    onClick={cancelEditStock}
+                                                    disabled={isSavingInline}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-center gap-1 group">
+                                                <span className={`font-medium ${product.stock_quantity < 10 ? 'text-red-500' : ''}`}>
+                                                    {product.stock_quantity}
+                                                </span>
+                                                <button
+                                                    onClick={() => startEditStock(product)}
+                                                    className="p-1 hover:bg-muted rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    title="Edit stock"
+                                                >
+                                                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="p-4 text-center hidden sm:table-cell">
                                         <Badge variant={product.is_active ? 'default' : 'secondary'}>
@@ -423,3 +590,4 @@ export default function ProductsClient() {
         </div>
     );
 }
+

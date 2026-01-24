@@ -117,14 +117,15 @@ export default function CheckoutPage() {
             .map(item => item.product?.price || 0)
             .sort((a, b) => a - b);
 
-        // BOGO requires 2+ items - cheapest item is FREE
+        // BOGO requires 2+ items - cheapest item is FREE (capped at ₹1000)
         if (activeOffers.bogo && items.length >= 2) {
-            return { type: 'bogo', discount: itemPrices[0], productId: null };
+            const bogoDiscount = Math.min(itemPrices[0], 1000); // Cap at ₹1000
+            return { type: 'bogo', discount: bogoDiscount, productId: null };
         }
 
-        // 50% OFF the cheapest item
+        // 20% OFF the cheapest item
         if (activeOffers.priceSlash) {
-            return { type: 'price_slash', discount: itemPrices[0] * 0.5, productId: null };
+            return { type: 'price_slash', discount: itemPrices[0] * 0.2, productId: null };
         }
 
         return { type: null, discount: 0, productId: null };
@@ -501,7 +502,7 @@ export default function CheckoutPage() {
                                         ) : offerType === 'bogo' ? (
                                             <><Gift className="h-3.5 w-3.5" /> BOGO - Free Item!</>
                                         ) : (
-                                            <><Percent className="h-3.5 w-3.5" /> 50% OFF First Purchase!</>
+                                            <><Percent className="h-3.5 w-3.5" /> 20% OFF First Purchase!</>
                                         )}
                                     </span>
                                     <span>-₹{Math.round(offerDiscount).toLocaleString('en-IN')}</span>

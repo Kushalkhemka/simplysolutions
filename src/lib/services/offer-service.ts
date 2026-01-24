@@ -109,12 +109,12 @@ export async function checkAndCreateWelcomeOffers(userId: string): Promise<Welco
         });
     }
 
-    // Price Slash: 50% off any product (one-time use, valid for 12 hours)
+    // Price Slash: 20% off any product (one-time use, valid for 12 hours)
     offersToCreate.push({
         user_id: userId,
         offer_type: 'price_slash',
         product_id: null, // Can be used on any product
-        discount_value: 50, // 50% discount
+        discount_value: 20, // 20% discount
         is_used: false,
         expires_at: offer12Hours.toISOString(),
     });
