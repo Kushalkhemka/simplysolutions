@@ -141,7 +141,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <ProductJsonLd product={product} />
             <BreadcrumbJsonLd items={breadcrumbItems} />
 
-            <div className="container mx-auto px-4 py-8 overflow-hidden" style={{ maxWidth: '100%' }}>
+            <div className="container-dense py-8 overflow-hidden">
                 {/* Breadcrumb */}
                 <nav className="text-sm mb-6">
                     <ol className="flex items-center gap-2 flex-wrap">
