@@ -39,8 +39,17 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
     const fetchProduct = async () => {
         try {
-            const res = await fetch(`/api/admin/products/${id}`);
+            const res = await fetch(`/api/admin/products/${id}`, {
+                credentials: 'include',
+            });
             const data = await res.json();
+
+            if (!res.ok) {
+                console.error('API error:', res.status, data);
+                toast.error(data.error || 'Failed to load product');
+                return;
+            }
+
             if (data.success) {
                 setFormData({
                     name: data.data.name || '',
@@ -55,6 +64,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                     stock_quantity: data.data.stock_quantity?.toString() || '0',
                     installation_guide_url: data.data.installation_guide_url || '',
                 });
+            } else {
+                toast.error(data.error || 'Failed to load product');
             }
         } catch (error) {
             console.error('Failed to fetch product:', error);
