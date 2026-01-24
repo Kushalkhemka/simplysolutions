@@ -259,7 +259,7 @@ export default function GetCIDTokensPage() {
                                     <tr key={token.id} className={!token.is_active ? 'opacity-50 bg-muted/30' : ''}>
                                         <td className="px-4 py-3">
                                             <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
-                                                {token.token.substring(0, 4)}...{token.token.slice(-3)}
+                                                {token.token}
                                             </code>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-muted-foreground">
