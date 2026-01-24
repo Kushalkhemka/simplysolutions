@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
     Menu, X, LogOut, LayoutDashboard, Package, ShoppingCart, Key,
     Users, Tag, BarChart3, Settings, ShoppingBag, Shield, Mail,
-    Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw
+    Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -32,6 +32,7 @@ const amazonLinks = [
     { name: 'Warranty Claims', href: '/admin/amazon/warranty', icon: Shield },
     { name: 'Product Requests', href: '/admin/amazon/requests', icon: Mail },
     { name: 'GetCID Test', href: '/admin/amazon/getcid', icon: Terminal },
+    { name: 'GetCID Tokens', href: '/admin/amazon/getcid-tokens', icon: Database },
 ];
 
 interface AdminLayoutClientProps {
@@ -46,7 +47,9 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
         if (href === '/admin') {
             return pathname === href;
         }
-        return pathname.startsWith(href);
+        // Check for exact match or that pathname continues with a slash (proper sub-path)
+        // This prevents /admin/amazon/getcid matching /admin/amazon/getcid-tokens
+        return pathname === href || pathname.startsWith(href + '/');
     };
 
     const closeMobileMenu = () => setIsMobileMenuOpen(false);

@@ -12,9 +12,6 @@ declare global {
     }
 }
 
-// Test Razorpay Key ID
-const RAZORPAY_KEY_ID = 'rzp_test_S7h0MP2TLUZGwK';
-
 // Product information
 const PRODUCT_NAME = 'Microsoft Office 365 Pro Plus (5 Users, Lifetime Validity) with 100GB Cloud Storage';
 const PRODUCT_IMAGE = 'https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/product-images/OFFICE365.jpg';
@@ -127,7 +124,7 @@ export default function Office365ReplacementPage() {
             }
 
             const options = {
-                key: RAZORPAY_KEY_ID,
+                key: result.data.razorpayKeyId,
                 amount: result.data.amount,
                 currency: result.data.currency,
                 name: 'SimplySolutions',
@@ -222,8 +219,8 @@ export default function Office365ReplacementPage() {
                                     <button
                                         onClick={copySecretCode}
                                         className={`p-4 rounded-lg border-2 transition-all ${copied
-                                                ? 'bg-emerald-600 border-emerald-600 text-white'
-                                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                                            ? 'bg-emerald-600 border-emerald-600 text-white'
+                                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
                                             }`}
                                         title="Copy code"
                                     >

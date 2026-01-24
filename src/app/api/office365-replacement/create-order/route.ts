@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 
-// Test Razorpay credentials
-const RAZORPAY_KEY_ID = 'rzp_test_S7h0MP2TLUZGwK';
-const RAZORPAY_KEY_SECRET = 'jpWA4yuXTCPEu3U3yEPLDFFP';
-
+// Use production Razorpay credentials from environment variables
 const razorpay = new Razorpay({
-    key_id: RAZORPAY_KEY_ID,
-    key_secret: RAZORPAY_KEY_SECRET,
+    key_id: process.env.RAZORPAY_KEY_ID!,
+    key_secret: process.env.RAZORPAY_KEY_SECRET!,
 });
 
 export async function POST(request: NextRequest) {
@@ -60,6 +57,7 @@ export async function POST(request: NextRequest) {
             success: true,
             data: {
                 razorpayOrderId: order.id,
+                razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                 amount: order.amount,
                 currency: order.currency,
             },

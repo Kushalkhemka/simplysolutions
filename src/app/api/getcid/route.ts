@@ -4,7 +4,6 @@ import { isComboProduct } from '@/lib/amazon/combo-products';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const GETCID_TOKEN = '4aiw4hbq5da';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -28,6 +27,52 @@ function parseApiStatus(response: string): string {
     return 'error';
 }
 
+// Get an available GetCID token from the database
+async function getAvailableToken(): Promise<{ token: string; remaining: number } | null> {
+    const { data, error } = await supabase.rpc('get_available_getcid_token');
+
+    if (error || !data || data.length === 0) {
+        console.error('No available GetCID token:', error);
+        return null;
+    }
+
+    return { token: data[0].token, remaining: data[0].remaining_uses };
+}
+
+// Increment token usage in database
+async function incrementTokenUsage(token: string): Promise<boolean> {
+    const { data, error } = await supabase.rpc('increment_getcid_token_usage', { p_token: token });
+
+    if (error) {
+        console.error('Failed to increment token usage:', error);
+        return false;
+    }
+
+    return data === true;
+}
+
+// Optional: Verify and sync token usage with GetCID API
+async function verifyTokenWithApi(token: string): Promise<{ count_used: number; total: number } | null> {
+    try {
+        const response = await fetch('https://getcid.info/verify-api-token-getcid', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `tokenApi=${token}`,
+        });
+
+        const data = await response.json();
+        if (data.Status === 'Success' && data.Result) {
+            return {
+                count_used: Math.floor(data.Result.count_token || 0),
+                total: Math.floor(data.Result.total_token || 100),
+            };
+        }
+    } catch (error) {
+        console.error('Failed to verify token with API:', error);
+    }
+    return null;
+}
+
 export async function POST(request: NextRequest) {
     try {
         const body: GetCidRequest = await request.json();
@@ -44,10 +89,6 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if order exists and if GetCID was already used
-        // Identifier can be either:
-        // - order_id (Digital: 14-17 digit secret code)
-        // - amazon_order_id (FBA: XXX-XXXXXXX-XXXXXXX format)
-        // Trim whitespace thoroughly
         const cleanIdentifier = identifier.trim().replace(/\s+/g, '');
 
         // Secret code: 14-17 digits (no hyphens)
@@ -63,12 +104,9 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Search by order_id for both secret codes and Amazon Order IDs
-        // since both are stored in the order_id field
-        // Try exact match first, then fallback to case-insensitive search
+        // Search for order
         let order = null;
 
-        // First try exact match
         const { data: exactMatch } = await supabase
             .from('amazon_orders')
             .select('id, order_id, fsn, quantity, getcid_used, getcid_count')
@@ -78,7 +116,6 @@ export async function POST(request: NextRequest) {
         if (exactMatch) {
             order = exactMatch;
         } else {
-            // Fallback: try case-insensitive search with ilike
             const { data: ilikeMatch } = await supabase
                 .from('amazon_orders')
                 .select('id, order_id, fsn, quantity, getcid_used, getcid_count')
@@ -91,7 +128,6 @@ export async function POST(request: NextRequest) {
         }
 
         if (!order) {
-            // Log for debugging
             console.error(`Order not found: ${cleanIdentifier}, isAmazonOrderId: ${isAmazonOrderId}`);
             return NextResponse.json({
                 error: isAmazonOrderId
@@ -101,8 +137,6 @@ export async function POST(request: NextRequest) {
         }
 
         // Calculate max uses based on order quantity and product type
-        // Combo products have 2 items (Windows + Office), regular products have 1
-        // Each item gets 1 getcid use, so: quantity × items_per_order
         const isCombo = order.fsn ? isComboProduct(order.fsn) : false;
         const orderQuantity = order.quantity || 1;
         const itemsPerOrder = isCombo ? 2 : 1;
@@ -115,8 +149,19 @@ export async function POST(request: NextRequest) {
             }, { status: 403 });
         }
 
+        // Get an available token from the database
+        const tokenInfo = await getAvailableToken();
+        if (!tokenInfo) {
+            console.error('No GetCID tokens available in database');
+            return NextResponse.json({
+                error: 'Service temporarily unavailable. Please try again later or contact support.'
+            }, { status: 503 });
+        }
+
+        console.log(`Using GetCID token: ${tokenInfo.token.substring(0, 4)}... (${tokenInfo.remaining} remaining)`);
+
         // Call GetCID API
-        const apiUrl = `https://getcid.info/api/${cleanIid}/${GETCID_TOKEN}`;
+        const apiUrl = `https://getcid.info/api/${cleanIid}/${tokenInfo.token}`;
         const apiResponse = await fetch(apiUrl);
         const responseText = await apiResponse.text();
         const trimmedResponse = responseText.trim();
@@ -142,8 +187,11 @@ export async function POST(request: NextRequest) {
 
         // Increment usage count ONLY on success
         if (isSuccess) {
+            // Increment token usage in database
+            await incrementTokenUsage(tokenInfo.token);
+
             const newCount = currentUses + 1;
-            // Update using order_id - set getcid_used=true when all uses are exhausted
+            // Update order getcid usage
             await supabase
                 .from('amazon_orders')
                 .update({
@@ -161,6 +209,23 @@ export async function POST(request: NextRequest) {
                 remainingUses,
                 maxUses
             });
+        }
+
+        // Handle token-specific errors
+        if (apiStatus === 'token_error') {
+            // Mark token as potentially exhausted and try to sync with API
+            const apiUsage = await verifyTokenWithApi(tokenInfo.token);
+            if (apiUsage) {
+                await supabase
+                    .from('getcid_tokens')
+                    .update({
+                        count_used: apiUsage.count_used,
+                        total_available: apiUsage.total,
+                        last_verified_at: new Date().toISOString(),
+                        is_active: apiUsage.count_used < apiUsage.total
+                    })
+                    .eq('token', tokenInfo.token);
+            }
         }
 
         // Return appropriate error message
@@ -188,3 +253,4 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
+

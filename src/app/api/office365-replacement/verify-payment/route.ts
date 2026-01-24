@@ -3,9 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { Resend } from 'resend';
 
-// Test Razorpay credentials
-const RAZORPAY_KEY_SECRET = 'jpWA4yuXTCPEu3U3yEPLDFFP';
-
 // Initialize Supabase admin client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -46,7 +43,7 @@ function verifyPaymentSignature(
 ): boolean {
   const body = orderId + '|' + paymentId;
   const expectedSignature = crypto
-    .createHmac('sha256', RAZORPAY_KEY_SECRET)
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
     .update(body)
     .digest('hex');
 
