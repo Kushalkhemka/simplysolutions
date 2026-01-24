@@ -31,8 +31,12 @@ export async function POST(
             );
         }
 
+        // Get customer email - prefer customer_email, fallback to contact if it looks like an email
+        const customerEmail = warranty.customer_email ||
+            (warranty.contact && warranty.contact.includes('@') ? warranty.contact : null);
+
         // Check if customer email exists
-        if (!warranty.customer_email) {
+        if (!customerEmail) {
             return NextResponse.json(
                 { error: 'No customer email available. Cannot send email.' },
                 { status: 400 }
@@ -64,7 +68,7 @@ export async function POST(
 
         // Send the resubmission email
         const emailSent = await sendWarrantyResubmissionEmail({
-            customerEmail: warranty.customer_email,
+            customerEmail,
             orderId: warranty.order_id,
             productName,
             missingSeller,

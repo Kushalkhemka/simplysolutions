@@ -88,6 +88,15 @@ export async function PATCH(
 
         let emailSent = false;
 
+        // Get customer email - prefer customer_email, fallback to contact if it looks like an email
+        const getCustomerEmail = () => {
+            if (warranty.customer_email) return warranty.customer_email;
+            // Check if contact looks like an email
+            if (warranty.contact && warranty.contact.includes('@')) return warranty.contact;
+            return null;
+        };
+        const customerEmail = getCustomerEmail();
+
         if (action === 'approve') {
             updateData.status = 'VERIFIED';
             updateData.verified_at = new Date().toISOString();
@@ -95,9 +104,9 @@ export async function PATCH(
             updateData.missing_product_review = false;
 
             // Send approval email
-            if (warranty.customer_email) {
+            if (customerEmail) {
                 emailSent = await sendWarrantyApprovalEmail({
-                    customerEmail: warranty.customer_email,
+                    customerEmail,
                     orderId: warranty.order_id,
                     productName,
                     quantity,
@@ -110,9 +119,9 @@ export async function PATCH(
             updateData.rejection_reason = adminNotes || 'Could not verify warranty';
 
             // Send rejection email
-            if (warranty.customer_email) {
+            if (customerEmail) {
                 emailSent = await sendWarrantyRejectionEmail({
-                    customerEmail: warranty.customer_email,
+                    customerEmail,
                     orderId: warranty.order_id,
                     productName,
                     adminNotes
@@ -140,9 +149,9 @@ export async function PATCH(
             }
 
             // Send resubmission email
-            if (warranty.customer_email) {
+            if (customerEmail) {
                 emailSent = await sendWarrantyResubmissionEmail({
-                    customerEmail: warranty.customer_email,
+                    customerEmail,
                     orderId: warranty.order_id,
                     productName,
                     missingSeller: missingSeller || false,
