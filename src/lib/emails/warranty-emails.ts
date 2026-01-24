@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const fromEmail = 'SimplySolutions <noreply@simplysolutions.co.in>';
+const fromEmail = 'SimplySolutions <noreply@auth.simplysolutions.co.in>';
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 

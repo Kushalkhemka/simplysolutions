@@ -172,7 +172,7 @@ async function sendSecretCodeEmail(data: {
 
   try {
     const { data: result, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.co.in>',
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
       to: data.to,
       subject: `Your Office 365 Secret Code - Activate Now`,
       html,

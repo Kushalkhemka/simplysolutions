@@ -112,7 +112,7 @@ export async function PATCH(
                 try {
                     const resend = new Resend(resendApiKey);
                     await resend.emails.send({
-                        from: 'SimplySolutions <support@simplysolutions.co.in>',
+                        from: 'SimplySolutions <support@auth.simplysolutions.co.in>',
                         to: replacementRequest.customer_email,
                         subject: 'Your License Key Replacement Has Been Approved - SimplySolutions',
                         html: `
@@ -184,7 +184,7 @@ export async function PATCH(
                 try {
                     const resend = new Resend(resendApiKey);
                     await resend.emails.send({
-                        from: 'SimplySolutions <support@simplysolutions.co.in>',
+                        from: 'SimplySolutions <support@auth.simplysolutions.co.in>',
                         to: replacementRequest.customer_email,
                         subject: 'License Key Replacement Request Update - SimplySolutions',
                         html: `
