@@ -40,11 +40,18 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
             description,
             type: 'website',
             url: `${BASE_URL}/categories/${slug}`,
+            images: [{
+                url: `${BASE_URL}/social-media-banner.png`,
+                width: 1200,
+                height: 630,
+                alt: `${category.name} - SimplySolutions`,
+            }],
         },
         twitter: {
-            card: 'summary',
+            card: 'summary_large_image',
             title: `${category.name} - SimplySolutions`,
             description,
+            images: [`${BASE_URL}/social-media-banner.png`],
         },
         alternates: {
             canonical: `${BASE_URL}/categories/${slug}`,

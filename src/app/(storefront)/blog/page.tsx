@@ -15,6 +15,18 @@ export const metadata: Metadata = {
         description: 'Expert guides, installation tutorials, and software comparisons to help you make informed decisions.',
         type: 'website',
         url: `${BASE_URL}/blog`,
+        images: [{
+            url: `${BASE_URL}/social-media-banner.png`,
+            width: 1200,
+            height: 630,
+            alt: 'SimplySolutions Knowledge Hub',
+        }],
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Knowledge Hub - SimplySolutions',
+        description: 'Expert guides, installation tutorials, and software comparisons.',
+        images: [`${BASE_URL}/social-media-banner.png`],
     },
     alternates: {
         canonical: `${BASE_URL}/blog`,
