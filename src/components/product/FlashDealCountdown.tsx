@@ -51,63 +51,52 @@ export function FlashDealCountdown({
     if (!isVisible) return null;
 
     const TimeBlock = ({ value, label }: { value: number; label: string }) => (
-        <div className="flex flex-col items-center mx-0.5 sm:mx-2 min-w-[40px] sm:min-w-[60px]">
-            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5 sm:p-2 w-full text-center shadow-sm border border-white/10">
-                <span className="block text-lg sm:text-2xl font-bold text-white tabular-nums leading-none">
+        <div className="flex flex-col items-center">
+            <div className="bg-white/20 backdrop-blur-sm rounded-md sm:rounded-lg p-1 sm:p-1.5 min-w-[28px] sm:min-w-[40px] text-center shadow-sm border border-white/10">
+                <span className="block text-sm sm:text-lg md:text-xl font-bold text-white tabular-nums leading-none">
                     {String(value).padStart(2, '0')}
                 </span>
             </div>
-            <span className="text-[9px] sm:text-xs font-semibold text-white/90 uppercase mt-1 tracking-wider">
+            <span className="text-[7px] sm:text-[9px] font-semibold text-white/90 uppercase mt-0.5 tracking-wide">
                 {label}
             </span>
         </div>
     );
 
     return (
-        <div className="flash-deal-container relative overflow-hidden rounded-xl shadow-lg my-6">
+        <div className="flash-deal-container relative overflow-hidden rounded-lg sm:rounded-xl shadow-lg my-4 sm:my-6">
             <div className="absolute inset-0 bg-gradient-to-r from-[#FF6B35] to-[#FF3E3E]"></div>
 
             {/* Glossy overlay effect */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_0%,transparent_50%)]"></div>
 
-            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between px-4 py-4 sm:px-6 sm:py-3 gap-3 sm:gap-4">
+            <div className="relative z-10 flex flex-row items-center justify-between px-2 py-2 sm:px-4 sm:py-3 gap-2 sm:gap-4">
                 {/* Left Side: Title & Icon */}
-                <div className="flex items-center gap-3">
-                    <div className="bg-white text-[#FF3E3E] p-2 rounded-full shadow-md animate-pulse-slow">
-                        <Zap className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
+                <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-shrink">
+                    <div className="bg-white text-[#FF3E3E] p-1 sm:p-2 rounded-full shadow-md flex-shrink-0">
+                        <Zap className="w-3 h-3 sm:w-5 sm:h-5 fill-current" />
                     </div>
-                    <div className="text-center sm:text-left">
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-black text-white italic uppercase tracking-wide drop-shadow-sm whitespace-nowrap">
+                    <div className="min-w-0">
+                        <h3 className="text-[10px] sm:text-sm md:text-lg font-black text-white italic uppercase tracking-wide drop-shadow-sm leading-tight">
                             {title}
                         </h3>
-                        <p className="text-white/90 text-xs sm:text-sm font-medium">
+                        <p className="text-white/90 text-[8px] sm:text-xs font-medium hidden sm:block">
                             Limited Time Offer Ends In:
                         </p>
                     </div>
                 </div>
 
                 {/* Right Side: Timer */}
-                <div className="flex items-start justify-center flex-nowrap">
+                <div className="flex items-start justify-end gap-0.5 sm:gap-1 flex-shrink-0">
                     <TimeBlock value={timeLeft.days} label="Days" />
-                    <span className="text-white/60 text-xl sm:text-2xl font-bold mt-1">:</span>
-                    <TimeBlock value={timeLeft.hours} label="Hours" />
-                    <span className="text-white/60 text-xl sm:text-2xl font-bold mt-1">:</span>
-                    <TimeBlock value={timeLeft.minutes} label="Mins" />
-                    <span className="text-white/60 text-xl sm:text-2xl font-bold mt-1">:</span>
-                    <TimeBlock value={timeLeft.seconds} label="Secs" />
+                    <span className="text-white/60 text-xs sm:text-lg font-bold mt-0.5 sm:mt-1">:</span>
+                    <TimeBlock value={timeLeft.hours} label="Hrs" />
+                    <span className="text-white/60 text-xs sm:text-lg font-bold mt-0.5 sm:mt-1">:</span>
+                    <TimeBlock value={timeLeft.minutes} label="Min" />
+                    <span className="text-white/60 text-xs sm:text-lg font-bold mt-0.5 sm:mt-1">:</span>
+                    <TimeBlock value={timeLeft.seconds} label="Sec" />
                 </div>
             </div>
-
-            <style jsx>{`
-                .animate-pulse-slow {
-                    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-                }
-                
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; transform: scale(1); }
-                    50% { opacity: 0.9; transform: scale(1.05); }
-                }
-            `}</style>
         </div>
     );
 }
