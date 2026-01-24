@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 
 interface RazorpayAffordabilityWidgetProps {
@@ -17,14 +17,16 @@ declare global {
 export function RazorpayAffordabilityWidget({ amount, className = '' }: RazorpayAffordabilityWidgetProps) {
     const widgetRef = useRef<HTMLDivElement>(null);
     const widgetInstanceRef = useRef<any>(null);
+    const [scriptLoaded, setScriptLoaded] = useState(false);
 
     const amountInPaise = Math.round(amount * 100);
     const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
     useEffect(() => {
-        // Initialize the widget when script is loaded
+        if (!scriptLoaded || !razorpayKeyId || !widgetRef.current) return;
+
         const initWidget = () => {
-            if (window.RazorpayAffordabilitySuite && widgetRef.current && razorpayKeyId) {
+            if (window.RazorpayAffordabilitySuite) {
                 // Clean up previous instance if it exists
                 if (widgetInstanceRef.current) {
                     try {
@@ -47,20 +49,11 @@ export function RazorpayAffordabilityWidget({ amount, className = '' }: Razorpay
             }
         };
 
-        // Check if script is already loaded
-        if (window.RazorpayAffordabilitySuite) {
-            initWidget();
-        }
-
-        // Listen for script load event
-        const handleScriptLoad = () => {
-            setTimeout(initWidget, 100); // Small delay to ensure SDK is ready
-        };
-
-        window.addEventListener('razorpay-affordability-loaded', handleScriptLoad);
+        // Small delay to ensure SDK is fully ready
+        const timer = setTimeout(initWidget, 200);
 
         return () => {
-            window.removeEventListener('razorpay-affordability-loaded', handleScriptLoad);
+            clearTimeout(timer);
             if (widgetInstanceRef.current) {
                 try {
                     widgetInstanceRef.current.close();
@@ -69,7 +62,7 @@ export function RazorpayAffordabilityWidget({ amount, className = '' }: Razorpay
                 }
             }
         };
-    }, [amountInPaise, razorpayKeyId]);
+    }, [scriptLoaded, amountInPaise, razorpayKeyId]);
 
     // Don't render if no Razorpay key
     if (!razorpayKeyId) {
@@ -85,15 +78,13 @@ export function RazorpayAffordabilityWidget({ amount, className = '' }: Razorpay
         <>
             <Script
                 src="https://cdn.razorpay.com/widgets/affordability/affordability.js"
-                strategy="lazyOnload"
-                onLoad={() => {
-                    window.dispatchEvent(new Event('razorpay-affordability-loaded'));
-                }}
+                strategy="afterInteractive"
+                onLoad={() => setScriptLoaded(true)}
             />
             <div
                 ref={widgetRef}
                 id="razorpay-affordability-widget"
-                className={`razorpay-affordability-widget ${className}`}
+                className={`razorpay-affordability-widget mt-3 ${className}`}
             />
         </>
     );
