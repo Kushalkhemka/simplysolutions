@@ -394,6 +394,7 @@ export default function AmazonOrdersClient() {
                                     <th className="px-4 py-3 text-left text-sm font-medium">Order ID</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">FSN</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Contact</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Redeemed</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Warranty</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">GetCID</th>
@@ -406,6 +407,20 @@ export default function AmazonOrdersClient() {
                                         <td className="px-4 py-3 font-mono text-sm">{order.order_id}</td>
                                         <td className="px-4 py-3 text-sm text-muted-foreground">{order.fsn || '-'}</td>
                                         <td className="px-4 py-3 text-sm">{order.contact_email || order.contact_phone || '-'}</td>
+                                        <td className="px-4 py-3">
+                                            {order.license_key_id ? (
+                                                <span
+                                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-help"
+                                                    title="Click view to see license key"
+                                                >
+                                                    ✓ Yes
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                                    ✗ No
+                                                </span>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-3">{getStatusBadge(order.warranty_status)}</td>
                                         <td className="px-4 py-3 text-sm">
                                             <span className={`px-2 py-1 rounded text-xs ${order.fulfillment_type === 'amazon_fba' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>

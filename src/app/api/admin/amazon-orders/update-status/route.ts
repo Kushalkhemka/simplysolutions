@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const VALID_STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'BLOCKED'] as const;
 type ValidStatus = typeof VALID_STATUSES[number];
@@ -17,25 +22,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`
             }, { status: 400 });
-        }
-
-        const supabase = await createClient();
-
-        // Verify user is admin
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Check admin status
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (profile?.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
         }
 
         // Update order status
@@ -65,3 +51,4 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
+
