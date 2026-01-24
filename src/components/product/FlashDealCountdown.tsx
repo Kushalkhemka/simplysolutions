@@ -76,8 +76,8 @@ export function FlashDealCountdown({
                     <div className="bg-white text-[#FF3E3E] p-2 rounded-full shadow-md animate-pulse-slow">
                         <Zap className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
                     </div>
-                    <div className="text-center md:text-left">
-                        <h3 className="text-xl sm:text-2xl font-black text-white italic uppercase tracking-wide drop-shadow-sm">
+                    <div className="text-center md:text-left min-w-0 max-w-full">
+                        <h3 className="text-base sm:text-xl md:text-2xl font-black text-white italic uppercase tracking-wide drop-shadow-sm truncate">
                             {title}
                         </h3>
                         <p className="text-white/90 text-xs sm:text-sm font-medium">

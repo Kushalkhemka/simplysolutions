@@ -158,6 +158,31 @@
   }
 }
 
+/* Mobile overflow fixes for product pages */
+@media (max-width: 640px) {
+  .container {
+    max-width: 100vw !important;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  li {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .flash-deal-container {
+    max-width: 100%;
+  }
+}
+
 /* Custom Utilities for E-commerce */
 @layer components {
   .price-tag {

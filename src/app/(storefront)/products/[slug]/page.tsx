@@ -166,7 +166,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     </ol>
                 </nav>
 
-                <div className="grid lg:grid-cols-2 gap-8 mb-12">
+                <div className="grid lg:grid-cols-2 gap-8 mb-12 max-w-full">
                     {/* Image Gallery */}
                     <ProductGallery
                         images={allImages}
@@ -176,10 +176,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     />
 
                     {/* Product Info */}
-                    <div className="space-y-6">
+                    <div className="space-y-6 min-w-0 overflow-hidden max-w-full">
                         <div>
                             <p className="text-primary font-medium mb-1">{product.brand}</p>
-                            <h1 className="text-2xl md:text-3xl font-bold mb-2">{product.name}</h1>
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 break-words">{product.name}</h1>
 
                             {/* Rating */}
                             {product.review_count > 0 && (
@@ -244,7 +244,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                                     {(product.bullet_points as string[]).map((point: string, idx: number) => (
                                         <li key={idx} className="flex items-start gap-2 text-sm">
                                             <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                            <span>{point.replace(/^[✓✔☑✅\s]+/, '')}</span>
+                                            <span className="break-words">{point.replace(/^[✓✔☑✅\s]+/, '')}</span>
                                         </li>
                                     ))}
                                 </ul>
