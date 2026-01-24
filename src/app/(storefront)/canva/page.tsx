@@ -310,6 +310,32 @@ function CanvaContent() {
                             </p>
                         </div>
                     </div>
+
+                    {/* Warranty Registration CTA */}
+                    <a href="/digital-warranty" className="block mt-6">
+                        <div className="bg-gradient-to-r from-[#232F3E] to-[#37475A] rounded-lg shadow-lg border border-[#232F3E] overflow-hidden hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer">
+                            <div className="p-4 flex items-center gap-4">
+                                <div className="w-12 h-12 bg-gradient-to-br from-[#FF9900] to-[#FF6600] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    </svg>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-base font-bold text-white mb-0.5">
+                                        Register for FREE Warranty
+                                    </h3>
+                                    <p className="text-xs text-gray-300">
+                                        Get priority support & easy replacements
+                                    </p>
+                                </div>
+                                <div className="flex-shrink-0">
+                                    <div className="bg-[#FF9900] text-[#0F1111] font-bold px-3 py-1.5 rounded text-xs shadow-md">
+                                        Register →
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>

@@ -434,21 +434,28 @@ export default function Office365GuidePage() {
                     </div>
 
                     {/* Warranty Registration */}
-                    <div className="bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-950/30 dark:to-teal-950/30 border-2 border-green-300 dark:border-green-700 rounded-2xl p-6">
-                        <div className="flex gap-4">
-                            <Shield className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                            <div>
-                                <p className="font-bold text-green-800 dark:text-green-200 text-lg mb-2">Register Your Warranty</p>
-                                <p className="text-green-700 dark:text-green-300 mb-3">Register your warranty after activation to receive <strong>lifetime technical and reinstallation support</strong>.</p>
-                                <a href="/digital-warranty" className="inline-block">
-                                    <Button variant="outline" className="gap-2 border-green-400 text-green-700 hover:bg-green-100 dark:border-green-600 dark:text-green-300 dark:hover:bg-green-900/50">
-                                        <ExternalLink className="h-4 w-4" />
-                                        Register Warranty
-                                    </Button>
-                                </a>
+                    <a href="/digital-warranty" className="block">
+                        <div className="bg-gradient-to-r from-[#232F3E] to-[#37475A] rounded-2xl shadow-lg border border-[#232F3E] overflow-hidden hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer">
+                            <div className="p-5 flex items-center gap-4">
+                                <div className="w-14 h-14 bg-gradient-to-br from-[#FF9900] to-[#FF6600] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                                    <Shield className="w-7 h-7 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-lg font-bold text-white mb-0.5">
+                                        Register for FREE Warranty
+                                    </h3>
+                                    <p className="text-sm text-gray-300">
+                                        Get lifetime technical support & easy reinstallation assistance
+                                    </p>
+                                </div>
+                                <div className="flex-shrink-0">
+                                    <div className="bg-[#FF9900] text-[#0F1111] font-bold px-4 py-2 rounded text-sm shadow-md">
+                                        Register →
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
 
                     {/* If Pre-installed Section */}
                     <div className="border-t-4 border-orange-400 pt-8 mt-8">
