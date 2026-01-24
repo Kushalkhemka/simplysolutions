@@ -1292,6 +1292,32 @@ function ActivatePageContent() {
                         </div>
                     )}
 
+                    {/* Warranty Registration CTA - Show on initial page */}
+                    {!activationResult?.success && (
+                        <a href="/digital-warranty" className="block mt-6">
+                            <div className="bg-gradient-to-r from-[#232F3E] to-[#37475A] rounded-lg shadow-lg border border-[#232F3E] overflow-hidden hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer">
+                                <div className="p-4 flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-[#FF9900] to-[#FF6600] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                                        <Shield className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-base font-bold text-white mb-0.5">
+                                            Already Activated? Register for Warranty
+                                        </h3>
+                                        <p className="text-xs text-gray-300">
+                                            Get priority support & easy replacements with free warranty
+                                        </p>
+                                    </div>
+                                    <div className="flex-shrink-0 hidden sm:block">
+                                        <div className="bg-[#FF9900] text-[#0F1111] font-bold px-3 py-1.5 rounded text-xs shadow-md">
+                                            Register →
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    )}
+
                     {/* Amazon Logo Link */}
                     <div className="mt-6 text-center">
                         <p className="text-xs text-[#565959]">
