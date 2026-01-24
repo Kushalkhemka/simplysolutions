@@ -141,7 +141,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <ProductJsonLd product={product} />
             <BreadcrumbJsonLd items={breadcrumbItems} />
 
-            <div className="container mx-auto px-4 py-8 overflow-hidden">
+            <div className="container mx-auto px-4 py-8 overflow-hidden" style={{ maxWidth: '100%' }}>
                 {/* Breadcrumb */}
                 <nav className="text-sm mb-6">
                     <ol className="flex items-center gap-2 flex-wrap">
@@ -176,7 +176,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     />
 
                     {/* Product Info */}
-                    <div className="space-y-6 min-w-0 overflow-hidden max-w-full">
+                    <div className="space-y-6 min-w-0 overflow-hidden" style={{ maxWidth: 'calc(100vw - 2rem)', wordBreak: 'break-word' }}>
                         <div>
                             <p className="text-primary font-medium mb-1">{product.brand}</p>
                             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 break-words">{product.name}</h1>
@@ -238,13 +238,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
                         {/* Bullet Points */}
                         {product.bullet_points && product.bullet_points.length > 0 && (
-                            <div className="space-y-2">
+                            <div className="space-y-2 overflow-hidden">
                                 <h3 className="font-semibold">Key Features:</h3>
-                                <ul className="space-y-1">
+                                <ul className="space-y-1 overflow-hidden">
                                     {(product.bullet_points as string[]).map((point: string, idx: number) => (
                                         <li key={idx} className="flex items-start gap-2 text-sm">
                                             <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                            <span className="break-words">{point.replace(/^[✓✔☑✅\s]+/, '')}</span>
+                                            <span className="break-all" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{point.replace(/^[✓✔☑✅\s]+/, '')}</span>
                                         </li>
                                     ))}
                                 </ul>
