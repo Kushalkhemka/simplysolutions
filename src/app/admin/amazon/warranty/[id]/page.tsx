@@ -134,6 +134,34 @@ export default function WarrantyReviewPage({ params }: { params: Promise<{ id: s
         }
     };
 
+    const handleResendEmail = async () => {
+        if (!warranty?.customer_email) {
+            toast.error('No customer email available');
+            return;
+        }
+
+        setActionLoading(true);
+        try {
+            const response = await fetch(`/api/admin/warranty/${resolvedParams.id}/resend-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success('Resubmission email sent successfully!');
+            } else {
+                toast.error(data.error || 'Failed to send email');
+            }
+        } catch (error) {
+            console.error('Resend email error:', error);
+            toast.error('Failed to send email');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'VERIFIED':
@@ -395,6 +423,46 @@ export default function WarrantyReviewPage({ params }: { params: Promise<{ id: s
                     {!warranty.customer_email && (
                         <p className="mt-4 text-sm text-yellow-600 bg-yellow-50 p-3 rounded-lg">
                             ⚠️ No customer email available. Customer will not receive email notifications.
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {/* Resend Email for NEEDS_RESUBMISSION */}
+            {warranty.status === 'NEEDS_RESUBMISSION' && (
+                <div className="bg-card border rounded-xl p-6">
+                    <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                        <Send className="h-5 w-5 text-orange-500" />
+                        Resend Resubmission Email
+                    </h2>
+                    <p className="text-sm text-muted-foreground mb-4">
+                        Customer has been asked to resubmit screenshots. You can resend the resubmission email if needed.
+                    </p>
+
+                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg mb-4">
+                        <p className="text-sm font-medium text-orange-800">Missing Screenshots:</p>
+                        <ul className="text-sm text-orange-700 mt-2 space-y-1">
+                            {(warranty.missing_seller_feedback || !warranty.screenshot_seller_feedback) && (
+                                <li>• Seller Feedback Screenshot</li>
+                            )}
+                            {(warranty.missing_product_review || !warranty.screenshot_product_review) && (
+                                <li>• Product Review Screenshot</li>
+                            )}
+                        </ul>
+                    </div>
+
+                    <button
+                        onClick={handleResendEmail}
+                        disabled={actionLoading || !warranty.customer_email}
+                        className="py-3 px-6 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                        {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        Resend Resubmission Email
+                    </button>
+
+                    {!warranty.customer_email && (
+                        <p className="mt-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                            ⚠️ No customer email available. Cannot send email notification.
                         </p>
                     )}
                 </div>
