@@ -38,7 +38,7 @@ export function HeroGrid() {
                             Upgrade to the latest operating system. Instant delivery via email. 100% Genuine Retail Key.
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            <Link href="/products/windows-11-pro-retail-key-global">
+                            <Link href="/products/windows-11-pro-product-license-key-1-userpc-lifetime-validity-3264-bit-or-unlimited-reinstallations--off_17">
                                 <Button size="lg" className="font-bold text-lg px-8 bg-blue-600 hover:bg-blue-500 border-0 shadow-lg shadow-blue-900/20">
                                     Buy Now - ₹499
                                 </Button>
@@ -66,7 +66,7 @@ export function HeroGrid() {
                         <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
                             <h3 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">Office 2021 Pro</h3>
                             <p className="text-gray-200 text-sm mb-3 font-medium">Maximize productivity with classic apps.</p>
-                            <Link href="/products/microsoft-office-2021-professional-plus-global">
+                            <Link href="/products/microsoft-office-professional-plus-2021-or-1-user-lifetime-validity-retail-license-key-new-version-o-off_16">
                                 <span className="inline-flex items-center text-orange-400 font-bold hover:underline gap-1">
                                     Shop Now <ArrowRight className="w-4 h-4" />
                                 </span>

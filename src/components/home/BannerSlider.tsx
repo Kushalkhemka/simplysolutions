@@ -49,7 +49,7 @@ export function BannerSlider({ products = [] }: BannerSliderProps) {
             price: 1499,
             mrp: 24999,
             main_image_url: '/images/offic2024_promo_image-removebg-preview.png',
-            slug: 'office-2024-pro-plus'
+            slug: 'microsoft-office-pro-plus-ltsc-2024-full-edition-or-new-2025-updated-lifetime-retail-key-for-windows-off_35'
         }
     ];
 

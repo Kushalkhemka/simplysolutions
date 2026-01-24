@@ -51,13 +51,13 @@ export function FlashDealCountdown({
     if (!isVisible) return null;
 
     const TimeBlock = ({ value, label }: { value: number; label: string }) => (
-        <div className="flex flex-col items-center mx-1 sm:mx-2 min-w-[50px] sm:min-w-[60px]">
-            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 w-full text-center shadow-sm border border-white/10">
-                <span className="block text-xl sm:text-2xl font-bold text-white tabular-nums leading-none">
+        <div className="flex flex-col items-center mx-0.5 sm:mx-2 min-w-[40px] sm:min-w-[60px]">
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5 sm:p-2 w-full text-center shadow-sm border border-white/10">
+                <span className="block text-lg sm:text-2xl font-bold text-white tabular-nums leading-none">
                     {String(value).padStart(2, '0')}
                 </span>
             </div>
-            <span className="text-[10px] sm:text-xs font-semibold text-white/90 uppercase mt-1 tracking-wider">
+            <span className="text-[9px] sm:text-xs font-semibold text-white/90 uppercase mt-1 tracking-wider">
                 {label}
             </span>
         </div>
@@ -87,13 +87,13 @@ export function FlashDealCountdown({
                 </div>
 
                 {/* Right Side: Timer */}
-                <div className="flex items-start">
+                <div className="flex items-start flex-wrap justify-center">
                     <TimeBlock value={timeLeft.days} label="Days" />
-                    <span className="text-white/60 text-2xl font-bold mt-1">:</span>
+                    <span className="text-white/60 text-xl sm:text-2xl font-bold mt-1">:</span>
                     <TimeBlock value={timeLeft.hours} label="Hours" />
-                    <span className="text-white/60 text-2xl font-bold mt-1">:</span>
+                    <span className="text-white/60 text-xl sm:text-2xl font-bold mt-1">:</span>
                     <TimeBlock value={timeLeft.minutes} label="Mins" />
-                    <span className="text-white/60 text-2xl font-bold mt-1">:</span>
+                    <span className="text-white/60 text-xl sm:text-2xl font-bold mt-1">:</span>
                     <TimeBlock value={timeLeft.seconds} label="Secs" />
                 </div>
             </div>

@@ -141,7 +141,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <ProductJsonLd product={product} />
             <BreadcrumbJsonLd items={breadcrumbItems} />
 
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4 py-8 overflow-hidden">
                 {/* Breadcrumb */}
                 <nav className="text-sm mb-6">
                     <ol className="flex items-center gap-2 flex-wrap">
@@ -162,7 +162,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                             </>
                         )}
                         <li className="text-muted-foreground">/</li>
-                        <li className="font-medium truncate max-w-xs">{product.name}</li>
+                        <li className="font-medium truncate max-w-[150px] sm:max-w-xs">{product.name}</li>
                     </ol>
                 </nav>
 
@@ -197,14 +197,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
                         {/* Price */}
                         <div className="p-4 bg-muted/50 rounded-lg">
-                            <div className="flex items-baseline gap-3 mb-2">
-                                <span className="text-3xl font-bold">₹{product.price.toLocaleString('en-IN')}</span>
+                            <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 mb-2">
+                                <span className="text-2xl sm:text-3xl font-bold">₹{product.price.toLocaleString('en-IN')}</span>
                                 {product.mrp > product.price && (
                                     <>
-                                        <span className="text-xl text-muted-foreground line-through">
+                                        <span className="text-lg sm:text-xl text-muted-foreground line-through">
                                             ₹{product.mrp.toLocaleString('en-IN')}
                                         </span>
-                                        <Badge variant="destructive">Save ₹{(product.mrp - product.price).toLocaleString('en-IN')}</Badge>
+                                        <Badge variant="destructive" className="text-xs">Save ₹{(product.mrp - product.price).toLocaleString('en-IN')}</Badge>
                                     </>
                                 )}
                             </div>
@@ -274,19 +274,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
                             <AddToCartButton
                                 productId={product.id}
                                 productName={product.name}
                                 stockQuantity={product.stock_quantity}
-                                className="flex-1"
+                                className="flex-1 min-w-[140px]"
                             />
                             {amazonUrl && (
                                 <a
                                     href={amazonUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex-1"
+                                    className="flex-1 min-w-[140px]"
                                 >
                                     <Button
                                         size="lg"
@@ -304,12 +304,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
                                     </Button>
                                 </a>
                             )}
-                            <Button size="lg" variant="outline">
-                                <Heart className="h-5 w-5" />
-                            </Button>
-                            <Button size="lg" variant="outline">
-                                <Share2 className="h-5 w-5" />
-                            </Button>
+                            <div className="flex gap-3">
+                                <Button size="lg" variant="outline" className="flex-1 sm:flex-none">
+                                    <Heart className="h-5 w-5" />
+                                </Button>
+                                <Button size="lg" variant="outline" className="flex-1 sm:flex-none">
+                                    <Share2 className="h-5 w-5" />
+                                </Button>
+                            </div>
                         </div>
 
                         {/* Stock Status */}
