@@ -80,8 +80,8 @@ export function ProductGallery({
     }
 
     return (
-        <div className="space-y-4">
-            <div className="relative aspect-square bg-muted rounded-lg overflow-hidden group">
+        <div className="space-y-4" style={{ maxWidth: 'calc(100vw - 2rem)', overflow: 'hidden' }}>
+            <div className="relative aspect-square bg-muted rounded-lg overflow-hidden group" style={{ maxWidth: '100%' }}>
                 <div className="overflow-hidden h-full" ref={emblaRef}>
                     <div className="flex h-full touch-pan-y">
                         {displayImages.map((img, idx) => (
