@@ -560,30 +560,6 @@ function ActivatePageContent() {
                                 )}
                             </button>
 
-                            {/* Warranty Registration CTA - Below generate button */}
-                            <a href="/digital-warranty" className="block mt-4">
-                                <div className="bg-gradient-to-r from-[#232F3E] to-[#37475A] rounded-lg shadow overflow-hidden hover:shadow-lg transition-all hover:scale-[1.01] cursor-pointer">
-                                    <div className="p-3 flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-[#FF9900] to-[#FF6600] rounded-full flex items-center justify-center flex-shrink-0 shadow">
-                                            <Shield className="w-5 h-5 text-white" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="text-sm font-bold text-white">
-                                                Already Activated? Register Warranty
-                                            </h3>
-                                            <p className="text-xs text-gray-300">
-                                                Get free support & easy replacements
-                                            </p>
-                                        </div>
-                                        <div className="flex-shrink-0">
-                                            <div className="bg-[#FF9900] text-[#0F1111] font-bold px-2 py-1 rounded text-xs shadow">
-                                                Register →
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-
                             {/* Alternative: Orange button for more visibility */}
                             {/* <button className="w-full py-3 bg-gradient-to-b from-[#FF9900] to-[#E47911] hover:from-[#FA8900] hover:to-[#D07910] text-white font-bold rounded-lg border border-[#D07910] shadow-sm">
                                 Generate Activation Key
@@ -1260,6 +1236,32 @@ function ActivatePageContent() {
                             </div>
                         )}
                     </div>
+
+                    {/* Warranty Registration CTA - Outside the form, between cards */}
+                    {!activationResult?.success && (
+                        <a href="/digital-warranty" className="block mt-6">
+                            <div className="bg-gradient-to-r from-[#232F3E] to-[#37475A] rounded-lg shadow-lg border border-[#232F3E] overflow-hidden hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer">
+                                <div className="p-4 flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-[#FF9900] to-[#FF6600] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                                        <Shield className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-base font-bold text-white mb-0.5">
+                                            Register for FREE Warranty
+                                        </h3>
+                                        <p className="text-xs text-gray-300">
+                                            Get priority support & easy replacements
+                                        </p>
+                                    </div>
+                                    <div className="flex-shrink-0">
+                                        <div className="bg-[#FF9900] text-[#0F1111] font-bold px-3 py-1.5 rounded text-xs shadow-md">
+                                            Register →
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    )}
 
                     {/* Help Section - Amazon style info box - Only show before activation */}
                     {!activationResult?.success && (
