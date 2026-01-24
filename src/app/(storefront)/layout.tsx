@@ -1,7 +1,7 @@
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { WelcomeOfferProvider } from '@/components/offers/WelcomeOfferProvider';
-import { TawkChat } from '@/components/chat/TawkChat';
+import { ChatwootWidget } from '@/components/chat/ChatwootWidget';
 import { PushPermission } from '@/components/notifications/PushPermission';
 
 export default function StorefrontLayout({
@@ -18,8 +18,9 @@ export default function StorefrontLayout({
                 </WelcomeOfferProvider>
             </main>
             <Footer />
-            <TawkChat />
+            <ChatwootWidget />
             <PushPermission />
         </div>
     );
 }
+
