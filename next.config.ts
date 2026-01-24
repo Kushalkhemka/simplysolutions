@@ -113,6 +113,11 @@ const nextConfig: NextConfig = {
         destination: '/activate',
         permanent: true,
       },
+      {
+        source: '/getcidEnter',
+        destination: '/getcid',
+        permanent: true,
+      },
     ];
   },
 };
