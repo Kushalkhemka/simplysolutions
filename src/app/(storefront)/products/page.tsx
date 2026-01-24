@@ -176,9 +176,30 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                     </ol>
                 </nav>
 
+                {/* Mobile Category Filter - Horizontal Scrollable */}
+                <div className="lg:hidden mb-4 -mx-4 px-4">
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <Link
+                            href="/products"
+                            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${!params.category ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+                        >
+                            All
+                        </Link>
+                        {categories?.map((cat) => (
+                            <Link
+                                key={cat.id}
+                                href={`/products?category=${cat.slug}`}
+                                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${params.category === cat.slug ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+                            >
+                                {cat.name}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar Filters */}
-                    <aside className="lg:w-64 flex-shrink-0">
+                    {/* Sidebar Filters - Hidden on mobile, visible on lg+ */}
+                    <aside className="hidden lg:block lg:w-64 flex-shrink-0">
                         <div className="sticky top-24 space-y-6">
                             <div>
                                 <h3 className="font-semibold mb-3 flex items-center gap-2">
