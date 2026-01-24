@@ -93,7 +93,7 @@ export default function NewTicketPage() {
     };
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6 px-4 py-6">
             <div className="flex items-center gap-4">
                 <Link href="/dashboard/support">
                     <Button variant="ghost" size="icon">
@@ -129,8 +129,8 @@ export default function NewTicketPage() {
                                 type="button"
                                 onClick={() => setFormData({ ...formData, category: cat.value })}
                                 className={`p-3 rounded-lg border text-left transition-all ${formData.category === cat.value
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-border hover:border-primary/50'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border hover:border-primary/50'
                                     }`}
                             >
                                 <div className="font-medium text-sm">{cat.label}</div>
@@ -170,8 +170,8 @@ export default function NewTicketPage() {
                                 type="button"
                                 onClick={() => setFormData({ ...formData, priority: p.value })}
                                 className={`px-4 py-2 rounded-full text-sm transition-all ${formData.priority === p.value
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'bg-muted hover:bg-muted/80'
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted hover:bg-muted/80'
                                     }`}
                             >
                                 {p.label}
