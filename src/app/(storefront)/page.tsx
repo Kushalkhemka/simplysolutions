@@ -67,7 +67,7 @@ export const metadata: Metadata = {
         locale: 'en_IN',
         siteName: 'SimplySolutions',
         images: [{
-            url: `${BASE_URL}/logo.png`,
+            url: `${BASE_URL}/social-media-banner.png`,
             width: 1200,
             height: 630,
             alt: 'SimplySolutions - Buy Genuine Microsoft License Keys India',
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: 'Buy Genuine Microsoft License Keys India | SimplySolutions',
         description: 'Windows 11, Office 2024, Microsoft 365 - Instant delivery, lowest prices, 100% genuine.',
-        images: [`${BASE_URL}/logo.png`],
+        images: [`${BASE_URL}/social-media-banner.png`],
     },
     alternates: {
         canonical: BASE_URL,

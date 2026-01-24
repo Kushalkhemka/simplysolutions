@@ -140,7 +140,7 @@ export const metadata: Metadata = {
     description: "Buy genuine Microsoft software licenses with instant digital delivery. Windows 11, Office 2024, Microsoft 365 and more at lowest prices in India.",
     images: [
       {
-        url: `${BASE_URL}/logo.png`,
+        url: `${BASE_URL}/social-media-banner.png`,
         width: 1200,
         height: 630,
         alt: "SimplySolutions - Genuine Software Licenses India",
@@ -151,7 +151,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SimplySolutions - Genuine Microsoft Software Licenses",
     description: "Buy genuine Microsoft software licenses with instant digital delivery. Windows, Office, and more at lowest prices in India.",
-    images: [`${BASE_URL}/logo.png`],
+    images: [`${BASE_URL}/social-media-banner.png`],
     creator: "@simplysolutions",
     site: "@simplysolutions",
   },

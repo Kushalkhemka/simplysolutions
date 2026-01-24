@@ -52,9 +52,9 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
     const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
     return (
-        <>
-            {/* Mobile Header */}
-            <div className="lg:hidden sticky top-0 z-40 bg-card border-b px-4 py-3 flex items-center justify-between">
+        <div className="flex w-full min-h-screen">
+            {/* Mobile Header - Fixed at top on mobile */}
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-card border-b px-4 py-3 flex items-center justify-between">
                 <Link href="/admin" onClick={closeMobileMenu}>
                     <h1 className="text-lg font-bold">
                         Simply<span className="text-primary">Admin</span>
@@ -83,7 +83,7 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
 
             {/* Sidebar - Desktop & Mobile */}
             <aside className={`
-                fixed lg:sticky top-0 left-0 z-50 h-screen w-72 bg-card border-r
+                fixed lg:sticky top-0 left-0 z-50 h-screen w-72 bg-card border-r shrink-0
                 transform transition-transform duration-300 ease-in-out
                 lg:transform-none
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -106,8 +106,8 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
                                 href={link.href}
                                 onClick={closeMobileMenu}
                                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive(link.href)
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'hover:bg-accent'
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'hover:bg-accent'
                                     }`}
                             >
                                 <link.icon className="h-5 w-5" />
@@ -126,8 +126,8 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
                                     href={link.href}
                                     onClick={closeMobileMenu}
                                     className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive(link.href)
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'hover:bg-accent'
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'hover:bg-accent'
                                         }`}
                                 >
                                     <link.icon className="h-5 w-5" />
@@ -151,10 +151,10 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-h-screen">
+            {/* Main Content - Takes full width on mobile */}
+            <div className="flex-1 flex flex-col min-h-screen w-full lg:w-auto pt-[52px] lg:pt-0">
                 {children}
             </div>
-        </>
+        </div>
     );
 }
