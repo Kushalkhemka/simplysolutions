@@ -49,7 +49,7 @@ export default function CheckoutPage() {
     const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
     const [isGift, setIsGift] = useState(false);
     const [giftDetails, setGiftDetails] = useState<GiftDetails | null>(null);
-    const [activeOffers, setActiveOffers] = useState<{ priceSlash: any; bogo: any } | null>(null);
+    const [activeOffers, setActiveOffers] = useState<{ priceSlash: any; bogo: any; flashDeal: any } | null>(null);
 
     const { register, handleSubmit, formState: { errors }, setValue } = useForm<CheckoutForm>({
         resolver: zodResolver(checkoutSchema),
@@ -67,6 +67,7 @@ export default function CheckoutPage() {
                     setActiveOffers({
                         priceSlash: data.data.priceSlash,
                         bogo: data.data.bogo,
+                        flashDeal: data.data.flashDeal,
                     });
                 }
             } catch (error) {
@@ -95,9 +96,21 @@ export default function CheckoutPage() {
         };
     }, []);
 
-    // Calculate offer discount (BOGO or 50% OFF)
+    // Calculate offer discount (Flash Deal, BOGO, or 50% OFF)
     const calculateOfferDiscount = () => {
-        if (!activeOffers || items.length === 0) return { type: null, discount: 0 };
+        if (!activeOffers || items.length === 0) return { type: null, discount: 0, productId: null };
+
+        // Check for Flash Deal first - if user has a flash deal for a product in cart
+        if (activeOffers.flashDeal && activeOffers.flashDeal.product_id) {
+            const flashDealItem = items.find(item => item.product_id === activeOffers.flashDeal.product_id);
+            if (flashDealItem && flashDealItem.product) {
+                const regularPrice = flashDealItem.product.price || 0;
+                const offerPrice = activeOffers.flashDeal.offer_price || regularPrice;
+                const discountPerItem = regularPrice - offerPrice;
+                // Apply flash deal discount for quantity 1 only
+                return { type: 'flash_deal', discount: discountPerItem, productId: flashDealItem.product_id };
+            }
+        }
 
         // Get item prices sorted ascending (cheapest first)
         const itemPrices = items
@@ -106,15 +119,15 @@ export default function CheckoutPage() {
 
         // BOGO requires 2+ items - cheapest item is FREE
         if (activeOffers.bogo && items.length >= 2) {
-            return { type: 'bogo', discount: itemPrices[0] };
+            return { type: 'bogo', discount: itemPrices[0], productId: null };
         }
 
         // 50% OFF the cheapest item
         if (activeOffers.priceSlash) {
-            return { type: 'price_slash', discount: itemPrices[0] * 0.5 };
+            return { type: 'price_slash', discount: itemPrices[0] * 0.5, productId: null };
         }
 
-        return { type: null, discount: 0 };
+        return { type: null, discount: 0, productId: null };
     };
 
     const offerResult = calculateOfferDiscount();
@@ -483,7 +496,9 @@ export default function CheckoutPage() {
                             {offerDiscount > 0 && (
                                 <div className="flex justify-between text-purple-600">
                                     <span className="flex items-center gap-1">
-                                        {offerType === 'bogo' ? (
+                                        {offerType === 'flash_deal' ? (
+                                            <><Sparkles className="h-3.5 w-3.5" /> Flash Deal Applied!</>
+                                        ) : offerType === 'bogo' ? (
                                             <><Gift className="h-3.5 w-3.5" /> BOGO - Free Item!</>
                                         ) : (
                                             <><Percent className="h-3.5 w-3.5" /> 50% OFF First Purchase!</>

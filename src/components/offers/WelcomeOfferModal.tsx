@@ -210,7 +210,7 @@ export function WelcomeOfferModal({ isOpen, onClose, offers, isFirstLogin }: Wel
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-semibold text-foreground">50% OFF - Any Product!</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">One-time use • Valid for 24 hours</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">One-time use • Valid for 12 hours</p>
                                             </div>
                                             <Button
                                                 onClick={() => handleNavigate('/products')}

@@ -64,15 +64,15 @@ export function WelcomeOfferProvider({ children }: { children: ReactNode }) {
     // Check for welcome offers on mount
     useEffect(() => {
         const checkWelcomeOffers = async () => {
-            // Check if we already showed the modal today (once per 24 hours)
+            // Check if we already showed the modal today (once per 12 hours)
             const lastShown = localStorage.getItem('welcomeOfferModalLastShown');
             if (lastShown) {
                 const lastShownTime = parseInt(lastShown, 10);
                 const now = Date.now();
-                const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+                const twelveHoursInMs = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
 
-                // If less than 24 hours have passed, don't show the modal
-                if (now - lastShownTime < oneDayInMs) {
+                // If less than 12 hours have passed, don't show the modal
+                if (now - lastShownTime < twelveHoursInMs) {
                     return;
                 }
             }

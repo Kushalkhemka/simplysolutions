@@ -91,41 +91,41 @@ export async function checkAndCreateWelcomeOffers(userId: string): Promise<Welco
 
     const now = new Date();
     const flash15Mins = new Date(now.getTime() + 15 * 60 * 1000); // 15 minutes
-    const offer24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+    const offer12Hours = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12 hours
 
     const offersToCreate: any[] = [];
 
-    // Flash Deal: Windows 11 Pro at ₹299 for 15 minutes
+    // Flash Deal: Windows 11 Pro at ₹499 for 15 minutes
     if (windows11Pro) {
         offersToCreate.push({
             user_id: userId,
             offer_type: 'flash_deal',
             product_id: windows11Pro.id,
             original_price: windows11Pro.price,
-            offer_price: 299,
-            discount_value: windows11Pro.price - 299,
+            offer_price: 499,
+            discount_value: windows11Pro.price - 499,
             is_used: false,
             expires_at: flash15Mins.toISOString(),
         });
     }
 
-    // Price Slash: 50% off any product (one-time use, valid for 24 hours)
+    // Price Slash: 50% off any product (one-time use, valid for 12 hours)
     offersToCreate.push({
         user_id: userId,
         offer_type: 'price_slash',
         product_id: null, // Can be used on any product
         discount_value: 50, // 50% discount
         is_used: false,
-        expires_at: offer24Hours.toISOString(),
+        expires_at: offer12Hours.toISOString(),
     });
 
-    // BOGO: Buy one get one free (valid for 24 hours)
+    // BOGO: Buy one get one free (valid for 12 hours)
     offersToCreate.push({
         user_id: userId,
         offer_type: 'bogo',
         product_id: null, // Can be used on any product
         is_used: false,
-        expires_at: offer24Hours.toISOString(),
+        expires_at: offer12Hours.toISOString(),
     });
 
     // Create offers
