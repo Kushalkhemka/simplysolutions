@@ -44,22 +44,41 @@ async function getAccessToken(): Promise<string> {
 }
 
 async function fetchMFNOrders(accessToken: string, createdAfter: string): Promise<any[]> {
-    const url = new URL(`${SP_API_CONFIG.endpoint}/orders/v0/orders`);
-    url.searchParams.set('MarketplaceIds', SP_API_CONFIG.marketplaceId);
-    url.searchParams.set('CreatedAfter', createdAfter);
-    url.searchParams.set('FulfillmentChannels', 'MFN');
-    url.searchParams.set('MaxResultsPerPage', '100');
+    const allOrders: any[] = [];
+    let nextToken: string | null = null;
 
-    const response = await fetch(url.toString(), {
-        headers: { 'x-amz-access-token': accessToken }
-    });
+    do {
+        const url = new URL(`${SP_API_CONFIG.endpoint}/orders/v0/orders`);
+        url.searchParams.set('MarketplaceIds', SP_API_CONFIG.marketplaceId);
+        url.searchParams.set('CreatedAfter', createdAfter);
+        url.searchParams.set('FulfillmentChannels', 'MFN');
+        url.searchParams.set('MaxResultsPerPage', '100');
 
-    if (!response.ok) {
-        throw new Error(`SP-API error: ${response.status}`);
-    }
+        if (nextToken) {
+            url.searchParams.set('NextToken', nextToken);
+        }
 
-    const data = await response.json();
-    return data.payload?.Orders || [];
+        const response = await fetch(url.toString(), {
+            headers: { 'x-amz-access-token': accessToken }
+        });
+
+        if (!response.ok) {
+            throw new Error(`SP-API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const orders = data.payload?.Orders || [];
+        allOrders.push(...orders);
+
+        nextToken = data.payload?.NextToken || null;
+
+        // Rate limiting - small delay between pages
+        if (nextToken) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+    } while (nextToken);
+
+    return allOrders;
 }
 
 async function fetchOrderItems(accessToken: string, orderId: string): Promise<any[]> {

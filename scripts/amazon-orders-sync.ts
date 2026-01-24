@@ -49,32 +49,55 @@ async function getAccessToken(): Promise<string> {
     return data.access_token;
 }
 
-// Fetch orders from SP-API
+// Fetch orders from SP-API (with pagination)
 async function fetchOrders(accessToken: string, createdAfter: string): Promise<any[]> {
-    const url = new URL(`${SP_API_CONFIG.endpoint}/orders/v0/orders`);
-    url.searchParams.set('MarketplaceIds', SP_API_CONFIG.marketplaceId);
-    url.searchParams.set('CreatedAfter', createdAfter);
-    url.searchParams.set('MaxResultsPerPage', '100');
+    const allOrders: any[] = [];
+    let nextToken: string | null = null;
+    let pageCount = 0;
 
     console.log(`Fetching orders created after ${createdAfter}...`);
 
-    const headers = {
-        'x-amz-access-token': accessToken,
-        'x-amz-date': new Date().toISOString().replace(/[:-]|\.\d{3}/g, ''),
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    };
+    do {
+        const url = new URL(`${SP_API_CONFIG.endpoint}/orders/v0/orders`);
+        url.searchParams.set('MarketplaceIds', SP_API_CONFIG.marketplaceId);
+        url.searchParams.set('CreatedAfter', createdAfter);
+        url.searchParams.set('MaxResultsPerPage', '100');
 
-    const response = await fetch(url.toString(), { headers });
+        if (nextToken) {
+            url.searchParams.set('NextToken', nextToken);
+        }
 
-    if (!response.ok) {
-        const error = await response.text();
-        console.error('SP-API Error Response:', error);
-        throw new Error(`SP-API error: ${response.status}`);
-    }
+        const headers = {
+            'x-amz-access-token': accessToken,
+            'x-amz-date': new Date().toISOString().replace(/[:-]|\.\\d{3}/g, ''),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
 
-    const data = await response.json();
-    return data.payload?.Orders || [];
+        const response = await fetch(url.toString(), { headers });
+
+        if (!response.ok) {
+            const error = await response.text();
+            console.error('SP-API Error Response:', error);
+            throw new Error(`SP-API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const orders = data.payload?.Orders || [];
+        allOrders.push(...orders);
+        pageCount++;
+
+        console.log(`   Page ${pageCount}: fetched ${orders.length} orders (total: ${allOrders.length})`);
+
+        nextToken = data.payload?.NextToken || null;
+
+        // Rate limiting - small delay between pages
+        if (nextToken) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+    } while (nextToken);
+
+    return allOrders;
 }
 
 // Fetch order items to get ASIN
