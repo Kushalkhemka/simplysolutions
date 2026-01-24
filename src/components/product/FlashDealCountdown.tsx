@@ -70,14 +70,14 @@ export function FlashDealCountdown({
             {/* Glossy overlay effect */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_0%,transparent_50%)]"></div>
 
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-4 py-4 md:px-6 md:py-3 gap-4">
+            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between px-4 py-4 sm:px-6 sm:py-3 gap-3 sm:gap-4">
                 {/* Left Side: Title & Icon */}
                 <div className="flex items-center gap-3">
                     <div className="bg-white text-[#FF3E3E] p-2 rounded-full shadow-md animate-pulse-slow">
                         <Zap className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
                     </div>
-                    <div className="text-center md:text-left min-w-0 max-w-full">
-                        <h3 className="text-base sm:text-xl md:text-2xl font-black text-white italic uppercase tracking-wide drop-shadow-sm truncate">
+                    <div className="text-center sm:text-left">
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-black text-white italic uppercase tracking-wide drop-shadow-sm whitespace-nowrap">
                             {title}
                         </h3>
                         <p className="text-white/90 text-xs sm:text-sm font-medium">
@@ -87,7 +87,7 @@ export function FlashDealCountdown({
                 </div>
 
                 {/* Right Side: Timer */}
-                <div className="flex items-start flex-wrap justify-center">
+                <div className="flex items-start justify-center flex-nowrap">
                     <TimeBlock value={timeLeft.days} label="Days" />
                     <span className="text-white/60 text-xl sm:text-2xl font-bold mt-1">:</span>
                     <TimeBlock value={timeLeft.hours} label="Hours" />
