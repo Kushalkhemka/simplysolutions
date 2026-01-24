@@ -76,8 +76,8 @@ export function RazorpayAffordabilityWidget({ amount, className = '' }: Razorpay
         return null;
     }
 
-    // Don't show for very low amounts (EMI usually requires minimum ₹3000)
-    if (amount < 3000) {
+    // Don't show for very low amounts
+    if (amount < 500) {
         return null;
     }
 
