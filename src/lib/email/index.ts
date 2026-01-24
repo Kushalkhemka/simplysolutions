@@ -74,7 +74,7 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
       </table>
       
       <div style="background: #fef3c7; border: 1px solid #fcd34d; padding: 15px; border-radius: 8px; margin: 20px 0;">
-        <strong>⚠️ Important:</strong> Please save your license keys in a safe place. You can also view them anytime in your <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/orders">order history</a>.
+        <strong>Important:</strong> Please save your license keys in a safe place. You can also view them anytime in your <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/orders">order history</a>.
       </div>
       
       <p>If you have any questions, please contact our support team.</p>
@@ -133,7 +133,7 @@ export async function sendVerificationEmail(data: VerificationEmailData) {
           
           <!-- Icon -->
           <div style="width: 64px; height: 64px; margin: 0 auto 24px; background-color: #FFF7ED; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #FFEDD5;">
-            <span style="font-size: 32px; line-height: 1;">✉️</span>
+            <span style="font-size: 32px; line-height: 1; color: #DC3E15;">&#9993;</span>
           </div>
 
           <h2 style="margin: 0 0 16px; font-size: 24px; font-weight: 700; color: #1e293b;">Verify your email</h2>
@@ -233,7 +233,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
           
           <!-- Icon -->
           <div style="width: 64px; height: 64px; margin: 0 auto 24px; background-color: #FFF7ED; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #FFEDD5;">
-            <span style="font-size: 32px; line-height: 1;">🔐</span>
+            <span style="font-size: 32px; line-height: 1; color: #DC3E15;">&#128274;</span>
           </div>
 
           <h2 style="margin: 0 0 16px; font-size: 24px; font-weight: 700; color: #1e293b;">Reset Password</h2>
@@ -341,7 +341,7 @@ export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
   const afterInstallHtml = config.afterInstall ? `
     <div style="margin-top: 24px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 12px; padding: 20px;">
       <h3 style="margin: 0 0 12px; font-size: 16px; font-weight: 600; color: #92400e;">
-        ⚠️ After Installation
+        After Installation
       </h3>
       <ul style="margin: 0; padding-left: 20px; color: #92400e;">
         ${config.afterInstall.map(step => `<li style="margin-bottom: 8px;">${step}</li>`).join('')}
@@ -370,12 +370,12 @@ export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
           <!-- Success Icon -->
           <div style="text-align: center; margin-bottom: 24px;">
             <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 40px; line-height: 1;">✓</span>
+              <span style="font-size: 40px; line-height: 1; color: white;">&#10003;</span>
             </div>
           </div>
 
           <h2 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #1e293b; text-align: center;">
-            Subscription Activated! 🎉
+            Subscription Activated!
           </h2>
           
           <p style="margin: 0 0 24px; font-size: 16px; color: #64748b; text-align: center;">
@@ -402,7 +402,7 @@ export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
 
           <!-- Installation Steps -->
           <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #1e293b;">
-            📋 Installation Steps
+            Installation Steps
           </h3>
           
           <table style="width: 100%;">
@@ -435,7 +435,7 @@ export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
           </p>
           <a href="https://wa.me/918595899215" 
              style="display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: white; padding: 12px 24px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px;">
-            <span>💬</span> Chat on WhatsApp
+            <span></span>Chat on WhatsApp
           </a>
           <p style="margin: 12px 0 0; font-size: 13px; color: #94a3b8;">
             +91 8595899215 (Message only)
@@ -457,7 +457,7 @@ export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
     const { data: result, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.com>',
       to: data.to,
-      subject: `✅ Your ${config.productName} is Ready! - Order ${data.orderId}`,
+      subject: `Your ${config.productName} is Ready! - Order ${data.orderId}`,
       html,
     });
 
