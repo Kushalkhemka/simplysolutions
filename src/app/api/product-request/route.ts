@@ -166,12 +166,7 @@ export async function POST(request: NextRequest) {
             request_type: requestType
         };
 
-        // For 365e5, also save the name fields
-        if (requestType === '365e5') {
-            insertData.first_name = firstName?.trim() || null;
-            insertData.last_name = lastName?.trim() || null;
-            insertData.username_prefix = usernamePrefix?.toLowerCase().trim() || null;
-        }
+        // Note: first_name, last_name, username_prefix are only stored in office365_requests table
 
         const { data, error } = await supabase
             .from('product_requests')

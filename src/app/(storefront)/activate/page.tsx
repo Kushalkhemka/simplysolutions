@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
     ShoppingCart,
@@ -60,6 +60,7 @@ interface ActivationResult {
 
 export default function ActivatePage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [secretCode, setSecretCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showOSModal, setShowOSModal] = useState(false);
@@ -76,6 +77,14 @@ export default function ActivatePage() {
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [showFbaWarning, setShowFbaWarning] = useState(false);
     const [fulfillmentType, setFulfillmentType] = useState<string | null>(null);
+
+    // Pre-fill secret code from URL query parameter
+    useEffect(() => {
+        const codeFromUrl = searchParams.get('code');
+        if (codeFromUrl) {
+            setSecretCode(codeFromUrl);
+        }
+    }, [searchParams]);
 
     // Windows installation type selection
     const [showWindowsTypeModal, setShowWindowsTypeModal] = useState(false);
