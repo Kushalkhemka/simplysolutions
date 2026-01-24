@@ -1237,25 +1237,70 @@ function ActivatePageContent() {
                         )}
                     </div>
 
-                    {/* Warranty Registration CTA - Outside the form, between cards */}
+                    {/* Warranty Registration CTA - Enhanced Design */}
                     {!activationResult?.success && (
-                        <a href="/digital-warranty" className="block mt-6">
-                            <div className="bg-gradient-to-r from-[#232F3E] to-[#37475A] rounded-lg shadow-lg border border-[#232F3E] overflow-hidden hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer">
-                                <div className="p-4 flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-[#FF9900] to-[#FF6600] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                                        <Shield className="w-6 h-6 text-white" />
+                        <a href="/digital-warranty" className="block mt-6 group">
+                            <div className="relative bg-gradient-to-r from-[#1a2636] via-[#232F3E] to-[#2d3e50] rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] cursor-pointer border border-[#FF9900]/30">
+                                {/* Animated Glow Effect */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-[#FF9900]/0 via-[#FF9900]/10 to-[#FF9900]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                {/* FREE Badge */}
+                                <div className="absolute -top-1 -right-1 z-10">
+                                    <div className="bg-gradient-to-r from-[#067D62] to-[#0B9B7A] text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg shadow-lg animate-pulse">
+                                        FREE
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-base font-bold text-white mb-0.5">
-                                            Register for FREE Warranty
-                                        </h3>
-                                        <p className="text-xs text-gray-300">
-                                            Get priority support & easy replacements
-                                        </p>
+                                </div>
+
+                                <div className="relative p-5">
+                                    <div className="flex items-start gap-4">
+                                        {/* Shield Icon with Pulse */}
+                                        <div className="relative flex-shrink-0">
+                                            <div className="absolute inset-0 bg-[#FF9900] rounded-full blur-md opacity-40 animate-pulse" />
+                                            <div className="relative w-14 h-14 bg-gradient-to-br from-[#FF9900] to-[#FF6600] rounded-full flex items-center justify-center shadow-xl">
+                                                <Shield className="w-7 h-7 text-white" />
+                                            </div>
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-lg font-bold text-white">
+                                                    Already Activated? Register for FREE Warranty
+                                                </h3>
+                                            </div>
+                                            <p className="text-sm text-gray-300 mb-3">
+                                                Protect your purchase with lifetime support
+                                            </p>
+
+                                            {/* Features */}
+                                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                                                <span className="flex items-center gap-1 text-[#4ADE80]">
+                                                    <CheckCircle className="w-3 h-3" />
+                                                    <span className="text-gray-300">Priority Support</span>
+                                                </span>
+                                                <span className="flex items-center gap-1 text-[#4ADE80]">
+                                                    <CheckCircle className="w-3 h-3" />
+                                                    <span className="text-gray-300">Easy Replacements</span>
+                                                </span>
+                                                <span className="flex items-center gap-1 text-[#4ADE80]">
+                                                    <CheckCircle className="w-3 h-3" />
+                                                    <span className="text-gray-300">Lifetime Validity</span>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* CTA Button */}
+                                        <div className="flex-shrink-0 hidden sm:block">
+                                            <div className="bg-gradient-to-b from-[#FFD814] to-[#F7CA00] text-[#0F1111] font-bold px-4 py-2.5 rounded-lg text-sm shadow-lg group-hover:from-[#F7CA00] group-hover:to-[#E7B800] transition-all">
+                                                Register Now →
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex-shrink-0">
-                                        <div className="bg-[#FF9900] text-[#0F1111] font-bold px-3 py-1.5 rounded text-xs shadow-md">
-                                            Register →
+
+                                    {/* Mobile CTA */}
+                                    <div className="mt-3 sm:hidden">
+                                        <div className="bg-gradient-to-b from-[#FFD814] to-[#F7CA00] text-[#0F1111] font-bold px-4 py-2.5 rounded-lg text-sm shadow-lg text-center">
+                                            Register Now →
                                         </div>
                                     </div>
                                 </div>
