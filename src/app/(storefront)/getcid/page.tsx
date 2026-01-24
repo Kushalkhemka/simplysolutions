@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Key, Copy, CheckCircle, Loader2, AlertTriangle, RefreshCw, Phone, HelpCircle } from 'lucide-react';
+import Link from 'next/link';
+import { Key, Copy, CheckCircle, Loader2, AlertTriangle, RefreshCw, Phone, HelpCircle, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function GetCIDPage() {
@@ -332,6 +333,30 @@ export default function GetCIDPage() {
                             </p>
                         </div>
                     </div>
+
+                    {/* Warranty Registration CTA */}
+                    <Link href="/digital-warranty" className="block mt-6">
+                        <div className="bg-gradient-to-r from-[#232F3E] to-[#37475A] rounded-lg shadow-lg border border-[#232F3E] overflow-hidden hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer">
+                            <div className="p-5 flex items-center gap-4">
+                                <div className="w-14 h-14 bg-gradient-to-br from-[#FF9900] to-[#FF6600] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                                    <Shield className="w-7 h-7 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-lg font-bold text-white mb-1">
+                                        Register for Warranty
+                                    </h3>
+                                    <p className="text-sm text-gray-300">
+                                        Protect your purchase with our free digital warranty. Get priority support & easy replacements.
+                                    </p>
+                                </div>
+                                <div className="flex-shrink-0 hidden sm:block">
+                                    <div className="bg-[#FF9900] text-[#0F1111] font-bold px-4 py-2 rounded-lg text-sm shadow-md">
+                                        Register Now →
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
             </div>
         </div>

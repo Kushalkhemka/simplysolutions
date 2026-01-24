@@ -1177,19 +1177,28 @@ function ActivatePageContent() {
                                         </div>
 
                                         {/* Warranty Registration CTA */}
-                                        <div className="bg-[#CC0C39] text-white p-4 rounded-lg">
-                                            <p className="font-bold text-sm mb-2">
-                                                **DO THE WARRANTY REGISTRATION FOR FUTURE FREE SUPPORT
-                                            </p>
-                                            <a
-                                                href={`${process.env.NEXT_PUBLIC_APP_URL || ''}/warranty`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#CC0C39] text-sm font-bold rounded hover:bg-gray-100 transition-colors"
-                                            >
-                                                Register Warranty Now
-                                            </a>
-                                        </div>
+                                        <a href="/digital-warranty" className="block">
+                                            <div className="bg-gradient-to-r from-[#232F3E] to-[#37475A] rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-[1.01] cursor-pointer">
+                                                <div className="p-4 flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-gradient-to-br from-[#FF9900] to-[#FF6600] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                                                        <Shield className="w-6 h-6 text-white" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="text-base font-bold text-white mb-0.5">
+                                                            Register for Warranty
+                                                        </h3>
+                                                        <p className="text-xs text-gray-300">
+                                                            Get free lifetime support & easy replacements
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex-shrink-0">
+                                                        <div className="bg-[#FF9900] text-[#0F1111] font-bold px-3 py-1.5 rounded text-xs shadow-md">
+                                                            Register →
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
 
                                         {/* Dynamic Installation Guide(s) */}
                                         <div ref={installationGuideRef} className="pt-6 border-t border-[#DDD] space-y-4">
