@@ -88,7 +88,7 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
 
   try {
     const { data: result, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.com>',
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
       to: data.to,
       subject: `Order Confirmed - ${data.orderNumber}`,
       html,
@@ -188,7 +188,7 @@ export async function sendVerificationEmail(data: VerificationEmailData) {
 
   try {
     const { data: result, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.com>',
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
       to: data.to,
       subject: 'Verify your email - SimplySolutions',
       html,
@@ -288,7 +288,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
 
   try {
     const { data: result, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.com>',
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
       to: data.to,
       subject: 'Reset your password - SimplySolutions',
       html,
@@ -455,7 +455,7 @@ export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
 
   try {
     const { data: result, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.com>',
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
       to: data.to,
       subject: `Your ${config.productName} is Ready! - Order ${data.orderId}`,
       html,
@@ -610,7 +610,7 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
 
   try {
     const { data: result, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@simplysolutions.com>',
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
       to: data.to,
       subject: `Your Microsoft 365 Account is Ready - Order ${data.orderId}`,
       html,
