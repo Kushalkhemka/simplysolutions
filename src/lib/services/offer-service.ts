@@ -79,11 +79,12 @@ export async function checkAndCreateWelcomeOffers(userId: string): Promise<Welco
         return null;
     }
 
-    // Find Windows 11 Pro product for flash deal
+    // Find Windows 11 Pro product for flash deal (exclude combo packs)
     const { data: windows11Pro } = await adminClient
         .from('products')
         .select('id, price, name, slug, main_image_url')
         .ilike('name', '%windows 11%pro%')
+        .not('name', 'ilike', '%combo%')
         .eq('is_active', true)
         .limit(1)
         .single();
