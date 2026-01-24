@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -58,7 +58,7 @@ interface ActivationResult {
     subscriptionConfig?: any;
 }
 
-export default function ActivatePage() {
+function ActivatePageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [secretCode, setSecretCode] = useState('');
@@ -1548,5 +1548,21 @@ export default function ActivatePage() {
                 </div>
             )}
         </div>
+    );
+}
+
+// Wrapper component with Suspense boundary for useSearchParams
+export default function ActivatePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#EAEDED] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF9900] mx-auto"></div>
+                    <p className="mt-4 text-[#565959]">Loading...</p>
+                </div>
+            </div>
+        }>
+            <ActivatePageContent />
+        </Suspense>
     );
 }
