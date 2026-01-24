@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         // Try exact match first
         const { data: exactMatch } = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id, fulfillment_type')
+            .select('id, order_id, fsn, license_key_id, fulfillment_type, warranty_status')
             .eq('order_id', cleanCode)
             .single();
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
             // Fallback: try case-insensitive search
             const { data: ilikeMatch } = await supabase
                 .from('amazon_orders')
-                .select('id, order_id, fsn, license_key_id, fulfillment_type')
+                .select('id, order_id, fsn, license_key_id, fulfillment_type, warranty_status')
                 .ilike('order_id', cleanCode)
                 .single();
 
@@ -61,6 +61,14 @@ export async function POST(request: NextRequest) {
                     ? 'Amazon Order ID not found. Please check your order ID and try again.'
                     : 'Secret code not found. Please check your code and try again.'
             }, { status: 404 });
+        }
+
+        // Check if order is BLOCKED
+        if (order.warranty_status === 'BLOCKED') {
+            return NextResponse.json({
+                valid: false,
+                error: 'This order has been blocked. Please contact support for assistance.'
+            }, { status: 403 });
         }
 
         // Check if already redeemed (has license key assigned)

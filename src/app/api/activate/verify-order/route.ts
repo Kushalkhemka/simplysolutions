@@ -25,6 +25,14 @@ export async function POST(request: NextRequest) {
             }, { status: 404 });
         }
 
+        // Check if order is BLOCKED
+        if (order.warranty_status === 'BLOCKED') {
+            return NextResponse.json({
+                valid: false,
+                error: 'This order has been blocked. Please contact support for assistance.'
+            }, { status: 403 });
+        }
+
         // Check if already redeemed (has license key assigned)
         const { data: licenseData } = await supabase
             .from('amazon_activation_license_keys')

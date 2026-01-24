@@ -39,6 +39,14 @@ export async function POST(request: NextRequest) {
             }, { status: 404 });
         }
 
+        // Check if order is BLOCKED
+        if (order.warranty_status === 'BLOCKED') {
+            return NextResponse.json({
+                success: false,
+                error: 'This order has been blocked. Please contact support for assistance.'
+            }, { status: 403 });
+        }
+
         // Get quantity from order (default to 1)
         const orderQuantity = order.quantity || 1;
 

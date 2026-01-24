@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2, Edit2, Save, Phone } from 'lucide-react';
+import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2, Edit2, Save, Phone, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 import { isComboProduct } from '@/lib/amazon/combo-products';
 
@@ -52,6 +52,9 @@ export default function AmazonOrdersClient() {
     const [isEditingKeys, setIsEditingKeys] = useState(false);
     const [editedKeys, setEditedKeys] = useState<{ id: string, license_key: string }[]>([]);
     const [isSavingKeys, setIsSavingKeys] = useState(false);
+
+    // Status update state
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
     // Filter state
     const [filterFsn, setFilterFsn] = useState<string>('all');
@@ -233,8 +236,42 @@ export default function AmazonOrdersClient() {
                 return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="h-3 w-3" /> Approved</span>;
             case 'REJECTED':
                 return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="h-3 w-3" /> Rejected</span>;
+            case 'BLOCKED':
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-900 text-white"><Ban className="h-3 w-3" /> Blocked</span>;
             default:
                 return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3" /> Pending</span>;
+        }
+    };
+
+    // Update order warranty status
+    const updateOrderStatus = async (orderId: string, newStatus: string) => {
+        setIsUpdatingStatus(true);
+        try {
+            const response = await fetch('/api/admin/amazon-orders/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, status: newStatus })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update status');
+            }
+
+            // Update local state
+            if (selectedOrder) {
+                setSelectedOrder({ ...selectedOrder, warranty_status: newStatus });
+            }
+            setOrders(prev => prev.map(o =>
+                o.order_id === orderId ? { ...o, warranty_status: newStatus } : o
+            ));
+
+            toast.success(`Order status updated to ${newStatus}`);
+        } catch (error) {
+            console.error('Error updating status:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to update status');
+        } finally {
+            setIsUpdatingStatus(false);
         }
     };
 
@@ -639,9 +676,23 @@ export default function AmazonOrdersClient() {
 
                                 {/* Status Info */}
                                 <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                                    <div>
+                                    <div className="flex-1">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Warranty Status</p>
-                                        <div className="mt-1">{getStatusBadge(selectedOrder.warranty_status)}</div>
+                                        <div className="mt-1 flex items-center gap-3">
+                                            {getStatusBadge(selectedOrder.warranty_status)}
+                                            <select
+                                                value={selectedOrder.warranty_status}
+                                                onChange={(e) => updateOrderStatus(selectedOrder.order_id, e.target.value)}
+                                                disabled={isUpdatingStatus}
+                                                className="px-2 py-1 text-xs border rounded-lg bg-background hover:bg-accent disabled:opacity-50 cursor-pointer"
+                                            >
+                                                <option value="PENDING">Set Pending</option>
+                                                <option value="APPROVED">Set Approved</option>
+                                                <option value="REJECTED">Set Rejected</option>
+                                                <option value="BLOCKED">Set Blocked</option>
+                                            </select>
+                                            {isUpdatingStatus && <Loader2 className="h-4 w-4 animate-spin" />}
+                                        </div>
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">GetCID Usage</p>

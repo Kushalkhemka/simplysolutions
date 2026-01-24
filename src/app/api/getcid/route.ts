@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
         const { data: exactMatch } = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, quantity, getcid_used, getcid_count')
+            .select('id, order_id, fsn, quantity, getcid_used, getcid_count, warranty_status')
             .eq('order_id', cleanIdentifier)
             .single();
 
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
         } else {
             const { data: ilikeMatch } = await supabase
                 .from('amazon_orders')
-                .select('id, order_id, fsn, quantity, getcid_used, getcid_count')
+                .select('id, order_id, fsn, quantity, getcid_used, getcid_count, warranty_status')
                 .ilike('order_id', cleanIdentifier)
                 .single();
 
@@ -134,6 +134,13 @@ export async function POST(request: NextRequest) {
                     ? 'Amazon Order ID not found. Please check your order ID.'
                     : 'Invalid secret code. Please check and try again.'
             }, { status: 404 });
+        }
+
+        // Check if order is BLOCKED
+        if (order.warranty_status === 'BLOCKED') {
+            return NextResponse.json({
+                error: 'This order has been blocked. Please contact support for assistance.'
+            }, { status: 403 });
         }
 
         // Calculate max uses based on order quantity and product type

@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         // Search in amazon_orders by order_id (works for both secret codes and amazon order IDs)
         const result = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity')
+            .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status')
             .eq('order_id', cleanCode)
             .single();
         const order = result.data;
@@ -52,6 +52,14 @@ export async function POST(request: NextRequest) {
                 success: false,
                 error: isAmazonOrderId ? 'Amazon Order ID not found' : 'Secret code not found'
             }, { status: 404 });
+        }
+
+        // Check if order is BLOCKED
+        if (order.warranty_status === 'BLOCKED') {
+            return NextResponse.json({
+                success: false,
+                error: 'This order has been blocked. Please contact support for assistance.'
+            }, { status: 403 });
         }
 
         // Get quantity from order (default to 1)
