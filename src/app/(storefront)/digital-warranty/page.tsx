@@ -269,17 +269,17 @@ function DigitalWarrantyContent() {
                                     <div>
                                         <h3 className="font-bold text-gray-900 text-lg">SELLER FEEDBACK</h3>
                                         <p className="text-sm text-gray-600 mt-1">
-                                            Do the 5 star seller feedback if you have liked the service. (If not, then <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">contact us</a> we will make it right)
+                                            Go to <a href="https://www.amazon.in/hz/feedback" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">amazon.in/hz/feedback</a> and give 5 star seller feedback if you liked the service. Login with the same Amazon account used for purchase if asked. (Not satisfied? <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">Contact us</a> and we will make it right)
                                         </p>
                                     </div>
                                 </div>
                                 <a
-                                    href="https://www.amazon.in/sp?ie=UTF8&seller=AZ2XPXOSNBQ89"
+                                    href="https://www.amazon.in/hz/feedback"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
                                 >
-                                    Click Here
+                                    Leave Seller Feedback
                                     <ExternalLink className="w-4 h-4" />
                                 </a>
                             </div>

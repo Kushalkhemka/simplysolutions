@@ -329,7 +329,8 @@ export async function sendWarrantyResubmissionEmail(data: WarrantyResubmissionDa
                         <td style="padding: 20px;">
                             <h3 style="color: #0F1111; margin: 0 0 15px; font-size: 16px;">How to Submit Seller Feedback:</h3>
                             <ol style="color: #565959; font-size: 14px; line-height: 1.8; margin: 0 0 15px; padding-left: 20px;">
-                                <li>Go to your Amazon Orders page</li>
+                                <li>Go to <a href="https://www.amazon.in/hz/feedback" style="color: #007185; font-weight: bold;">amazon.in/hz/feedback</a></li>
+                                <li>Login with the same Amazon account used for your purchase if asked</li>
                                 <li>Find Order ${orderId} and click "Leave Seller Feedback"</li>
                                 <li>Rate 5 stars and write a brief comment about your experience</li>
                                 <li>Take a screenshot showing your rating and comment</li>
