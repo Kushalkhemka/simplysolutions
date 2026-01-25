@@ -85,6 +85,12 @@ const guides = [
         href: '/installation-docs/canva',
         category: 'Design & Graphics',
     },
+    {
+        title: 'Adobe Acrobat Pro 2024',
+        description: 'Installation and activation guide for Adobe Acrobat Pro 2024',
+        href: '/installation-docs/acrobat2024',
+        category: 'Productivity',
+    },
 ];
 
 export default function InstallationDocsPage() {

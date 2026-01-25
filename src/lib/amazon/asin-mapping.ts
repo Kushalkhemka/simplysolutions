@@ -102,7 +102,7 @@ export const fsnToInstallDoc: Record<string, string | null> = {
     'VISIO2021': 'visio2021',
     'PROJECT2021': 'project2021',
     'GEMINI': null, // No installation doc for Gemini - invite-based activation
-    'ACROBAT2024': null, // Doc pending
+    'ACROBAT2024': 'acrobat2024',
     'AUTOCAD': 'autocad',
     'AUTOCAD-1YEAR': 'autocad',
     'AUTOCAD-3YEAR': 'autocad',
