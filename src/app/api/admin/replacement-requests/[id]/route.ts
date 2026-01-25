@@ -132,7 +132,7 @@ export async function PATCH(
                                     <p>You can also access your new license key by visiting our activation page:</p>
                                     <p><a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in'}/activate" style="color: #007185;">Visit Activation Page</a></p>
                                     
-                                    <p>Need help? Contact our support team on WhatsApp: <a href="https://wa.me/918595899215" style="color: #007185;">8595899215</a></p>
+                                    <p>Need help? Contact our support team on WhatsApp: <a href="https://wa.me/918178848830" style="color: #007185;">8178848830</a></p>
                                     
                                     <p>Thank you for your patience!</p>
                                     <p>Best regards,<br>SimplySolutions Team</p>
@@ -201,7 +201,7 @@ export async function PATCH(
                                         <p style="margin: 10px 0 0 0; color: #565959;"><strong>Reason:</strong> ${adminNotes}</p>
                                     </div>
 
-                                    <p>If you believe this is an error or need further assistance, please contact our support team on WhatsApp: <a href="https://wa.me/918595899215" style="color: #007185;">8595899215</a></p>
+                                    <p>If you believe this is an error or need further assistance, please contact our support team on WhatsApp: <a href="https://wa.me/918178848830" style="color: #007185;">8178848830</a></p>
                                     
                                     <p>Best regards,<br>SimplySolutions Team</p>
                                 </div>

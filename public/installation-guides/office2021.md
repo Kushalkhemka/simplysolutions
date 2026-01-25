@@ -52,4 +52,4 @@ Installation process is simple please follow all the instructions correctly till
 ![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/4.png)
 ![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/5.png)
 
-In case of any error or query, feel free to reach out to us at +91-8595899215 (only whatsapp) or mail us at support@simplysolutions.co.in
+In case of any error or query, feel free to reach out to us at +91-8178848830 (only whatsapp) or mail us at support@simplysolutions.co.in

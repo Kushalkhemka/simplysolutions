@@ -514,7 +514,7 @@ export default function FBAActivatePage() {
 
                                         <p className="text-xs text-[#565959] mt-2 text-center">
                                             Need help? Contact us on WhatsApp:{' '}
-                                            <a href="https://wa.me/918595899215" className="text-[#007185] hover:underline font-medium">8595899215</a>
+                                            <a href="https://wa.me/918178848830" className="text-[#007185] hover:underline font-medium">8178848830</a>
                                         </p>
                                     </div>
 

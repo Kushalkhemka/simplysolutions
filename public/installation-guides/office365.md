@@ -108,4 +108,4 @@ Installation process is simple please follow all the instructions correctly till
 [left]**Word** - [**https://apps.apple.com/us/app/microsoft-word/id586447913**](https://apps.apple.com/us/app/microsoft-word/id586447913)[/left]
 [left]**Powerpoint** - [**https://apps.apple.com/us/app/microsoft-powerpoint/id586449534**](https://apps.apple.com/us/app/microsoft-powerpoint/id586449534)[/left]
 
-**In case of any error or query, feel free to reach out to us at +91-9711397918 or mail us at support@simplysolutions.co.in**
+**In case of any error or query, feel free to reach out to us at +91-8178848830 or mail us at support@simplysolutions.co.in**

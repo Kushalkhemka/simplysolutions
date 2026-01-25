@@ -129,7 +129,7 @@ export default function CanvaInstallationPage() {
                     <div className="border-t pt-8 mt-8">
                         <h3 className="text-xl font-bold mb-4">Need Help?</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <a href="https://wa.me/917011787948" target="_blank" rel="noopener noreferrer" className="block">
+                            <a href="https://wa.me/918178848830" target="_blank" rel="noopener noreferrer" className="block">
                                 <div className="p-4 border rounded-xl hover:bg-muted/50 transition-colors flex items-center gap-3">
                                     <Smartphone className="h-5 w-5 text-green-600" />
                                     <div>

@@ -61,7 +61,7 @@ Then, **scroll up this page** and you will get the option to enter the unique se
 ![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/5.png)
 [/left]
 
-In case of any error or query, feel free to reach out to us at +91-**9711397918** (only whatsapp) or mail us at support@simplysolutions.co.in 
+In case of any error or query, feel free to reach out to us at +91-**8178848830** (only whatsapp) or mail us at support@simplysolutions.co.in 
 
 FAQs (Frequently Asked Questions)
 

@@ -433,12 +433,12 @@ export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
           <p style="margin: 0 0 12px; font-size: 14px; color: #64748b;">
             Need help with installation?
           </p>
-          <a href="https://wa.me/918595899215" 
+          <a href="https://wa.me/918178848830" 
              style="display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: white; padding: 12px 24px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px;">
             <span></span>Chat on WhatsApp
           </a>
           <p style="margin: 12px 0 0; font-size: 13px; color: #94a3b8;">
-            +91 8595899215 (Message only)
+            +91 8178848830 (Message only)
           </p>
         </div>
 
@@ -591,7 +591,7 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
           <p style="margin: 0 0 12px; font-size: 14px; color: #64748b;">
             Need help? Contact us on WhatsApp
           </p>
-          <a href="https://wa.me/918595899215" 
+          <a href="https://wa.me/918178848830" 
              style="display: inline-block; background: #25D366; color: white; padding: 10px 20px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px;">
             Chat on WhatsApp
           </a>

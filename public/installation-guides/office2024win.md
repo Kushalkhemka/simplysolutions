@@ -129,4 +129,4 @@ Navigate to Windows Operating System > Office 2024 (Office Version).
 
 [/left]
 
-**In case of any error or query, feel free to reach out to us at whatsapp +91-7011787948 or mail us at support@simplysolutions.co.in**
+**In case of any error or query, feel free to reach out to us at whatsapp +91-8178848830 or mail us at support@simplysolutions.co.in**

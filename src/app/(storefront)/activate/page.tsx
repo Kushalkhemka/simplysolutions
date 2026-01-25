@@ -806,8 +806,8 @@ function ActivatePageContent() {
                                         <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
                                             <p className="text-xs text-[#B12704]">
                                                 <span className="font-bold">Multiple Keys?</span> Contact us on WhatsApp:{' '}
-                                                <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-[#CC0C39]">
-                                                    8595899215
+                                                <a href="https://wa.me/918178848830" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-[#CC0C39]">
+                                                    8178848830
                                                 </a>
                                                 {' '}(message only)
                                             </p>
@@ -997,8 +997,8 @@ function ActivatePageContent() {
 
                                                                 <p className="text-xs text-[#565959] text-center">
                                                                     It takes 12-24 hours for investigation. For urgent queries, contact us on WhatsApp:{' '}
-                                                                    <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="text-[#007185] hover:underline font-medium">
-                                                                        8595899215
+                                                                    <a href="https://wa.me/918178848830" target="_blank" rel="noopener noreferrer" className="text-[#007185] hover:underline font-medium">
+                                                                        8178848830
                                                                     </a>
                                                                 </p>
                                                             </div>
@@ -1152,7 +1152,7 @@ function ActivatePageContent() {
 
                                             <p className="text-xs text-[#565959] mt-2 text-center">
                                                 Need help? Contact us on WhatsApp:{' '}
-                                                <a href="https://wa.me/918595899215" className="text-[#007185] hover:underline font-medium">8595899215</a>
+                                                <a href="https://wa.me/918178848830" className="text-[#007185] hover:underline font-medium">8178848830</a>
                                             </p>
                                         </div>
 

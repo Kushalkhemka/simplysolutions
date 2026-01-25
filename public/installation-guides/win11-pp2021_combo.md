@@ -84,6 +84,6 @@ If you face error with error code **0xc004c008**, then you can follow the below
 
 [/left]
 
-**In case of any error or query, feel free to reach out to us at +91-9711397918 (only whatsapp) or mail us at support@simplysolutions.co.in    Thank You Again For Your Recent Purchase ! Please Share About Your Shopping Experience Click Here: **[**https://amazon.in/hz/feedback**](https://amazon.in/hz/feedback)
+**In case of any error or query, feel free to reach out to us at +91-8178848830 (only whatsapp) or mail us at support@simplysolutions.co.in    Thank You Again For Your Recent Purchase ! Please Share About Your Shopping Experience Click Here: **[**https://amazon.in/hz/feedback**](https://amazon.in/hz/feedback)
 **
 Leave Product Rating (Could You Spare 5 Second?)** [**https://www.amazon.in/review/review-your-purchases/listing**](https://www.amazon.in/review/review-your-purchases/listing)

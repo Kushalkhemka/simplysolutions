@@ -204,7 +204,7 @@ function DigitalWarrantyContent() {
                         {existingStatus === 'VERIFIED'
                             ? 'Your warranty has been verified. You are now covered with lifetime support!'
                             : existingStatus === 'REJECTED'
-                                ? 'Unfortunately, your warranty could not be verified. Please contact support on WhatsApp: 8595899215'
+                                ? 'Unfortunately, your warranty could not be verified. Please contact support on WhatsApp: 8178848830'
                                 : 'Your warranty registration has been submitted. We will verify within 24 hours.'}
                     </p>
                     <div className="bg-gray-50 rounded-lg p-4 text-left">
@@ -269,7 +269,7 @@ function DigitalWarrantyContent() {
                                     <div>
                                         <h3 className="font-bold text-gray-900 text-lg">SELLER FEEDBACK</h3>
                                         <p className="text-sm text-gray-600 mt-1">
-                                            Go to <a href="https://www.amazon.in/hz/feedback" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">amazon.in/hz/feedback</a> and give 5 star seller feedback if you liked the service. Login with the same Amazon account used for purchase if asked. (Not satisfied? <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">Contact us</a> and we will make it right)
+                                            Go to <a href="https://www.amazon.in/hz/feedback" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">amazon.in/hz/feedback</a> and give 5 star seller feedback if you liked the service. Login with the same Amazon account used for purchase if asked. (Not satisfied? <a href="https://wa.me/918178848830" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">Contact us</a> and we will make it right)
                                         </p>
                                     </div>
                                 </div>
@@ -293,7 +293,7 @@ function DigitalWarrantyContent() {
                                     <div>
                                         <h3 className="font-bold text-gray-900 text-lg">PRODUCT REVIEW</h3>
                                         <p className="text-sm text-gray-600 mt-1">
-                                            Go to <a href="https://www.amazon.in/review/review-your-purchases/listing" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">amazon.in/review/review-your-purchases</a> and rate the purchased product 5 stars. Login with the same Amazon account used for purchase if asked. (Not satisfied? <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">Contact us</a> and we will make it right)
+                                            Go to <a href="https://www.amazon.in/review/review-your-purchases/listing" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">amazon.in/review/review-your-purchases</a> and rate the purchased product 5 stars. Login with the same Amazon account used for purchase if asked. (Not satisfied? <a href="https://wa.me/918178848830" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">Contact us</a> and we will make it right)
                                         </p>
                                     </div>
                                 </div>
@@ -554,12 +554,12 @@ function DigitalWarrantyContent() {
                                 Our support team is here to help you 24/7 with any questions or issues.
                             </p>
                             <a
-                                href="https://wa.me/918595899215"
+                                href="https://wa.me/918178848830"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-2 bg-white text-blue-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-blue-50 transition-colors"
                             >
-                                WhatsApp: 8595899215
+                                WhatsApp: 8178848830
                                 <ArrowRight className="w-4 h-4" />
                             </a>
                         </div>
@@ -584,7 +584,7 @@ function DigitalWarrantyContent() {
                                 <p className="font-semibold text-amber-800 mb-2">⚠️ Before submitting:</p>
                                 <ul className="list-disc list-inside text-amber-700 text-sm space-y-1">
                                     <li>Make sure your product is activated and working properly</li>
-                                    <li>If you face any issues, please <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">contact us</a> first</li>
+                                    <li>If you face any issues, please <a href="https://wa.me/918178848830" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">contact us</a> first</li>
                                     <li>Only provide feedback when you are genuinely satisfied</li>
                                 </ul>
                             </div>

@@ -322,12 +322,12 @@ export default function GetCIDPage() {
                             <p className="text-sm text-[#0F1111]">
                                 <span className="font-bold">Need Help?</span> Contact us on WhatsApp:{' '}
                                 <a
-                                    href="https://wa.me/918595899215"
+                                    href="https://wa.me/918178848830"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="font-bold text-[#007185] hover:text-[#C7511F] hover:underline"
                                 >
-                                    +91 8595899215
+                                    +91 8178848830
                                 </a>
                                 {' '}(message only)
                             </p>

@@ -124,7 +124,7 @@ export async function sendWarrantyApprovalEmail(data: WarrantyApprovalData): Pro
                     <tr>
                         <td style="padding: 15px;">
                             <p style="color: #0F1111; font-size: 14px; margin: 0;">
-                                <strong>Need Help?</strong> Contact us on WhatsApp: <a href="https://wa.me/918595899215" style="color: #067D62; font-weight: bold;">8595899215</a>
+                                <strong>Need Help?</strong> Contact us on WhatsApp: <a href="https://wa.me/918178848830" style="color: #067D62; font-weight: bold;">8178848830</a>
                             </p>
                         </td>
                     </tr>
@@ -225,7 +225,7 @@ export async function sendWarrantyRejectionEmail(data: WarrantyRejectionData): P
                     <tr>
                         <td style="padding: 15px;">
                             <p style="color: #0F1111; font-size: 14px; margin: 0;">
-                                <strong>Need Help?</strong> Contact us on WhatsApp: <a href="https://wa.me/918595899215" style="color: #067D62; font-weight: bold;">8595899215</a>
+                                <strong>Need Help?</strong> Contact us on WhatsApp: <a href="https://wa.me/918178848830" style="color: #067D62; font-weight: bold;">8178848830</a>
                             </p>
                         </td>
                     </tr>
@@ -378,7 +378,7 @@ export async function sendWarrantyResubmissionEmail(data: WarrantyResubmissionDa
                     <tr>
                         <td style="padding: 15px;">
                             <p style="color: #0F1111; font-size: 14px; margin: 0;">
-                                <strong>Need Help?</strong> Contact us on WhatsApp: <a href="https://wa.me/918595899215" style="color: #067D62; font-weight: bold;">8595899215</a>
+                                <strong>Need Help?</strong> Contact us on WhatsApp: <a href="https://wa.me/918178848830" style="color: #067D62; font-weight: bold;">8178848830</a>
                             </p>
                         </td>
                     </tr>

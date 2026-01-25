@@ -53,6 +53,18 @@ export default function AmazonOrdersClient() {
     const [editedKeys, setEditedKeys] = useState<{ id: string, license_key: string }[]>([]);
     const [isSavingKeys, setIsSavingKeys] = useState(false);
 
+    // Order editing state
+    const [isEditingOrder, setIsEditingOrder] = useState(false);
+    const [editedOrder, setEditedOrder] = useState<{
+        fsn: string;
+        product_title: string;
+        installation_id: string;
+        confirmation_id: string;
+        contact_email: string;
+        contact_phone: string;
+    } | null>(null);
+    const [isSavingOrder, setIsSavingOrder] = useState(false);
+
     // Status update state
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
@@ -173,6 +185,83 @@ export default function AmazonOrdersClient() {
         setSelectedOrder(null);
         setIsEditingKeys(false);
         setEditedKeys([]);
+        setIsEditingOrder(false);
+        setEditedOrder(null);
+    };
+
+    // Start editing order fields
+    const startEditingOrder = () => {
+        if (selectedOrder) {
+            setEditedOrder({
+                fsn: selectedOrder.fsn || '',
+                product_title: selectedOrder.product_title || '',
+                installation_id: selectedOrder.installation_id || '',
+                confirmation_id: selectedOrder.confirmation_id || '',
+                contact_email: selectedOrder.contact_email || '',
+                contact_phone: selectedOrder.contact_phone || '',
+            });
+            setIsEditingOrder(true);
+        }
+    };
+
+    const cancelEditingOrder = () => {
+        setIsEditingOrder(false);
+        setEditedOrder(null);
+    };
+
+    const saveOrderChanges = async () => {
+        if (!selectedOrder || !editedOrder) return;
+
+        setIsSavingOrder(true);
+        try {
+            const { error } = await supabase
+                .from('amazon_orders')
+                .update({
+                    fsn: editedOrder.fsn || null,
+                    product_title: editedOrder.product_title || null,
+                    installation_id: editedOrder.installation_id || null,
+                    confirmation_id: editedOrder.confirmation_id || null,
+                    contact_email: editedOrder.contact_email || null,
+                    contact_phone: editedOrder.contact_phone || null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('order_id', selectedOrder.order_id);
+
+            if (error) throw error;
+
+            // Update local state
+            setSelectedOrder({
+                ...selectedOrder,
+                fsn: editedOrder.fsn || null,
+                product_title: editedOrder.product_title || null,
+                installation_id: editedOrder.installation_id || null,
+                confirmation_id: editedOrder.confirmation_id || null,
+                contact_email: editedOrder.contact_email || null,
+                contact_phone: editedOrder.contact_phone || null,
+            });
+            setOrders(prev => prev.map(o =>
+                o.order_id === selectedOrder.order_id
+                    ? {
+                        ...o,
+                        fsn: editedOrder.fsn || null,
+                        product_title: editedOrder.product_title || null,
+                        installation_id: editedOrder.installation_id || null,
+                        confirmation_id: editedOrder.confirmation_id || null,
+                        contact_email: editedOrder.contact_email || null,
+                        contact_phone: editedOrder.contact_phone || null,
+                    }
+                    : o
+            ));
+
+            toast.success('Order updated successfully!');
+            setIsEditingOrder(false);
+            setEditedOrder(null);
+        } catch (error) {
+            console.error('Error updating order:', error);
+            toast.error('Failed to update order');
+        } finally {
+            setIsSavingOrder(false);
+        }
     };
 
     const startEditingKeys = () => {
@@ -491,9 +580,42 @@ export default function AmazonOrdersClient() {
                     <div className="relative bg-card border rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
                         <div className="sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between">
                             <h2 className="text-xl font-bold">Order Details</h2>
-                            <button onClick={closeModal} className="p-2 hover:bg-muted rounded-full transition-colors">
-                                <X className="h-5 w-5" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {!isEditingOrder ? (
+                                    <button
+                                        onClick={startEditingOrder}
+                                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    >
+                                        <Edit2 className="h-4 w-4" />
+                                        Edit Order
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={cancelEditingOrder}
+                                            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-muted transition-colors"
+                                            disabled={isSavingOrder}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={saveOrderChanges}
+                                            disabled={isSavingOrder}
+                                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                                        >
+                                            {isSavingOrder ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Save className="h-4 w-4" />
+                                            )}
+                                            Save Changes
+                                        </button>
+                                    </>
+                                )}
+                                <button onClick={closeModal} className="p-2 hover:bg-muted rounded-full transition-colors">
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
                         </div>
 
                         {isLoadingDetails ? (
@@ -510,7 +632,17 @@ export default function AmazonOrdersClient() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Product Name</p>
-                                        <p className="font-medium text-lg">{selectedOrder.product_title || selectedOrder.fsn || 'Not Available'}</p>
+                                        {isEditingOrder && editedOrder ? (
+                                            <input
+                                                type="text"
+                                                value={editedOrder.product_title}
+                                                onChange={(e) => setEditedOrder({ ...editedOrder, product_title: e.target.value })}
+                                                className="w-full font-medium text-lg p-2 border rounded-lg bg-background focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Enter product name..."
+                                            />
+                                        ) : (
+                                            <p className="font-medium text-lg">{selectedOrder.product_title || selectedOrder.fsn || 'Not Available'}</p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -635,9 +767,22 @@ export default function AmazonOrdersClient() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">FSN</p>
-                                        <p className="font-mono font-medium">
-                                            {selectedOrder.fsn || selectedOrder.license_key?.fsn || <span className="text-muted-foreground italic">Not Available</span>}
-                                        </p>
+                                        {isEditingOrder && editedOrder ? (
+                                            <select
+                                                value={editedOrder.fsn}
+                                                onChange={(e) => setEditedOrder({ ...editedOrder, fsn: e.target.value })}
+                                                className="w-full font-mono p-2 border rounded-lg bg-background focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                <option value="">Select FSN...</option>
+                                                {uniqueFsns.map(fsn => (
+                                                    <option key={fsn} value={fsn}>{fsn}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <p className="font-mono font-medium">
+                                                {selectedOrder.fsn || selectedOrder.license_key?.fsn || <span className="text-muted-foreground italic">Not Available</span>}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -648,9 +793,19 @@ export default function AmazonOrdersClient() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Installation ID</p>
-                                        <p className="font-mono font-medium break-all">
-                                            {selectedOrder.installation_id || <span className="text-muted-foreground italic">Not Available</span>}
-                                        </p>
+                                        {isEditingOrder && editedOrder ? (
+                                            <input
+                                                type="text"
+                                                value={editedOrder.installation_id}
+                                                onChange={(e) => setEditedOrder({ ...editedOrder, installation_id: e.target.value })}
+                                                className="w-full font-mono p-2 border rounded-lg bg-background focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Enter installation ID..."
+                                            />
+                                        ) : (
+                                            <p className="font-mono font-medium break-all">
+                                                {selectedOrder.installation_id || <span className="text-muted-foreground italic">Not Available</span>}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -661,9 +816,19 @@ export default function AmazonOrdersClient() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Confirmation ID</p>
-                                        <p className="font-mono font-medium break-all">
-                                            {selectedOrder.confirmation_id || <span className="text-muted-foreground italic">Not Available</span>}
-                                        </p>
+                                        {isEditingOrder && editedOrder ? (
+                                            <input
+                                                type="text"
+                                                value={editedOrder.confirmation_id}
+                                                onChange={(e) => setEditedOrder({ ...editedOrder, confirmation_id: e.target.value })}
+                                                className="w-full font-mono p-2 border rounded-lg bg-background focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Enter confirmation ID..."
+                                            />
+                                        ) : (
+                                            <p className="font-mono font-medium break-all">
+                                                {selectedOrder.confirmation_id || <span className="text-muted-foreground italic">Not Available</span>}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 

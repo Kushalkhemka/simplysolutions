@@ -54,4 +54,4 @@ FOR INSTALLER.PKG
 
 ![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/Screenshot-2024-07-16-011429.png)
 
-**In case of any error or query, feel free to reach out to us at +91-9711397918 or mail us at support@simplysolutions.co.in**
+**In case of any error or query, feel free to reach out to us at +91-8178848830 or mail us at support@simplysolutions.co.in**

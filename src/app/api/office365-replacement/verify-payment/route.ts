@@ -153,7 +153,7 @@ async function sendSecretCodeEmail(data: {
           <p style="margin: 0 0 10px; font-size: 13px; color: #64748b;">
             Need help? Contact us on WhatsApp
           </p>
-          <a href="https://wa.me/918595899215" 
+          <a href="https://wa.me/918178848830" 
              style="display: inline-block; background: #25D366; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 13px;">
             Chat on WhatsApp
           </a>

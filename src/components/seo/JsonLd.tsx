@@ -12,18 +12,18 @@ export function OrganizationJsonLd() {
         logo: `${BASE_URL}/logo.png`,
         description: 'India\'s trusted destination for genuine Microsoft software licenses with instant digital delivery.',
         email: 'support@simplysolutions.co.in',
-        telephone: '+91-8595899215',
+        telephone: '+91-8178848830',
         address: {
             '@type': 'PostalAddress',
             addressCountry: 'IN',
             addressLocality: 'India',
         },
         sameAs: [
-            'https://wa.me/918595899215',
+            'https://wa.me/918178848830',
         ],
         contactPoint: {
             '@type': 'ContactPoint',
-            telephone: '+91-8595899215',
+            telephone: '+91-8178848830',
             contactType: 'customer service',
             availableLanguage: ['English', 'Hindi'],
             areaServed: 'IN',

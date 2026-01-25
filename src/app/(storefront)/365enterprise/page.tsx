@@ -244,7 +244,7 @@ function Enterprise365Content() {
                                 <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
                                     <p className="text-xs text-[#B12704]">
                                         <span className="font-bold">Need Help?</span> WhatsApp:{' '}
-                                        <a href="https://wa.me/918595899215" className="font-bold underline">8595899215</a>
+                                        <a href="https://wa.me/918178848830" className="font-bold underline">8178848830</a>
                                     </p>
                                 </div>
                             </div>
@@ -297,7 +297,7 @@ function Enterprise365Content() {
                                 <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
                                     <p className="text-xs text-[#B12704]">
                                         <span className="font-bold">Need Help?</span> WhatsApp:{' '}
-                                        <a href="https://wa.me/918595899215" className="font-bold underline">8595899215</a>
+                                        <a href="https://wa.me/918178848830" className="font-bold underline">8178848830</a>
                                     </p>
                                 </div>
                             </div>
@@ -364,7 +364,7 @@ function Enterprise365Content() {
                                 <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
                                     <p className="text-xs text-[#B12704]">
                                         <span className="font-bold">Need Help?</span> WhatsApp:{' '}
-                                        <a href="https://wa.me/918595899215" className="font-bold underline">8595899215</a>
+                                        <a href="https://wa.me/918178848830" className="font-bold underline">8178848830</a>
                                     </p>
                                 </div>
                             </div>

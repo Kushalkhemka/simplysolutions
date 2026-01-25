@@ -18,7 +18,7 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderPagePro
     if (!user) notFound();
 
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-    if (profile?.role !== 'admin') notFound();
+    if (!profile?.role || !['admin', 'super_admin'].includes(profile.role)) notFound();
 
     // Fetch order
     const { data: order, error } = await supabase

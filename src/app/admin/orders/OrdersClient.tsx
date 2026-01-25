@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Eye, CheckCircle, XCircle, Download, Loader2, Calendar } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, Download, Loader2, Calendar, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Order {
@@ -31,6 +31,7 @@ export default function OrdersClient() {
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
     const [showExportModal, setShowExportModal] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<string>('all');
 
     const supabase = createClient();
 
@@ -66,6 +67,24 @@ export default function OrdersClient() {
             default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
         }
     };
+
+    const getPaymentStatusColor = (status: string) => {
+        switch (status) {
+            case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+            case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+            case 'failed': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+            default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+        }
+    };
+
+    // Filter orders based on status filter
+    const filteredOrders = orders.filter(order => {
+        if (statusFilter === 'all') return true;
+        if (statusFilter === 'pending') return order.status === 'pending';
+        if (statusFilter === 'payment_pending') return order.payment_status === 'pending';
+        if (statusFilter === 'delivered') return order.status === 'delivered';
+        return true;
+    });
 
     const exportToCSV = async () => {
         setIsExporting(true);
@@ -176,6 +195,43 @@ export default function OrdersClient() {
                 </Button>
             </div>
 
+            {/* Status Filters */}
+            <div className="flex flex-wrap gap-2">
+                <Button
+                    variant={statusFilter === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter('all')}
+                    className="gap-1"
+                >
+                    <Filter className="h-3 w-3" />
+                    All ({orders.length})
+                </Button>
+                <Button
+                    variant={statusFilter === 'pending' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter('pending')}
+                    className="gap-1"
+                >
+                    Pending ({orders.filter(o => o.status === 'pending').length})
+                </Button>
+                <Button
+                    variant={statusFilter === 'payment_pending' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter('payment_pending')}
+                    className="gap-1"
+                >
+                    Payment Pending ({orders.filter(o => o.payment_status === 'pending').length})
+                </Button>
+                <Button
+                    variant={statusFilter === 'delivered' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter('delivered')}
+                    className="gap-1"
+                >
+                    Delivered ({orders.filter(o => o.status === 'delivered').length})
+                </Button>
+            </div>
+
             {/* Orders Table */}
             <div className="bg-card border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
@@ -192,7 +248,7 @@ export default function OrdersClient() {
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {orders.map((order) => (
+                            {filteredOrders.map((order) => (
                                 <tr key={order.id} className="hover:bg-muted/30">
                                     <td className="p-4 font-medium">{order.order_number}</td>
                                     <td className="p-4 hidden sm:table-cell">
@@ -237,9 +293,9 @@ export default function OrdersClient() {
                     </table>
                 </div>
 
-                {orders.length === 0 && (
+                {filteredOrders.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">
-                        No orders yet.
+                        {orders.length === 0 ? 'No orders yet.' : 'No orders match the selected filter.'}
                     </div>
                 )}
             </div>

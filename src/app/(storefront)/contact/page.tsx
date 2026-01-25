@@ -77,12 +77,12 @@ export default function ContactPage() {
                             </p>
                             <div className="space-y-2">
                                 <a
-                                    href="https://wa.me/918595899215"
+                                    href="https://wa.me/918178848830"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[#25D366] font-medium hover:underline block"
                                 >
-                                    +91 8595899215 (Escalations)
+                                    +91 8178848830 (Escalations)
                                 </a>
                                 <a
                                     href="https://wa.me/919953994557"
