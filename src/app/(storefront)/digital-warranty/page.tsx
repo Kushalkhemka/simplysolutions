@@ -293,17 +293,17 @@ function DigitalWarrantyContent() {
                                     <div>
                                         <h3 className="font-bold text-gray-900 text-lg">PRODUCT REVIEW</h3>
                                         <p className="text-sm text-gray-600 mt-1">
-                                            Do the product rating for the purchased product if satisfied with the product. (If not, then <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">contact us</a> we will make it right)
+                                            Go to <a href="https://www.amazon.in/review/review-your-purchases/listing" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">amazon.in/review/review-your-purchases</a> and rate the purchased product 5 stars. Login with the same Amazon account used for purchase if asked. (Not satisfied? <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="text-red-600 underline font-medium">Contact us</a> and we will make it right)
                                         </p>
                                     </div>
                                 </div>
                                 <a
-                                    href="https://www.amazon.in/hz/reviews-render/create-review"
+                                    href="https://www.amazon.in/review/review-your-purchases/listing"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
                                 >
-                                    Click Here
+                                    Leave Product Review
                                     <ExternalLink className="w-4 h-4" />
                                 </a>
                             </div>
