@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import {
-    Building,
+    Globe,
     User,
     MapPin,
     Envelope,
@@ -25,7 +25,7 @@ export default function AboutPage() {
                 <div className="container-dense py-16 md:py-24 relative">
                     <div className="max-w-3xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                            <Building className="w-4.5 h-4.5" />
+                            <Globe className="w-4.5 h-4.5" />
                             <span>Company Information</span>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
@@ -64,7 +64,7 @@ export default function AboutPage() {
                             <div className="bg-white dark:bg-white/10 rounded-2xl p-6 border border-gray-200 dark:border-white/10">
                                 <div className="flex items-center gap-3 mb-3">
                                     <div className="p-2 rounded-full bg-primary/10">
-                                        <Building className="w-5 h-5 text-primary" />
+                                        <Globe className="w-5 h-5 text-primary" />
                                     </div>
                                     <h3 className="font-semibold text-foreground">Trade Name</h3>
                                 </div>
