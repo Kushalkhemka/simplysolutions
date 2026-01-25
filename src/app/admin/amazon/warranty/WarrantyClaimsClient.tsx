@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
-import { CheckCircle, XCircle, Clock, ExternalLink, ChevronLeft, ChevronRight, Loader2, Search, Eye, X, Package, Phone, Mail, Calendar, Image as ImageIcon } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, ExternalLink, ChevronLeft, ChevronRight, Loader2, Search, Eye, X, Package, Phone, Mail, Calendar, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 
 interface WarrantyRegistration {
     id: string;
@@ -34,6 +34,7 @@ export default function WarrantyClaimsClient() {
     const [processingCount, setProcessingCount] = useState(0);
     const [verifiedCount, setVerifiedCount] = useState(0);
     const [rejectedCount, setRejectedCount] = useState(0);
+    const [resubmissionCount, setResubmissionCount] = useState(0);
 
     const pageSize = 50;
     const supabase = createClient();
@@ -55,9 +56,15 @@ export default function WarrantyClaimsClient() {
             .select('*', { count: 'exact', head: true })
             .eq('status', 'REJECTED');
 
+        const { count: resubmission } = await supabase
+            .from('warranty_registrations')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'NEEDS_RESUBMISSION');
+
         setProcessingCount(processing || 0);
         setVerifiedCount(verified || 0);
         setRejectedCount(rejected || 0);
+        setResubmissionCount(resubmission || 0);
     }, [supabase]);
 
     const fetchWarranties = useCallback(async () => {
@@ -116,6 +123,8 @@ export default function WarrantyClaimsClient() {
                 return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"><CheckCircle className="h-3 w-3" /> Verified</span>;
             case 'REJECTED':
                 return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"><XCircle className="h-3 w-3" /> Rejected</span>;
+            case 'NEEDS_RESUBMISSION':
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"><AlertTriangle className="h-3 w-3" /> Resubmission</span>;
             default:
                 return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"><Clock className="h-3 w-3" /> Processing</span>;
         }
@@ -142,13 +151,20 @@ export default function WarrantyClaimsClient() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
                 <button
                     onClick={() => { setStatusFilter('PROCESSING'); setCurrentPage(1); }}
                     className={`bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-yellow-400 transition-all ${statusFilter === 'PROCESSING' ? 'ring-2 ring-yellow-400' : ''}`}
                 >
                     <p className="text-2xl font-bold text-yellow-800 dark:text-yellow-400">{processingCount.toLocaleString()}</p>
                     <p className="text-sm text-yellow-600 dark:text-yellow-500">Pending Review</p>
+                </button>
+                <button
+                    onClick={() => { setStatusFilter('NEEDS_RESUBMISSION'); setCurrentPage(1); }}
+                    className={`bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-orange-400 transition-all ${statusFilter === 'NEEDS_RESUBMISSION' ? 'ring-2 ring-orange-400' : ''}`}
+                >
+                    <p className="text-2xl font-bold text-orange-800 dark:text-orange-400">{resubmissionCount.toLocaleString()}</p>
+                    <p className="text-sm text-orange-600 dark:text-orange-500">Needs Resubmission</p>
                 </button>
                 <button
                     onClick={() => { setStatusFilter('VERIFIED'); setCurrentPage(1); }}
