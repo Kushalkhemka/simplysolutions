@@ -40,7 +40,7 @@ export async function sendWarrantyApprovalEmail(data: WarrantyApprovalData): Pro
         await resend.emails.send({
             from: fromEmail,
             to: customerEmail,
-            subject: `✅ Warranty Approved - Order ${orderId}`,
+            subject: `Warranty Approved - Order ${orderId}`,
             html: `
 <!DOCTYPE html>
 <html>
@@ -53,7 +53,7 @@ export async function sendWarrantyApprovalEmail(data: WarrantyApprovalData): Pro
         <!-- Header -->
         <tr>
             <td style="background: linear-gradient(135deg, #067D62 0%, #0A9A77 100%); padding: 30px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">✅ Warranty Approved!</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Warranty Approved!</h1>
             </td>
         </tr>
         
@@ -73,7 +73,7 @@ export async function sendWarrantyApprovalEmail(data: WarrantyApprovalData): Pro
                     <tr>
                         <td style="padding: 20px;">
                             <h3 style="color: #0F1111; margin: 0 0 15px; font-size: 16px; border-bottom: 2px solid #067D62; padding-bottom: 10px;">
-                                📋 Order Details
+                                Order Details
                             </h3>
                             <table width="100%" cellpadding="5">
                                 <tr>
@@ -102,7 +102,7 @@ export async function sendWarrantyApprovalEmail(data: WarrantyApprovalData): Pro
                     <tr>
                         <td style="padding: 20px;">
                             <h3 style="color: #067D62; margin: 0 0 15px; font-size: 16px;">
-                                🛡️ Your Lifetime Warranty Includes:
+                                Your Lifetime Warranty Includes:
                             </h3>
                             <ul style="color: #333; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
                                 <li><strong>Lifetime Technical Support</strong> - Get help anytime via WhatsApp or email</li>
@@ -282,7 +282,7 @@ export async function sendWarrantyResubmissionEmail(data: WarrantyResubmissionDa
         <!-- Header -->
         <tr>
             <td style="background: linear-gradient(135deg, #FF9900 0%, #E47911 100%); padding: 30px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">📸 Additional Screenshot Required</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Additional Screenshot Required</h1>
             </td>
         </tr>
         
@@ -301,7 +301,7 @@ export async function sendWarrantyResubmissionEmail(data: WarrantyResubmissionDa
                 <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #FFF4E5; border-left: 4px solid #FF9900; margin-bottom: 25px; border-radius: 4px;">
                     <tr>
                         <td style="padding: 15px;">
-                            <h3 style="color: #0F1111; margin: 0 0 10px; font-size: 14px;">⚠️ Missing/Invalid Screenshots:</h3>
+                            <h3 style="color: #0F1111; margin: 0 0 10px; font-size: 14px;">Missing/Invalid Screenshots:</h3>
                             <ul style="color: #565959; font-size: 14px; line-height: 1.6; margin: 0; padding-left: 20px;">
                                 ${missingItems.map(item => `<li><strong>${item}</strong></li>`).join('')}
                             </ul>
@@ -327,7 +327,7 @@ export async function sendWarrantyResubmissionEmail(data: WarrantyResubmissionDa
                 <table width="100%" cellpadding="0" cellspacing="0" style="border: 2px solid #ddd; border-radius: 8px; margin-bottom: 25px;">
                     <tr>
                         <td style="padding: 20px;">
-                            <h3 style="color: #0F1111; margin: 0 0 15px; font-size: 16px;">📋 How to Submit Seller Feedback:</h3>
+                            <h3 style="color: #0F1111; margin: 0 0 15px; font-size: 16px;">How to Submit Seller Feedback:</h3>
                             <ol style="color: #565959; font-size: 14px; line-height: 1.8; margin: 0 0 15px; padding-left: 20px;">
                                 <li>Go to your Amazon Orders page</li>
                                 <li>Find Order ${orderId} and click "Leave Seller Feedback"</li>
@@ -346,7 +346,7 @@ export async function sendWarrantyResubmissionEmail(data: WarrantyResubmissionDa
                 <table width="100%" cellpadding="0" cellspacing="0" style="border: 2px solid #ddd; border-radius: 8px; margin-bottom: 25px;">
                     <tr>
                         <td style="padding: 20px;">
-                            <h3 style="color: #0F1111; margin: 0 0 15px; font-size: 16px;">⭐ How to Submit Product Review:</h3>
+                            <h3 style="color: #0F1111; margin: 0 0 15px; font-size: 16px;">How to Submit Product Review:</h3>
                             <ol style="color: #565959; font-size: 14px; line-height: 1.8; margin: 0 0 15px; padding-left: 20px;">
                                 <li>Go to the product page on Amazon</li>
                                 <li>Scroll down and click "Write a customer review"</li>

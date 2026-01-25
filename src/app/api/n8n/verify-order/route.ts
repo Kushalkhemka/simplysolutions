@@ -264,48 +264,48 @@ function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any)
     const actions: string[] = [];
 
     if (order.is_fraud) {
-        actions.push('⚠️ Order flagged for fraud. Escalate to admin.');
+        actions.push('[WARNING] Order flagged for fraud. Escalate to admin.');
     }
 
     if (order.is_returned) {
-        actions.push('📦 Order was returned. No license key should be issued.');
+        actions.push('[RETURNED] Order was returned. No license key should be issued.');
     }
 
     if (order.has_activation_issue) {
-        actions.push(`🔧 Customer has reported activation issue. Status: ${order.issue_status}`);
+        actions.push(`[ISSUE] Customer has reported activation issue. Status: ${order.issue_status}`);
     }
 
     // Check for replacement request status
     if (replacementInfo?.hasReplacementRequest) {
         if (replacementInfo.status === 'PENDING') {
-            actions.push('🔄 Customer has a PENDING replacement request. Under investigation (12-24 hours).');
+            actions.push('[PENDING] Customer has a PENDING replacement request. Under investigation (12-24 hours).');
         } else if (replacementInfo.status === 'APPROVED') {
-            actions.push(`✅ Replacement APPROVED! New license key: ${replacementInfo.newLicenseKey}`);
-            actions.push('📧 Customer was notified via email with the new key.');
+            actions.push(`[APPROVED] Replacement APPROVED! New license key: ${replacementInfo.newLicenseKey}`);
+            actions.push('[EMAIL SENT] Customer was notified via email with the new key.');
         } else if (replacementInfo.status === 'REJECTED') {
-            actions.push(`❌ Replacement request was REJECTED. Reason: ${replacementInfo.adminNotes}`);
+            actions.push(`[REJECTED] Replacement request was REJECTED. Reason: ${replacementInfo.adminNotes}`);
         }
     }
 
     // Check if combo product
     if (order.fsn && isComboProduct(order.fsn)) {
         const components = getComponentFSNs(order.fsn);
-        actions.push(`🎁 This is a COMBO product. Customer receives ${components.length} license keys: ${components.join(' + ')}`);
+        actions.push(`[COMBO] This is a COMBO product. Customer receives ${components.length} license keys: ${components.join(' + ')}`);
     }
 
     if (licenseInfo?.isRedeemed) {
-        actions.push('✅ License key already issued. Customer can use existing key.');
-        actions.push('📄 Share download link and installation guide.');
+        actions.push('[REDEEMED] License key already issued. Customer can use existing key.');
+        actions.push('[ACTION] Share download link and installation guide.');
     } else {
-        actions.push('🔑 License key not yet redeemed. Customer can activate at simplysolutions.co.in/activate');
+        actions.push('[NOT REDEEMED] License key not yet redeemed. Customer can activate at simplysolutions.co.in/activate');
     }
 
     if (order.getcid_used) {
-        actions.push('📞 Customer has used phone activation (GetCID).');
+        actions.push('[GETCID] Customer has used phone activation (GetCID).');
     }
 
     if (!order.fsn) {
-        actions.push('⚠️ Product FSN not mapped. May need manual verification.');
+        actions.push('[WARNING] Product FSN not mapped. May need manual verification.');
     }
 
     return actions;
