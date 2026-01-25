@@ -8,7 +8,7 @@ import {
     CreditCard,
     ShieldCheck,
     Info,
-    MessageCircle
+    ChatCircle
 } from '@/components/ui/icons';
 
 export const metadata: Metadata = {
@@ -185,7 +185,7 @@ export default function CancellationPage() {
                     {/* Contact Section */}
                     <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-3xl p-8 md:p-10 border border-primary/20 mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-3">
-                            <MessageCircle className="w-6 h-6 text-primary" />
+                            <ChatCircle className="w-6 h-6 text-primary" />
                             Contact Us for Cancellation
                         </h2>
                         <div className="grid md:grid-cols-2 gap-6">
