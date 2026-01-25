@@ -346,30 +346,19 @@ export default function Office2024WinGuidePage() {
                         </div>
 
                         <div className="space-y-6">
-                            {/* Error Screenshot */}
-                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
-                                <p className="text-lg mb-4"><strong>You may see this error message:</strong></p>
-                                <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
-                                    <Image
-                                        src="https://i.postimg.cc/NfGC12qW/Capture0.png"
-                                        alt="Activation Error Message"
-                                        width={350}
-                                        height={250}
-                                        className="w-full h-auto"
-                                        unoptimized
-                                    />
-                                </div>
-                            </div>
-
+                            {/* Step 1: Open Activation Wizard */}
                             <div className="bg-card border rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-start gap-4 mb-4">
                                     <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">1</div>
-                                    <p className="text-lg">Click "OK" and select <strong>"I want to activate this software over the telephone"</strong></p>
+                                    <div>
+                                        <p className="text-lg">If the Activation Wizard appears:</p>
+                                        <p className="text-muted-foreground">Select: <strong>&quot;I want to activate the software by telephone&quot;</strong> and click Next</p>
+                                    </div>
                                 </div>
-                                <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg mt-4">
                                     <Image
-                                        src="https://i.postimg.cc/Kv9qQcm4/Capture2.png"
-                                        alt="Telephone Activation Option"
+                                        src="/officenewassests/telephone_activation_selection.png"
+                                        alt="Telephone Activation Selection"
                                         width={350}
                                         height={300}
                                         className="w-full h-auto"
@@ -378,128 +367,42 @@ export default function Office2024WinGuidePage() {
                                 </div>
                             </div>
 
+                            {/* Step 2: Get CID */}
                             <div className="bg-card border rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-start gap-4 mb-4">
                                     <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">2</div>
                                     <div>
-                                        <p className="text-lg mb-2">Choose region as <strong>India</strong></p>
-                                        <p className="text-lg flex items-center gap-2">
-                                            <Phone className="h-5 w-5 text-green-600" />
-                                            Dial: <strong className="text-green-600 text-xl">0008000404453</strong>
-                                        </p>
+                                        <p className="text-lg mb-3">Copy the <strong>Installation ID</strong> and visit the GetCID page:</p>
+                                        <a href="https://simplysolutions.co.in/getcid" target="_blank" rel="noopener noreferrer">
+                                            <Button size="lg" className="gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg">
+                                                <ExternalLink className="h-5 w-5" />
+                                                simplysolutions.co.in/getcid
+                                            </Button>
+                                        </a>
                                     </div>
                                 </div>
-                                <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
-                                    <Image
-                                        src="https://i.postimg.cc/K8w9S9k2/Capture4.png"
-                                        alt="Region Selection"
-                                        width={350}
-                                        height={300}
-                                        className="w-full h-auto"
-                                        unoptimized
-                                    />
-                                </div>
+                                <ol className="list-decimal list-inside space-y-2 text-muted-foreground mt-4">
+                                    <li>Enter your 63-digit Installation ID on the website</li>
+                                    <li>Click <strong>ACTIVATE</strong> and wait 2-3 minutes</li>
+                                    <li>A <strong>Confirmation ID</strong> will be generated</li>
+                                </ol>
                             </div>
 
+                            {/* Step 3: Enter Confirmation ID */}
                             <div className="bg-card border rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-start gap-4 mb-4">
                                     <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">3</div>
-                                    <p className="text-lg">You will receive a <strong>link via SMS</strong> to continue with product activation</p>
+                                    <p className="text-lg">Enter the <strong>Confirmation ID</strong> in the Office app (blocks A to H) to finish activation</p>
                                 </div>
-                                <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                                <div className="relative w-full max-w-2xl mx-auto rounded-xl overflow-hidden border shadow-lg mt-4">
                                     <Image
-                                        src="https://i.postimg.cc/0Q8DLmfv/Whats-App-Image-2024-12-12-at-22-45-41-2e8cb64d.jpg"
-                                        alt="SMS Link"
-                                        width={350}
-                                        height={300}
+                                        src="/officenewassests/step4_5.png"
+                                        alt="Enter Confirmation ID"
+                                        width={800}
+                                        height={500}
                                         className="w-full h-auto"
                                         unoptimized
                                     />
-                                </div>
-                            </div>
-
-                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
-                                <div className="flex items-start gap-4 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">4</div>
-                                    <p className="text-lg">Open the link → Select <strong>Microsoft Office</strong> → <strong>Office 2024</strong></p>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
-                                        <Image
-                                            src="https://i.postimg.cc/tT2WyTSx/capture1.png"
-                                            alt="Select Microsoft Office"
-                                            width={350}
-                                            height={300}
-                                            className="w-full h-auto"
-                                            unoptimized
-                                        />
-                                    </div>
-                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
-                                        <Image
-                                            src="https://i.postimg.cc/GttYpCVS/capture2.png"
-                                            alt="Select Office Version"
-                                            width={350}
-                                            height={300}
-                                            className="w-full h-auto"
-                                            unoptimized
-                                        />
-                                    </div>
-                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
-                                        <Image
-                                            src="https://i.postimg.cc/KjWTkWyc/capture3.png"
-                                            alt="Office 2024 Selected"
-                                            width={350}
-                                            height={350}
-                                            className="w-full h-auto"
-                                            unoptimized
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
-                                <div className="flex items-start gap-4 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">5</div>
-                                    <p className="text-lg">Enter the <strong>Installation ID</strong> column by column and click Submit</p>
-                                </div>
-                                <div className="relative w-full max-w-sm mx-auto rounded-xl overflow-hidden border shadow-lg">
-                                    <Image
-                                        src="https://i.postimg.cc/2j9hK1Bp/capture4.png"
-                                        alt="Enter Installation ID"
-                                        width={300}
-                                        height={350}
-                                        className="w-full h-auto"
-                                        unoptimized
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
-                                <div className="flex items-start gap-4 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">6</div>
-                                    <p className="text-lg">A <strong>Confirmation ID</strong> will be displayed - enter it into Microsoft application</p>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
-                                        <Image
-                                            src="https://i.postimg.cc/xTkMD9KX/capture5.png"
-                                            alt="Confirmation ID Displayed"
-                                            width={300}
-                                            height={350}
-                                            className="w-full h-auto"
-                                            unoptimized
-                                        />
-                                    </div>
-                                    <div className="relative rounded-xl overflow-hidden border shadow-lg">
-                                        <Image
-                                            src="https://i.postimg.cc/j5dn8Txd/Capture6.png"
-                                            alt="Enter Confirmation ID"
-                                            width={350}
-                                            height={300}
-                                            className="w-full h-auto"
-                                            unoptimized
-                                        />
-                                    </div>
                                 </div>
                             </div>
 

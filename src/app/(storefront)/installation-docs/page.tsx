@@ -25,12 +25,72 @@ const guides = [
         href: '/installation-docs/office2024mac',
         category: 'Microsoft Office',
     },
+    {
+        title: 'Microsoft Office 2021 Professional Plus',
+        description: 'Installation and phone activation guide for Office 2021',
+        href: '/installation-docs/office2021',
+        category: 'Microsoft Office',
+    },
+    {
+        title: 'Microsoft Office 2019 Professional Plus',
+        description: 'Installation and troubleshooting guide for Office 2019',
+        href: '/installation-docs/office2019',
+        category: 'Microsoft Office',
+    },
+    {
+        title: 'Microsoft Office 2016 Professional Plus',
+        description: 'Installation and phone activation guide for Office 2016',
+        href: '/installation-docs/office2016',
+        category: 'Microsoft Office',
+    },
+    {
+        title: 'Windows 10/11 Pro (Upgrade from Home)',
+        description: 'Upgrade your Windows Home edition to Professional',
+        href: '/installation-docs/win10_11pro_upgrade',
+        category: 'Windows',
+    },
+    {
+        title: 'Windows 10/11 Professional',
+        description: 'Fresh installation and activation guide for Windows Pro',
+        href: '/installation-docs/win10_11pro',
+        category: 'Windows',
+    },
+    {
+        title: 'Windows 10/11 Enterprise',
+        description: 'Installation and upgrade guide for Windows Enterprise edition',
+        href: '/installation-docs/win11ent',
+        category: 'Windows',
+    },
+    {
+        title: 'Windows 11 Pro + Office 2021 Combo',
+        description: 'Complete guide for Windows 11 Pro and Office 2021 combo pack',
+        href: '/installation-docs/win11-pp2021_combo',
+        category: 'Combo Packs',
+    },
+    {
+        title: 'Windows 11 Pro + Office 2024 Combo',
+        description: 'Complete guide for Windows 11 Pro and Office 2024 combo pack',
+        href: '/installation-docs/win11-pp2024_combo',
+        category: 'Combo Packs',
+    },
+    {
+        title: 'Autodesk AutoCAD',
+        description: 'Subscription activation guide for AutoCAD',
+        href: '/installation-docs/autocad',
+        category: 'Autodesk',
+    },
+    {
+        title: 'Canva Pro Lifetime',
+        description: 'Activation guide for Canva Pro Lifetime subscription',
+        href: '/installation-docs/canva',
+        category: 'Design & Graphics',
+    },
 ];
 
 export default function InstallationDocsPage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-            <div className="container max-w-4xl py-12">
+            <div className="container max-w-4xl py-12 mx-auto px-4">
                 <div className="text-center mb-12">
                     <h1 className="text-3xl md:text-4xl font-bold mb-4">
                         Installation Guides

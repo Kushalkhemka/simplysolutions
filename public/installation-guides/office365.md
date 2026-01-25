@@ -37,9 +37,13 @@ Installation process is simple please follow all the instructions correctly till
 
 ![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-64cb4226fa191cc10138e552b1b01aa8-62490771.png)
 
-[left]4) Click the **Install and more** in the upper right corner and select **Install Microsoft 365 apps** to install Office 365 Professional Plus.
+[left]4) Click the **Install apps** in the upper right corner and select **Microsoft 365 apps** to install Office 365 Professional Plus.
 
-![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-8df6b51e7dc09b8019e2374f75a36ea7-62500581.png)
+**OR** visit **[https://m365.cloud.microsoft/apps/](https://m365.cloud.microsoft/apps/)** directly after logging in with the generated account.
+
+![](../../365newassets/new_screenshot_1.png)
+
+![](../../365newassets/new_screenshot_2.png)
 
 [/left]
 

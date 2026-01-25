@@ -84,24 +84,29 @@ export async function getProductByFsn(fsn: string) {
  * Map FSN to installation documentation paths
  */
 export const fsnToInstallDoc: Record<string, string | null> = {
-    'WINDOWS11': 'win11-win10pro_upgrade',
-    'OPSG3TNK9HZDZEM9': 'win11-win10pro_upgrade', // Windows 10 Pro
-    'WIN11HOME': 'win11-win10pro_upgrade',
-    'WIN10ENTERPRISE': 'win11-win10pro_upgrade',
-    'WIN11ENTERPRISE': 'win11-win10pro_upgrade',
+    'WINDOWS11': 'win10_11pro',
+    'OPSG3TNK9HZDZEM9': 'win10_11pro', // Windows 10 Pro
+    'WIN11HOME': 'win10_11pro',
+    'WIN10ENTERPRISE': 'win11ent',
+    'WIN11ENTERPRISE': 'win11ent',
     'OFFGHYUUFTD9NQNE': 'office2021', // Office 2021 Pro Plus
     'OFFG9MREFCXD658G': 'office2021',
     'OFFICE2024-WIN': 'office2024win',
     'OPSG4ZTTK5MMZWPB': 'office2019', // Office 2019
-    'PP2016': 'office2019',
+    'PP2016': 'office2016',
     'OFFICE365': 'office365',
-    '365E5': 'office365ent',
+    '365E5': 'office365',
     'WIN11-PP21': 'win11-pp2021_combo',
+    'WIN11-PP24': 'win11-pp2024_combo',
     'OFFICE2024-MAC': 'office2024mac',
     'VISIO2021': 'visio2021',
     'PROJECT2021': 'project2021',
     'GEMINI': null, // No installation doc for Gemini - invite-based activation
-    'ACROBAT2024': 'acrobat2024',
+    'ACROBAT2024': null, // Doc pending
+    'AUTOCAD': 'autocad',
+    'AUTOCAD-1YEAR': 'autocad',
+    'AUTOCAD-3YEAR': 'autocad',
+    'CANVA': 'canva',
 };
 
 /**

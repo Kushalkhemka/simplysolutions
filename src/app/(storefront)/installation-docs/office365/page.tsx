@@ -234,14 +234,29 @@ export default function Office365GuidePage() {
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">7</div>
                             <div>
                                 <h2 className="text-2xl font-bold">Install Microsoft 365 Apps</h2>
-                                <p className="text-muted-foreground">Click "Install and more" → "Install Microsoft 365 apps"</p>
+                                <p className="text-muted-foreground">
+                                    Click "Install apps" → "Microsoft 365 apps" <br />
+                                    <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                                        OR visit <a href="https://m365.cloud.microsoft/apps/" target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-700">m365.cloud.microsoft/apps/</a> directly after logging in with the generated account.
+                                    </span>
+                                </p>
                             </div>
                         </div>
-                        <div className="ml-14">
-                            <div className="relative w-full max-w-lg mx-auto rounded-xl overflow-hidden border shadow-lg">
+                        <div className="ml-14 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
                                 <Image
-                                    src="https://i.postimg.cc/tTpffVV8/tinywow-8df6b51e7dc09b8019e2374f75a36ea7-62500581.png"
-                                    alt="Install Microsoft 365 Apps Button"
+                                    src="/365newassets/new_screenshot_1.png"
+                                    alt="Click Install apps"
+                                    width={350}
+                                    height={250}
+                                    className="w-full h-auto"
+                                    unoptimized
+                                />
+                            </div>
+                            <div className="relative rounded-xl overflow-hidden border shadow-lg">
+                                <Image
+                                    src="/365newassets/new_screenshot_2.png"
+                                    alt="Select Microsoft 365 apps"
                                     width={350}
                                     height={250}
                                     className="w-full h-auto"
