@@ -174,8 +174,8 @@ export function Footer() {
                                 <WhatsappLogo className="w-5 h-5 text-[#25D366] flex-shrink-0 mt-0.5" />
                                 <div>
                                     <span className="block font-medium text-foreground text-xs mb-0.5">Escalations</span>
-                                    <a href="https://wa.me/918178848830" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                                        +91 8178848830
+                                    <a href="https://wa.me/918595899215" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                                        +91 8595899215
                                     </a>
                                 </div>
                             </li>
@@ -183,8 +183,8 @@ export function Footer() {
                                 <WhatsappLogo className="w-5 h-5 text-[#25D366] flex-shrink-0 mt-0.5" />
                                 <div>
                                     <span className="block font-medium text-foreground text-xs mb-0.5">24/7 AI Tech Support</span>
-                                    <a href="https://wa.me/919953994557" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                                        +91 99539 94557
+                                    <a href="https://wa.me/918178848830" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                                        +91 8178848830
                                     </a>
                                 </div>
                             </li>
