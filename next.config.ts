@@ -52,7 +52,10 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion', 'date-fns'],
+    webpackBuildWorker: true,
   },
+  // External packages to exclude from server bundling
+  serverExternalPackages: ['razorpay', 'web-push'],
   // Compiler options for smaller bundle size
   compiler: {
     // Remove console.logs in production
@@ -116,6 +119,21 @@ const nextConfig: NextConfig = {
       {
         source: '/getcidEnter',
         destination: '/getcid',
+        permanent: true,
+      },
+      {
+        source: '/autocadEnter',
+        destination: '/autocad',
+        permanent: true,
+      },
+      {
+        source: '/canvaEnter',
+        destination: '/canva',
+        permanent: true,
+      },
+      {
+        source: '/365enterpriseEnter',
+        destination: '/365enterprise',
         permanent: true,
       },
     ];

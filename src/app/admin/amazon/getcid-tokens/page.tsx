@@ -234,8 +234,79 @@ export default function GetCIDTokensPage() {
                 </p>
             </div>
 
-            {/* Tokens Table */}
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Tokens - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {tokens.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground bg-card border rounded-lg">
+                        <Key className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                        <p>No tokens configured</p>
+                        <p className="text-sm">Add a GetCID API token to get started</p>
+                    </div>
+                ) : (
+                    tokens.map((token) => {
+                        const remaining = token.total_available - token.count_used;
+                        const usagePercentage = (token.count_used / token.total_available) * 100;
+                        return (
+                            <div key={token.id} className={`bg-card border rounded-lg p-4 ${!token.is_active ? 'opacity-50' : ''}`}>
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1 min-w-0">
+                                        <code className="text-sm font-mono bg-muted px-2 py-1 rounded block truncate">{token.token}</code>
+                                        <p className="text-xs text-muted-foreground mt-2">{token.email?.toLowerCase() || '-'}</p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <span className={`text-sm font-medium px-2 py-0.5 rounded ${getUsageColor(token.count_used, token.total_available)}`}>
+                                                {token.count_used} / {token.total_available}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">{remaining} left</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-muted rounded-full mt-1 overflow-hidden">
+                                            <div
+                                                className={`h-full ${usagePercentage >= 90 ? 'bg-red-500' : usagePercentage >= 70 ? 'bg-amber-500' : 'bg-green-500'}`}
+                                                style={{ width: `${usagePercentage}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            {token.is_active ? (
+                                                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+                                                    <CheckCircle className="h-3 w-3" /> Active
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded-full">
+                                                    <AlertTriangle className="h-3 w-3" /> Inactive
+                                                </span>
+                                            )}
+                                            <span className="text-xs text-muted-foreground">Priority: {token.priority}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1 shrink-0">
+                                        <button
+                                            onClick={() => syncToken(token.id)}
+                                            disabled={syncingId === token.id}
+                                            className="p-1.5 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded"
+                                        >
+                                            {syncingId === token.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                        </button>
+                                        <button
+                                            onClick={() => toggleActive(token.id, token.is_active)}
+                                            className={`p-1.5 rounded ${token.is_active ? 'text-amber-600 hover:bg-amber-100' : 'text-green-600 hover:bg-green-100'}`}
+                                        >
+                                            {token.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                                        </button>
+                                        <button
+                                            onClick={() => deleteToken(token.id)}
+                                            className="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+
+            {/* Tokens Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-muted/50">

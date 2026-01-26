@@ -190,6 +190,7 @@ export interface Database {
                     view_count: number
                     sold_count: number
                     installation_guide_url: string | null
+                    fsn: string | null
                     created_at: string
                     updated_at: string
                 }
@@ -240,6 +241,7 @@ export interface Database {
                     view_count?: number
                     sold_count?: number
                     installation_guide_url?: string | null
+                    fsn?: string | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -290,6 +292,7 @@ export interface Database {
                     view_count?: number
                     sold_count?: number
                     installation_guide_url?: string | null
+                    fsn?: string | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -488,6 +491,8 @@ export interface Database {
                     total_price: number
                     license_keys: string[]
                     license_key_ids: string[]
+                    secret_codes: string[] | null
+                    product_fsn: string | null
                     status: 'pending' | 'processing' | 'delivered' | 'refunded'
                     created_at: string
                 }
@@ -503,6 +508,8 @@ export interface Database {
                     total_price: number
                     license_keys?: string[]
                     license_key_ids?: string[]
+                    secret_codes?: string[] | null
+                    product_fsn?: string | null
                     status?: 'pending' | 'processing' | 'delivered' | 'refunded'
                     created_at?: string
                 }
@@ -518,6 +525,8 @@ export interface Database {
                     total_price?: number
                     license_keys?: string[]
                     license_key_ids?: string[]
+                    secret_codes?: string[] | null
+                    product_fsn?: string | null
                     status?: 'pending' | 'processing' | 'delivered' | 'refunded'
                     created_at?: string
                 }

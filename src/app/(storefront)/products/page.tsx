@@ -1,15 +1,9 @@
 import { Suspense } from 'react';
 import { ProductCard } from '@/components/product/ProductCard';
+import { SortSelect } from '@/components/product/SortSelect';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -261,28 +255,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                                 </p>
                             </div>
 
-                            <Select defaultValue={params.sortBy || 'newest'}>
-                                <SelectTrigger className="w-48">
-                                    <SelectValue placeholder="Sort by" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="newest">
-                                        <Link href={buildUrl(1).replace(`sortBy=${params.sortBy}`, 'sortBy=newest')}>Newest First</Link>
-                                    </SelectItem>
-                                    <SelectItem value="price_asc">
-                                        <Link href={buildUrl(1).replace(`sortBy=${params.sortBy}`, 'sortBy=price_asc')}>Price: Low to High</Link>
-                                    </SelectItem>
-                                    <SelectItem value="price_desc">
-                                        <Link href={buildUrl(1).replace(`sortBy=${params.sortBy}`, 'sortBy=price_desc')}>Price: High to Low</Link>
-                                    </SelectItem>
-                                    <SelectItem value="rating">
-                                        <Link href={buildUrl(1).replace(`sortBy=${params.sortBy}`, 'sortBy=rating')}>Highest Rated</Link>
-                                    </SelectItem>
-                                    <SelectItem value="bestseller">
-                                        <Link href={buildUrl(1).replace(`sortBy=${params.sortBy}`, 'sortBy=bestseller')}>Bestselling</Link>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Suspense fallback={<div className="w-48 h-10 bg-muted rounded-md animate-pulse" />}>
+                                <SortSelect currentSort={params.sortBy || 'newest'} />
+                            </Suspense>
                         </div>
 
                         {/* Products Grid */}

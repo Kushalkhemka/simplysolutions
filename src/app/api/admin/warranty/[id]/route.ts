@@ -140,13 +140,8 @@ export async function PATCH(
             updateData.missing_seller_feedback = missingSeller || false;
             updateData.missing_product_review = missingReview || false;
 
-            // Clear the screenshot that needs to be resubmitted
-            if (missingSeller) {
-                updateData.screenshot_seller_feedback = null;
-            }
-            if (missingReview) {
-                updateData.screenshot_product_review = null;
-            }
+            // Keep existing screenshots - they will be overwritten when customer uploads new ones
+            // Don't delete them immediately so admin can still review them if needed
 
             // Send resubmission email
             if (customerEmail) {

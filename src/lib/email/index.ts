@@ -627,3 +627,195 @@ export async function send365EnterpriseEmail(data: Enterprise365EmailData) {
     return { success: false, error };
   }
 }
+
+// Digital Delivery Email with Secret Codes
+export interface DigitalProductDelivery {
+  productName: string;
+  secretCode: string;
+  installationGuideUrl: string | null;
+}
+
+export interface DigitalDeliveryEmailData {
+  to: string;
+  customerName: string;
+  orderNumber: string;
+  products: DigitalProductDelivery[];
+}
+
+export async function sendDigitalDeliveryEmail(data: DigitalDeliveryEmailData) {
+  const activateUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in'}/activate`;
+
+  // Generate HTML for each product's secret code
+  const productsHtml = data.products.map((product, index) => `
+    <div style="margin-bottom: ${index < data.products.length - 1 ? '28px' : '0'}; padding-bottom: ${index < data.products.length - 1 ? '28px' : '0'}; border-bottom: ${index < data.products.length - 1 ? '1px solid #e2e8f0' : 'none'};">
+      <h3 style="margin: 0 0 12px; font-size: 15px; font-weight: 600; color: #1e293b;">
+        ${product.productName}
+      </h3>
+      
+      <!-- Secret Code Box -->
+      <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 10px; padding: 16px; margin-bottom: 12px;">
+        <p style="margin: 0 0 8px; font-size: 11px; color: #92400e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
+          Your Activation Code
+        </p>
+        <div style="background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #fcd34d; text-align: center;">
+          <code style="font-size: 20px; font-weight: 700; letter-spacing: 2px; color: #1e293b; font-family: 'Courier New', Consolas, monospace;">
+            ${product.secretCode}
+          </code>
+        </div>
+      </div>
+
+      <!-- Activate Button for this specific product -->
+      <div style="text-align: center; margin-bottom: ${product.installationGuideUrl ? '12px' : '0'};">
+        <a href="${activateUrl}?code=${product.secretCode}" 
+           style="display: inline-block; 
+                  background: linear-gradient(135deg, #d97706, #f59e0b); 
+                  color: #ffffff; 
+                  padding: 12px 28px; 
+                  font-size: 14px; 
+                  font-weight: 600; 
+                  text-decoration: none; 
+                  border-radius: 6px;
+                  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);">
+          Activate This Product Now
+        </a>
+      </div>
+
+      ${product.installationGuideUrl ? `
+      <!-- Installation Guide Link -->
+      <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; text-align: center;">
+        <a href="${product.installationGuideUrl}" 
+           style="color: #0369a1; font-weight: 600; font-size: 13px; text-decoration: none;">
+          View Installation Guide →
+        </a>
+      </div>
+      ` : ''}
+    </div>
+  `).join('');
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="margin: 0; font-size: 26px; font-weight: 700; color: #DC3E15;">SimplySolutions</h1>
+        </div>
+
+        <!-- Main Card -->
+        <div style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+          
+          <!-- Success Banner -->
+          <div style="background: linear-gradient(135deg, #059669, #10b981); padding: 28px; text-align: center;">
+            <div style="width: 56px; height: 56px; margin: 0 auto 14px; background: rgba(255,255,255,0.2); border-radius: 50%; line-height: 56px;">
+              <span style="font-size: 28px; color: white;">&#10003;</span>
+            </div>
+            <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: white;">
+              Payment Successful!
+            </h2>
+            <p style="margin: 6px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+              Your Order Has Been Confirmed
+            </p>
+          </div>
+
+          <div style="padding: 32px;">
+            <p style="margin: 0 0 24px; color: #475569; font-size: 15px; line-height: 1.6;">
+              Hi <strong>${data.customerName}</strong>,<br>
+              Thank you for your purchase! Your payment has been confirmed and your digital products are ready.
+            </p>
+
+            <!-- Order Number -->
+            <div style="background: #f8fafc; border-radius: 8px; padding: 14px; margin-bottom: 28px; border: 1px solid #e2e8f0;">
+              <p style="margin: 0; font-size: 12px; color: #64748b;">Order Number</p>
+              <p style="margin: 4px 0 0; font-size: 15px; color: #1e293b; font-weight: 600; font-family: monospace;">${data.orderNumber}</p>
+            </div>
+
+            <!-- Products Section -->
+            <div style="margin-bottom: 28px;">
+              ${productsHtml}
+            </div>
+
+            <!-- How to Activate -->
+            <h3 style="margin: 0 0 14px; font-size: 15px; font-weight: 600; color: #1e293b;">
+              How to Activate Your Products
+            </h3>
+            
+            <ol style="margin: 0 0 24px; padding-left: 18px; color: #475569; line-height: 1.9; font-size: 14px;">
+              <li>Visit our activation page using the button below</li>
+              <li>Enter your 15-digit secret code</li>
+              <li>Click "Verify & Generate" to receive your license key</li>
+              <li>Follow the installation guide for your specific product</li>
+            </ol>
+
+            <!-- CTA Button -->
+            <div style="text-align: center;">
+              <a href="${activateUrl}" 
+                 style="display: inline-block; 
+                        background: #1e293b; 
+                        color: #ffffff; 
+                        padding: 14px 36px; 
+                        font-size: 15px; 
+                        font-weight: 600; 
+                        text-decoration: none; 
+                        border-radius: 8px;">
+                Activate Your Products Now
+              </a>
+            </div>
+
+            <!-- Important Notice -->
+            <div style="margin-top: 24px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px;">
+              <p style="margin: 0 0 8px; color: #92400e; font-size: 13px; font-weight: 600;">
+                📌 Important Reminder
+              </p>
+              <p style="margin: 0; color: #78716c; font-size: 13px; line-height: 1.6;">
+                Please save your secret codes securely. You can also access them anytime from your <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in'}/dashboard/orders" style="color: #DC3E15; text-decoration: underline;">order history</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Support -->
+        <div style="text-align: center; margin-top: 28px; padding: 20px; background: white; border-radius: 10px; border: 1px solid #e2e8f0;">
+          <p style="margin: 0 0 10px; font-size: 13px; color: #64748b;">
+            Need help? Contact us on WhatsApp
+          </p>
+          <a href="https://wa.me/918178848830" 
+             style="display: inline-block; background: #25D366; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 13px;">
+            Chat on WhatsApp
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 24px;">
+          <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+            &copy; ${new Date().getFullYear()} SimplySolutions. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const { data: result, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
+      to: data.to,
+      subject: `Your Digital Products Are Ready! - Order ${data.orderNumber}`,
+      html,
+    });
+
+    if (error) {
+      console.error('Digital delivery email send error:', error);
+      return { success: false, error };
+    }
+
+    return { success: true, id: result?.id };
+  } catch (error) {
+    console.error('Digital delivery email service error:', error);
+    return { success: false, error };
+  }
+}

@@ -176,6 +176,15 @@ export default function LicenseKeysClient() {
         fetchKeys();
     }, [fetchKeys]);
 
+    // Auto-refresh stats every 10 seconds to reflect activations
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchStats();
+        }, 10000); // Refresh every 10 seconds
+
+        return () => clearInterval(interval);
+    }, [fetchStats]);
+
     // Get product name from FSN
     const handleFsnChange = (fsn: string) => {
         setNewFsn(fsn);
@@ -510,8 +519,66 @@ export default function LicenseKeysClient() {
                 </div>
             )}
 
-            {/* Keys Table */}
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Keys - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {isLoading ? (
+                    <div className="p-8 text-center bg-card border rounded-lg">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                        <p className="mt-2 text-muted-foreground">Loading keys...</p>
+                    </div>
+                ) : (
+                    <>
+                        {keys.map((key) => (
+                            <div key={key.id} className={`bg-card border rounded-lg p-4 ${selectedKeys.has(key.id) ? 'ring-2 ring-primary' : ''}`}>
+                                <div className="flex items-start gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedKeys.has(key.id)}
+                                        onChange={() => toggleKeySelection(key.id)}
+                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary mt-1"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-mono text-sm truncate">{key.license_key}</p>
+                                        <p className="text-sm font-medium text-muted-foreground mt-1">{key.fsn}</p>
+                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{getProductName(key.fsn)}</p>
+                                        <div className="mt-2">
+                                            {key.is_redeemed ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
+                                                    <CheckCircle className="h-3 w-3" /> Redeemed
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                    <Key className="h-3 w-3" /> Available
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDeleteKey(key.id)}
+                                        disabled={deleteId === key.id}
+                                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 shrink-0"
+                                        title="Delete Key"
+                                    >
+                                        {deleteId === key.id ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Trash2 className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        {keys.length === 0 && (
+                            <div className="p-8 text-center text-muted-foreground bg-card border rounded-lg">
+                                No license keys found
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+
+            {/* Keys Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 {isLoading ? (
                     <div className="p-8 text-center">
                         <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />

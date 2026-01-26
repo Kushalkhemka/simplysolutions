@@ -34,6 +34,8 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         unit_price,
         total_price,
         license_keys,
+        secret_codes,
+        product_fsn,
         status
       )
     `)
@@ -124,14 +126,14 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                                             <p className="font-bold">₹{item.total_price?.toLocaleString('en-IN')}</p>
                                             <Badge
                                                 variant="outline"
-                                                className={`mt-1 ${item.license_keys?.length > 0
+                                                className={`mt-1 ${(item.license_keys?.length > 0 || item.secret_codes?.length > 0)
                                                     ? 'bg-green-100 text-green-700 border-green-200 dark:bg-orange-500/10 dark:text-orange-500 dark:border-orange-500/30'
                                                     : order.payment_status === 'completed'
                                                         ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-500 dark:border-yellow-500/30'
                                                         : 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/30'
                                                     }`}
                                             >
-                                                {item.license_keys?.length > 0
+                                                {(item.license_keys?.length > 0 || item.secret_codes?.length > 0)
                                                     ? 'Delivered'
                                                     : order.payment_status === 'completed'
                                                         ? 'Awaiting Fulfillment'
@@ -157,6 +159,43 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                                             </div>
                                             <p className="text-xs text-green-700 dark:text-gray-400 mt-3">
                                                 💡 Tip: Copy and save your license keys in a safe place
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Secret Codes with Activate Buttons */}
+                                    {item.secret_codes && item.secret_codes.length > 0 && (
+                                        <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-[#0a0a0a] dark:to-[#0a0a0a] border border-orange-200 dark:border-orange-700/40 rounded-lg p-4 mt-4 shadow-sm">
+                                            <h4 className="font-semibold text-orange-800 dark:text-orange-400 mb-2 flex items-center gap-2">
+                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                                </svg>
+                                                Activation Code{item.secret_codes.length > 1 ? 's' : ''} ({item.secret_codes.length})
+                                            </h4>
+                                            <p className="text-sm text-orange-700 dark:text-orange-300/80 mb-3">
+                                                Use these codes on our activation page to get your license keys.
+                                            </p>
+                                            <div className="space-y-2">
+                                                {item.secret_codes.map((code: string, idx: number) => (
+                                                    <div key={idx} className="bg-white dark:bg-[#121212] rounded-lg p-3 border border-orange-200 dark:border-orange-800/50 shadow-sm">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Code {idx + 1}</span>
+                                                            <code className="flex-1 font-mono text-sm sm:text-base font-bold tracking-wider text-gray-900 dark:text-white bg-gray-100 dark:bg-[#1a1a1a] px-2 py-1 rounded">{code}</code>
+                                                            <CopyButton text={code} className="flex-shrink-0 text-gray-500 hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400" />
+                                                        </div>
+                                                        <Link href={`/activate?code=${code}`}>
+                                                            <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-medium shadow-sm">
+                                                                Activate Now
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <p className="text-xs text-orange-600 dark:text-orange-400/70 mt-3 flex items-center gap-1">
+                                                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                                </svg>
+                                                Each code can only be used once. Click &quot;Activate Now&quot; to redeem your license.
                                             </p>
                                         </div>
                                     )}
@@ -276,6 +315,6 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

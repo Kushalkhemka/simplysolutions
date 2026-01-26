@@ -8,7 +8,7 @@ async function checkAdmin() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-    return profile?.role === 'admin' ? user : null;
+    return (profile?.role === 'admin' || profile?.role === 'super_admin') ? user : null;
 }
 
 interface Params {

@@ -62,13 +62,13 @@ export default function WelcomeOffersPage() {
     const getOfferColor = (type: string) => {
         switch (type) {
             case 'flash_deal':
-                return 'bg-orange-50 border-orange-200 text-orange-700';
+                return 'bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300';
             case 'price_slash':
-                return 'bg-blue-50 border-blue-200 text-blue-700';
+                return 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300';
             case 'bogo':
-                return 'bg-green-50 border-green-200 text-green-700';
+                return 'bg-green-50 dark:bg-green-950/40 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300';
             default:
-                return 'bg-muted';
+                return 'bg-muted dark:bg-muted border-border text-foreground';
         }
     };
 
@@ -97,7 +97,7 @@ export default function WelcomeOffersPage() {
                     >
                         <div className="flex items-start justify-between">
                             <div className="flex items-start gap-4 flex-1">
-                                <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border">
+                                <div className="p-3 bg-white dark:bg-neutral-900 rounded-lg border">
                                     {getOfferIcon(template.offer_type)}
                                 </div>
                                 <div className="flex-1 space-y-2">

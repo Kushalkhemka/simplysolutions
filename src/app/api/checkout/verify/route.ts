@@ -4,6 +4,31 @@ import { getAdminClient } from '@/lib/supabase/admin';
 import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/utils/api-response';
 import { paymentVerificationSchema } from '@/lib/utils/validation';
 import { verifyPaymentSignature } from '@/lib/razorpay';
+import { getInstallDocUrl } from '@/lib/amazon/asin-mapping';
+import { sendDigitalDeliveryEmail, DigitalProductDelivery } from '@/lib/email';
+
+// Generate unique 15-digit secret code
+async function generateUniqueSecretCode(adminClient: ReturnType<typeof getAdminClient>): Promise<string> {
+    const maxAttempts = 10;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const code = Array.from({ length: 15 }, () =>
+            Math.floor(Math.random() * 10)
+        ).join('');
+
+        const { data: existing } = await adminClient
+            .from('amazon_orders')
+            .select('id')
+            .eq('order_id', code)
+            .single();
+
+        if (!existing) {
+            return code;
+        }
+    }
+
+    throw new Error('Failed to generate unique secret code');
+}
 
 // POST /api/checkout/verify - Verify payment and allocate license keys
 export async function POST(request: NextRequest) {
@@ -37,10 +62,10 @@ export async function POST(request: NextRequest) {
 
         const adminClient = getAdminClient();
 
-        // Get order
+        // Get order with billing details
         const { data: order, error: orderError } = await adminClient
             .from('orders')
-            .select('id, user_id, status')
+            .select('id, user_id, status, order_number, billing_name, billing_email, billing_phone')
             .eq('razorpay_order_id', razorpay_order_id)
             .single();
 
@@ -71,15 +96,27 @@ export async function POST(request: NextRequest) {
             })
             .eq('id', order.id);
 
-        // Get order items
+        // Get order items with product details INCLUDING FSN from products table
         const { data: orderItems } = await adminClient
             .from('order_items')
-            .select('id, product_id, quantity')
+            .select('id, product_id, quantity, product_name, product_sku')
             .eq('order_id', order.id);
 
-        // Allocate license keys
+        // Allocate license keys AND create amazon_orders entries
+        const digitalProducts: DigitalProductDelivery[] = [];
+
         if (orderItems) {
             for (const item of orderItems) {
+                // Get FSN from products table
+                const { data: product } = await adminClient
+                    .from('products')
+                    .select('fsn')
+                    .eq('id', item.product_id)
+                    .single();
+
+                const fsn = product?.fsn || item.product_sku || 'UNKNOWN';
+                const installDocUrl = getInstallDocUrl(fsn);
+
                 // Get available license keys for this product
                 const { data: licenseKeys } = await adminClient
                     .from('license_keys')
@@ -113,6 +150,46 @@ export async function POST(request: NextRequest) {
                         })
                         .in('id', keyIds);
                 }
+
+                // Generate ONE secret code per EACH quantity unit (not one per item)
+                const secretCodes: string[] = [];
+                for (let i = 0; i < item.quantity; i++) {
+                    const secretCode = await generateUniqueSecretCode(adminClient);
+                    secretCodes.push(secretCode);
+
+                    // Insert into amazon_orders table for each secret code
+                    const { error: amazonOrderError } = await adminClient
+                        .from('amazon_orders')
+                        .insert({
+                            order_id: secretCode,
+                            fsn: fsn,
+                            fulfillment_type: 'website_payment',
+                            contact_email: order.billing_email,
+                            contact_phone: order.billing_phone || null,
+                            warranty_status: 'PENDING',
+                            quantity: 1, // Each secret code is for 1 unit
+                        });
+
+                    if (amazonOrderError) {
+                        console.error('Failed to create amazon_orders entry:', amazonOrderError);
+                    }
+
+                    // Add to digital products list for email (each code separately)
+                    digitalProducts.push({
+                        productName: item.product_name,
+                        secretCode: secretCode,
+                        installationGuideUrl: installDocUrl ? `${process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in'}${installDocUrl}` : null,
+                    });
+                }
+
+                // Store secret codes and FSN in order_item for display on order page
+                await adminClient
+                    .from('order_items')
+                    .update({
+                        secret_codes: secretCodes,
+                        product_fsn: fsn,
+                    })
+                    .eq('id', item.id);
             }
         }
 
@@ -200,9 +277,26 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Send digital delivery email with secret codes
+        if (digitalProducts.length > 0 && order.billing_email) {
+            try {
+                await sendDigitalDeliveryEmail({
+                    to: order.billing_email,
+                    customerName: order.billing_name || 'Customer',
+                    orderNumber: order.order_number,
+                    products: digitalProducts,
+                });
+                console.log('Digital delivery email sent successfully for order:', order.order_number);
+            } catch (emailError) {
+                console.error('Failed to send digital delivery email:', emailError);
+                // Don't fail the order if email fails
+            }
+        }
+
         return successResponse({
             message: 'Payment verified and license keys allocated',
             orderId: order.id,
+            secretCodes: digitalProducts.map(p => ({ product: p.productName, code: p.secretCode })),
         });
     } catch (error) {
         console.error('Payment verification error:', error);

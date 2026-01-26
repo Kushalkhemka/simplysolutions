@@ -151,7 +151,7 @@ export default function WarrantyClaimsClient() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <button
                     onClick={() => { setStatusFilter('PROCESSING'); setCurrentPage(1); }}
                     className={`bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-left hover:ring-2 hover:ring-yellow-400 transition-all ${statusFilter === 'PROCESSING' ? 'ring-2 ring-yellow-400' : ''}`}
@@ -183,8 +183,8 @@ export default function WarrantyClaimsClient() {
             </div>
 
             {/* Search and Filter */}
-            <form onSubmit={handleSearch} className="flex gap-4">
-                <div className="relative flex-1 max-w-md">
+            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                         type="text"
@@ -208,8 +208,62 @@ export default function WarrantyClaimsClient() {
                 )}
             </form>
 
-            {/* Warranty Table */}
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Warranty - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {isLoading ? (
+                    <div className="p-8 text-center bg-card border rounded-lg">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                    </div>
+                ) : warranties.length === 0 ? (
+                    <div className="p-8 text-center text-muted-foreground bg-card border rounded-lg">
+                        No warranty claims found
+                    </div>
+                ) : (
+                    warranties.map((warranty) => (
+                        <div key={warranty.id} className="bg-card border rounded-lg p-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-mono text-sm font-medium truncate">{warranty.order_id}</p>
+                                    <p className="text-sm text-muted-foreground truncate mt-1">{warranty.contact || warranty.email || warranty.phone || '-'}</p>
+                                    <div className="flex items-center flex-wrap gap-2 mt-2">
+                                        {getStatusBadge(warranty.status)}
+                                    </div>
+                                    <div className="flex items-center flex-wrap gap-3 mt-2 text-xs">
+                                        {warranty.screenshot_seller_feedback && (
+                                            <a href={warranty.screenshot_seller_feedback} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                                                <ExternalLink className="h-3 w-3" /> Feedback
+                                            </a>
+                                        )}
+                                        {warranty.screenshot_product_review && (
+                                            <a href={warranty.screenshot_product_review} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                                                <ExternalLink className="h-3 w-3" /> Review
+                                            </a>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        {new Date(warranty.created_at).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <div className="flex flex-col gap-1 shrink-0">
+                                    <button
+                                        onClick={() => viewDetails(warranty)}
+                                        className="text-primary hover:text-primary/80 transition-colors p-2"
+                                        title="View Details"
+                                    >
+                                        <Eye className="h-4 w-4" />
+                                    </button>
+                                    <Link href={`/admin/amazon/warranty/${warranty.id}`} className="text-xs px-2 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20">
+                                        Review
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Warranty Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 {isLoading ? (
                     <div className="p-8 text-center">
                         <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />

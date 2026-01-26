@@ -232,17 +232,59 @@ export default function OrdersClient() {
                 </Button>
             </div>
 
-            {/* Orders Table */}
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Orders - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {filteredOrders.map((order) => (
+                    <div key={order.id} className="bg-card border rounded-lg p-4">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-semibold text-sm">{order.order_number}</span>
+                                    <span className={`text-xs px-2 py-0.5 rounded ${getStatusColor(order.status)}`}>
+                                        {order.status}
+                                    </span>
+                                    {order.payment_status === 'completed' ? (
+                                        <CheckCircle className="h-4 w-4 text-green-500" />
+                                    ) : (
+                                        <XCircle className="h-4 w-4 text-red-500" />
+                                    )}
+                                </div>
+                                <p className="text-lg font-bold mt-1">₹{order.total_amount?.toLocaleString('en-IN')}</p>
+                                <p className="text-sm text-muted-foreground truncate">{order.billing_name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {new Date(order.created_at).toLocaleDateString('en-IN', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric',
+                                    })}
+                                </p>
+                            </div>
+                            <Link href={`/admin/orders/${order.id}`}>
+                                <Button size="sm" variant="outline" className="shrink-0">
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                ))}
+                {filteredOrders.length === 0 && (
+                    <div className="p-8 text-center text-muted-foreground bg-card border rounded-lg">
+                        {orders.length === 0 ? 'No orders yet.' : 'No orders match the selected filter.'}
+                    </div>
+                )}
+            </div>
+
+            {/* Orders Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-muted/50 border-b">
                             <tr>
                                 <th className="text-left p-4 font-medium">Order</th>
-                                <th className="text-left p-4 font-medium hidden sm:table-cell">Customer</th>
-                                <th className="text-left p-4 font-medium hidden md:table-cell">Date</th>
+                                <th className="text-left p-4 font-medium">Customer</th>
+                                <th className="text-left p-4 font-medium">Date</th>
                                 <th className="text-center p-4 font-medium">Status</th>
-                                <th className="text-center p-4 font-medium hidden sm:table-cell">Payment</th>
+                                <th className="text-center p-4 font-medium">Payment</th>
                                 <th className="text-right p-4 font-medium">Amount</th>
                                 <th className="text-right p-4 font-medium">Actions</th>
                             </tr>
@@ -251,13 +293,13 @@ export default function OrdersClient() {
                             {filteredOrders.map((order) => (
                                 <tr key={order.id} className="hover:bg-muted/30">
                                     <td className="p-4 font-medium">{order.order_number}</td>
-                                    <td className="p-4 hidden sm:table-cell">
+                                    <td className="p-4">
                                         <div>
                                             <p className="truncate max-w-[150px]">{order.billing_name}</p>
                                             <p className="text-xs text-muted-foreground truncate max-w-[150px]">{order.billing_email}</p>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-muted-foreground hidden md:table-cell">
+                                    <td className="p-4 text-muted-foreground">
                                         {new Date(order.created_at).toLocaleDateString('en-IN', {
                                             day: 'numeric',
                                             month: 'short',
@@ -269,7 +311,7 @@ export default function OrdersClient() {
                                             {order.status}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-center hidden sm:table-cell">
+                                    <td className="p-4 text-center">
                                         {order.payment_status === 'completed' ? (
                                             <CheckCircle className="h-5 w-5 text-green-500 mx-auto" />
                                         ) : (
@@ -283,7 +325,7 @@ export default function OrdersClient() {
                                         <Link href={`/admin/orders/${order.id}`}>
                                             <Button size="sm" variant="outline" className="gap-1">
                                                 <Eye className="h-4 w-4" />
-                                                <span className="hidden sm:inline">View</span>
+                                                View
                                             </Button>
                                         </Link>
                                     </td>

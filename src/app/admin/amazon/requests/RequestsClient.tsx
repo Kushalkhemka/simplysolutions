@@ -439,8 +439,79 @@ Email - ${request.email || '-'}`;
                 )}
             </div>
 
-            {/* Table */}
-            <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
+            {/* Table - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {filteredRequests.length === 0 ? (
+                    <div className="p-12 text-center bg-card border rounded-xl">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                            <Filter className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <p className="text-muted-foreground font-medium">No requests found</p>
+                        <p className="text-sm text-muted-foreground mt-1">Try adjusting your filters</p>
+                    </div>
+                ) : (
+                    filteredRequests.map((request) => (
+                        <div key={request.id} className="bg-card border rounded-xl p-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{request.email || 'NA'}</p>
+                                    <p className="font-mono text-xs text-muted-foreground truncate mt-1">{request.order_id || '-'}</p>
+                                    <div className="flex items-center flex-wrap gap-2 mt-2">
+                                        {getTypeBadge(request.request_type)}
+                                        {request.is_completed ? (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                                <CheckCircle className="h-3 w-3" /> Completed
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                                <Clock className="h-3 w-3" /> Pending
+                                            </span>
+                                        )}
+                                    </div>
+                                    {request.fsn && (
+                                        <span className="inline-block mt-2 px-2 py-1 rounded text-xs font-mono bg-muted text-muted-foreground">
+                                            {request.fsn}
+                                        </span>
+                                    )}
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        {new Date(request.created_at).toLocaleDateString('en-IN', {
+                                            day: '2-digit', month: 'short', year: 'numeric'
+                                        })}
+                                    </p>
+                                </div>
+                                <div className="flex flex-col gap-1 shrink-0">
+                                    <button
+                                        onClick={() => handleQuickCopy(request)}
+                                        className="w-8 h-8 inline-flex items-center justify-center rounded text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100"
+                                        title="Copy"
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleViewCustomerData(request)}
+                                        className="w-8 h-8 inline-flex items-center justify-center rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100"
+                                        title="View"
+                                    >
+                                        <Eye className="h-4 w-4" />
+                                    </button>
+                                    {!request.is_completed && (
+                                        <button
+                                            onClick={() => handleOpenCompleteModal(request)}
+                                            className="w-8 h-8 inline-flex items-center justify-center rounded text-primary bg-primary/10 hover:bg-primary/20"
+                                            title="Complete"
+                                        >
+                                            <Send className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-muted/50 border-b">

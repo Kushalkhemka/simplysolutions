@@ -203,8 +203,122 @@ export default function CustomersClient({ initialUsers, currentUserRole, current
                 </div>
             )}
 
-            {/* Table */}
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Customers - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {filteredUsers.map((user) => (
+                    <div key={user.id} className="bg-card border rounded-lg p-4">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                    {getRoleIcon(user.role)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium truncate">{user.full_name || 'Unknown'}</p>
+                                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                        {getRoleBadge(user.role)}
+                                        <Badge
+                                            variant={user.is_active ? 'default' : 'secondary'}
+                                            className={user.is_active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}
+                                        >
+                                            {user.is_active ? 'Active' : 'Inactive'}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                                        <span>{user.order_count} orders</span>
+                                        <span>Joined {new Date(user.created_at).toLocaleDateString('en-IN')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {isSuperAdmin && user.id !== currentUserId && (
+                                <div className="flex gap-1 shrink-0">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                            setEditingUser(user.id);
+                                            setNewRole(user.role);
+                                        }}
+                                        className="h-8 w-8 p-0"
+                                        title="Edit Role"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleToggleActive(user.id, user.is_active)}
+                                        disabled={loading}
+                                        className="h-8 w-8 p-0"
+                                        title={user.is_active ? 'Deactivate' : 'Activate'}
+                                    >
+                                        {user.is_active ? (
+                                            <User className="h-4 w-4 text-yellow-400" />
+                                        ) : (
+                                            <User className="h-4 w-4 text-green-400" />
+                                        )}
+                                    </Button>
+                                    {user.order_count === 0 && (
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => handleDeleteUser(user.id, user.email)}
+                                            disabled={loading}
+                                            className="h-8 w-8 p-0 text-red-400 hover:text-red-300"
+                                            title="Delete User"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                            {user.id === currentUserId && (
+                                <span className="text-xs text-muted-foreground">(You)</span>
+                            )}
+                        </div>
+                        {/* Inline Role Edit */}
+                        {editingUser === user.id && (
+                            <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                                <select
+                                    value={newRole || user.role}
+                                    onChange={(e) => setNewRole(e.target.value)}
+                                    className="bg-muted border border-border rounded px-2 py-1 text-sm flex-1"
+                                >
+                                    <option value="customer">Customer</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="super_admin">Super Admin</option>
+                                </select>
+                                <Button
+                                    size="sm"
+                                    variant="default"
+                                    onClick={() => handleUpdateRole(user.id, newRole || user.role)}
+                                    disabled={loading}
+                                    className="h-8 px-3 text-xs"
+                                >
+                                    {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => { setEditingUser(null); setNewRole(''); }}
+                                    className="h-8 px-3 text-xs"
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                ))}
+                {filteredUsers.length === 0 && (
+                    <div className="p-8 text-center text-muted-foreground bg-card border rounded-lg">
+                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>{searchQuery ? 'No users found matching your search' : 'No customers yet'}</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-muted/50 border-b">

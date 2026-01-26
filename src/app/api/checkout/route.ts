@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
         const parsed = checkoutSchema.safeParse(body);
 
         if (!parsed.success) {
-            return errorResponse('Invalid checkout data', 400);
+            console.error('Checkout validation error:', JSON.stringify(parsed.error.issues, null, 2));
+            return errorResponse('Invalid checkout data: ' + parsed.error.issues.map((e: { message: string }) => e.message).join(', '), 400);
         }
 
         const { billing, couponCode, customerNotes, loyaltyPointsToUse } = parsed.data;
@@ -185,7 +186,9 @@ export async function POST(request: NextRequest) {
                 billing_name: billing.name,
                 billing_email: billing.email,
                 billing_phone: billing.phone || null,
-                billing_address: billing.address || null,
+                billing_address: billing.address
+                    ? `${billing.address.line1}${billing.address.line2 ? ', ' + billing.address.line2 : ''}, ${billing.address.city}, ${billing.address.state} - ${billing.address.postalCode}`
+                    : null,
                 billing_gstn: billing.gstn || null,
                 customer_notes: customerNotes || null,
             })
@@ -262,6 +265,8 @@ export async function POST(request: NextRequest) {
         });
     } catch (error) {
         console.error('Checkout API error:', error);
-        return errorResponse('Internal server error', 500);
+        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return errorResponse(`Internal server error: ${errorMessage}`, 500);
     }
 }

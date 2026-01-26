@@ -33,6 +33,9 @@ interface ProductPageProps {
     params: Promise<{ slug: string }>;
 }
 
+// Enable Incremental Static Regeneration - revalidate every hour
+export const revalidate = 3600;
+
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co.in';
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {

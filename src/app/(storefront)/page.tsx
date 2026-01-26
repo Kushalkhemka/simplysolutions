@@ -21,6 +21,9 @@ import { OrganizationJsonLd, WebSiteJsonLd, FAQJsonLd } from '@/components/seo/J
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://simplysolutions.co.in';
 
+// Enable Incremental Static Regeneration - revalidate every 5 minutes
+export const revalidate = 300;
+
 // Homepage SEO Metadata for maximum organic traffic
 export const metadata: Metadata = {
     title: 'Buy Genuine Microsoft License Keys Online India | Windows 11, Office 2024 Digital Keys | SimplySolutions',

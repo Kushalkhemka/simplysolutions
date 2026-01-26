@@ -131,20 +131,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get order details for storing with warranty
+        // Get order details for storing with warranty and check fulfillment type
         let productName = null;
         let quantity = 1;
         let purchaseDate = null;
+        let fulfillmentType = null;
 
         const { data: order } = await supabase
             .from('amazon_orders')
-            .select('fsn, quantity, order_date')
+            .select('fsn, quantity, order_date, fulfillment_type')
             .eq('order_id', orderId)
             .single();
 
         if (order) {
             quantity = order.quantity || 1;
             purchaseDate = order.order_date;
+            fulfillmentType = order.fulfillment_type;
 
             if (order.fsn) {
                 const { data: product } = await supabase
@@ -155,6 +157,44 @@ export async function POST(request: NextRequest) {
                 productName = product?.product_title || null;
             }
         }
+
+        // Auto-approve warranty for website_payment orders (no screenshots needed)
+        if (fulfillmentType === 'website_payment') {
+            const { data, error } = await supabase
+                .from('warranty_registrations')
+                .insert({
+                    order_id: orderId,
+                    customer_email: email,
+                    contact: email,
+                    status: 'VERIFIED',
+                    verified_at: new Date().toISOString(),
+                    product_name: productName,
+                    quantity: quantity,
+                    purchase_date: purchaseDate,
+                    screenshot_seller_feedback: null,
+                    screenshot_product_review: null,
+                    admin_notes: 'Auto-approved for website_payment fulfillment type'
+                })
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Warranty auto-approve error:', error);
+                return NextResponse.json(
+                    { error: 'Failed to register warranty' },
+                    { status: 500 }
+                );
+            }
+
+            return NextResponse.json({
+                success: true,
+                message: 'Warranty automatically approved! Your order is verified.',
+                registrationId: data.id,
+                status: 'VERIFIED',
+                autoApproved: true
+            });
+        }
+
 
         // Upload screenshots to Supabase Storage
         const timestamp = Date.now();

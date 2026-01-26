@@ -16,7 +16,7 @@ async function checkAdmin() {
         .eq('id', user.id)
         .single();
 
-    return profile?.role === 'admin' ? user : null;
+    return (profile?.role === 'admin' || profile?.role === 'super_admin') ? user : null;
 }
 
 interface Params {

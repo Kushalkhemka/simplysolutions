@@ -531,8 +531,62 @@ export default function AmazonOrdersClient() {
                 </div>
             )}
 
-            {/* Orders Table */}
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Orders - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {isLoading ? (
+                    <div className="p-8 text-center bg-card border rounded-lg">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                        <p className="mt-2 text-muted-foreground">Loading orders...</p>
+                    </div>
+                ) : (
+                    <>
+                        {orders.map((order) => (
+                            <div key={order.id} className="bg-card border rounded-lg p-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-mono text-sm font-medium truncate">{order.order_id}</p>
+                                        <p className="text-sm text-muted-foreground mt-1">{order.fsn || 'No FSN'}</p>
+                                        <div className="flex items-center flex-wrap gap-2 mt-2">
+                                            {getStatusBadge(order.warranty_status)}
+                                            <span className={`px-2 py-0.5 rounded text-xs ${order.fulfillment_type === 'amazon_fba' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'}`}>
+                                                {order.fulfillment_type === 'amazon_fba' ? 'FBA' : 'Digital'}
+                                            </span>
+                                            {order.license_key_id ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                    ✓ Redeemed
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                                                    ✗ Not Redeemed
+                                                </span>
+                                            )}
+                                        </div>
+                                        {(order.contact_email || order.contact_phone) && (
+                                            <p className="text-xs text-muted-foreground mt-2 truncate">
+                                                {order.contact_email || order.contact_phone}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => viewOrderDetails(order)}
+                                        className="p-2 border rounded-lg hover:bg-accent transition-colors shrink-0"
+                                    >
+                                        <Eye className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        {orders.length === 0 && (
+                            <div className="p-8 text-center text-muted-foreground bg-card border rounded-lg">
+                                No orders found
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+
+            {/* Orders Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 {isLoading ? (
                     <div className="p-8 text-center">
                         <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
@@ -786,7 +840,7 @@ export default function AmazonOrdersClient() {
                                                     editedKeys.map((key, index) => {
                                                         const originalKey = selectedOrder.license_keys?.find(k => k.id === key.id);
                                                         return (
-                                                            <div key={key.id} className="p-2 bg-white dark:bg-slate-800 rounded border border-blue-300">
+                                                            <div key={key.id} className="p-2 bg-white dark:bg-neutral-800 rounded border border-blue-300">
                                                                 <div className="flex items-center gap-2 mb-2">
                                                                     <span className="text-xs text-muted-foreground">#{index + 1}</span>
                                                                     {originalKey?.fsn && (
@@ -811,7 +865,7 @@ export default function AmazonOrdersClient() {
                                                 ) : (
                                                     // View mode
                                                     selectedOrder.license_keys.map((key, index) => (
-                                                        <div key={key.id} className="p-2 bg-white dark:bg-slate-800 rounded border">
+                                                        <div key={key.id} className="p-2 bg-white dark:bg-neutral-800 rounded border">
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-xs text-muted-foreground">#{index + 1}</span>
                                                                 {key.fsn && (

@@ -127,7 +127,8 @@
 
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
-  --ring: oklch(0.488 0.243 264.376);
+  --ring: oklch(0.592 0.207 39.42);
+  /* Match primary orange */
 
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);

@@ -301,8 +301,57 @@ export default function ActivationIssuesClient() {
                 )}
             </form>
 
-            {/* Orders Table */}
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Orders - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {isLoading ? (
+                    <div className="p-8 text-center bg-card border rounded-lg">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                    </div>
+                ) : orders.length === 0 ? (
+                    <div className="p-8 text-center text-muted-foreground bg-card border rounded-lg">No activation issues found</div>
+                ) : (
+                    orders.map((order) => (
+                        <div key={order.id} className="bg-card border rounded-lg p-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-mono text-sm font-medium truncate">{order.order_id}</p>
+                                    <p className="text-xs text-muted-foreground mt-1 truncate">{order.fsn || '-'} • {getProductName(order.fsn)}</p>
+                                    <div className="flex items-center flex-wrap gap-2 mt-2">
+                                        {getStatusBadge(order.issue_status)}
+                                    </div>
+                                    {(order.contact_email || order.contact_phone) && (
+                                        <div className="text-xs text-muted-foreground mt-2">
+                                            {order.contact_email && <p className="flex items-center gap-1"><Mail className="h-3 w-3" /> {order.contact_email}</p>}
+                                            {order.contact_phone && <p className="flex items-center gap-1"><Phone className="h-3 w-3" /> {order.contact_phone}</p>}
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-muted-foreground mt-2">{formatDate(order.issue_created_at || order.created_at)}</p>
+                                </div>
+                                <div className="flex flex-col gap-1 shrink-0">
+                                    {order.issue_status === 'pending' && (
+                                        <>
+                                            <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">
+                                                <Key className="h-3 w-3 inline mr-1" />Assign
+                                            </button>
+                                            <button onClick={() => handleNotify(order)} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400">
+                                                <Bell className="h-3 w-3 inline" />
+                                            </button>
+                                        </>
+                                    )}
+                                    {order.issue_status === 'notified' && (
+                                        <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">
+                                            <Key className="h-3 w-3 inline mr-1" />Assign
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Orders Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 {isLoading ? (
                     <div className="p-8 text-center">
                         <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />

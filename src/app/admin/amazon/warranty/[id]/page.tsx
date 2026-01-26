@@ -345,10 +345,17 @@ export default function WarrantyReviewPage({ params }: { params: Promise<{ id: s
                 </div>
             </div>
 
-            {/* Actions Card - Only show for PROCESSING status */}
-            {warranty.status === 'PROCESSING' && (
+            {/* Actions Card - Show for PROCESSING and NEEDS_RESUBMISSION statuses */}
+            {(warranty.status === 'PROCESSING' || warranty.status === 'NEEDS_RESUBMISSION') && (
                 <div className="bg-card border rounded-xl p-6">
                     <h2 className="text-lg font-bold mb-4">Take Action</h2>
+                    {warranty.status === 'NEEDS_RESUBMISSION' && (
+                        <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                            <p className="text-sm text-orange-800">
+                                <strong>Note:</strong> This warranty is awaiting customer resubmission, but you can still approve it if the existing information is sufficient.
+                            </p>
+                        </div>
+                    )}
 
                     {/* Admin Notes */}
                     <div className="mb-6">

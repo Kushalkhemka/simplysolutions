@@ -265,8 +265,67 @@ export default function ProductsClient() {
                 </div>
             </div>
 
-            {/* Products Table */}
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Products - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {products.map((product) => (
+                    <div key={product.id} className={`bg-card border rounded-lg p-4 ${selectedIds.has(product.id) ? 'ring-2 ring-primary' : ''}`}>
+                        <div className="flex items-start gap-3">
+                            <input
+                                type="checkbox"
+                                checked={selectedIds.has(product.id)}
+                                onChange={() => toggleSelect(product.id)}
+                                className="w-4 h-4 rounded border-gray-300 mt-1"
+                            />
+                            {product.main_image_url && (
+                                <img
+                                    src={product.main_image_url}
+                                    alt={product.name}
+                                    className="w-14 h-14 object-contain bg-muted rounded shrink-0"
+                                />
+                            )}
+                            <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm line-clamp-2">{product.name}</p>
+                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                    <span className="font-bold">₹{product.price.toLocaleString('en-IN')}</span>
+                                    {product.mrp > product.price && (
+                                        <span className="text-xs text-muted-foreground line-through">
+                                            ₹{product.mrp.toLocaleString('en-IN')}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className={`text-sm ${product.stock_quantity < 10 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                                        Stock: {product.stock_quantity}
+                                    </span>
+                                    <Badge variant={product.is_active ? 'default' : 'secondary'} className="text-xs">
+                                        {product.is_active ? 'Active' : 'Inactive'}
+                                    </Badge>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-1 shrink-0">
+                                <Link href={`/products/${product.slug}`} target="_blank">
+                                    <Button size="icon" variant="ghost" className="h-8 w-8">
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                                <Link href={`/admin/products/${product.id}/edit`}>
+                                    <Button size="icon" variant="ghost" className="h-8 w-8">
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                {products.length === 0 && (
+                    <div className="p-8 text-center text-muted-foreground bg-card border rounded-lg">
+                        No products found. Add your first product to get started.
+                    </div>
+                )}
+            </div>
+
+            {/* Products Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-muted/50 border-b">
@@ -280,11 +339,11 @@ export default function ProductsClient() {
                                     />
                                 </th>
                                 <th className="text-left p-4 font-medium">Product</th>
-                                <th className="text-left p-4 font-medium hidden md:table-cell">SKU</th>
-                                <th className="text-left p-4 font-medium hidden lg:table-cell">Category</th>
+                                <th className="text-left p-4 font-medium">SKU</th>
+                                <th className="text-left p-4 font-medium">Category</th>
                                 <th className="text-right p-4 font-medium">Price</th>
-                                <th className="text-center p-4 font-medium hidden sm:table-cell">Stock</th>
-                                <th className="text-center p-4 font-medium hidden sm:table-cell">Status</th>
+                                <th className="text-center p-4 font-medium">Stock</th>
+                                <th className="text-center p-4 font-medium">Status</th>
                                 <th className="text-right p-4 font-medium">Actions</th>
                             </tr>
                         </thead>
@@ -305,14 +364,14 @@ export default function ProductsClient() {
                                                 <img
                                                     src={product.main_image_url}
                                                     alt={product.name}
-                                                    className="w-10 h-10 object-contain bg-muted rounded hidden sm:block"
+                                                    className="w-10 h-10 object-contain bg-muted rounded"
                                                 />
                                             )}
-                                            <span className="font-medium line-clamp-1 max-w-[150px] sm:max-w-xs">{product.name}</span>
+                                            <span className="font-medium line-clamp-1 max-w-xs">{product.name}</span>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-muted-foreground hidden md:table-cell">{product.sku}</td>
-                                    <td className="p-4 hidden lg:table-cell">{product.category?.name || '-'}</td>
+                                    <td className="p-4 text-muted-foreground">{product.sku}</td>
+                                    <td className="p-4">{product.category?.name || '-'}</td>
                                     <td className="p-4 text-right">
                                         {editingPrice === product.id ? (
                                             <div className="flex items-center justify-end gap-1">
@@ -351,7 +410,7 @@ export default function ProductsClient() {
                                                 <div>
                                                     <span className="font-medium">₹{product.price.toLocaleString('en-IN')}</span>
                                                     {product.mrp > product.price && (
-                                                        <span className="text-xs text-muted-foreground line-through ml-2 hidden sm:inline">
+                                                        <span className="text-xs text-muted-foreground line-through ml-2">
                                                             ₹{product.mrp.toLocaleString('en-IN')}
                                                         </span>
                                                     )}
@@ -366,7 +425,7 @@ export default function ProductsClient() {
                                             </div>
                                         )}
                                     </td>
-                                    <td className="p-4 text-center hidden sm:table-cell">
+                                    <td className="p-4 text-center">
                                         {editingStock === product.id ? (
                                             <div className="flex items-center justify-center gap-1">
                                                 <Input
@@ -414,7 +473,7 @@ export default function ProductsClient() {
                                             </div>
                                         )}
                                     </td>
-                                    <td className="p-4 text-center hidden sm:table-cell">
+                                    <td className="p-4 text-center">
                                         <Badge variant={product.is_active ? 'default' : 'secondary'}>
                                             {product.is_active ? 'Active' : 'Inactive'}
                                         </Badge>

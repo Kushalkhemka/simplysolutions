@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
             .eq('id', user.id)
             .single();
 
-        if (profile?.role !== 'admin') {
+        if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
             return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
         }
 
@@ -119,7 +119,7 @@ export async function DELETE(request: NextRequest) {
             .eq('id', user.id)
             .single();
 
-        if (profile?.role !== 'admin') {
+        if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
             return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
         }
 

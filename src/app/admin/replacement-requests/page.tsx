@@ -178,7 +178,7 @@ export default function AdminReplacementRequestsPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-yellow-50 dark:bg-yellow-950/30 rounded-lg p-4 cursor-pointer hover:ring-2 ring-yellow-300" onClick={() => setStatusFilter('PENDING')}>
                     <div className="flex items-center justify-between">
                         <div>
@@ -206,13 +206,13 @@ export default function AdminReplacementRequestsPage() {
                         <XCircle className="w-8 h-8 text-red-500 opacity-50" />
                     </div>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-900/30 rounded-lg p-4 cursor-pointer hover:ring-2 ring-slate-300" onClick={() => setStatusFilter('all')}>
+                <div className="bg-neutral-100 dark:bg-neutral-900/50 rounded-lg p-4 cursor-pointer hover:ring-2 ring-neutral-300" onClick={() => setStatusFilter('all')}>
                     <div className="flex items-center justify-between">
                         <div>
-                            <div className="text-2xl font-bold text-slate-600">{stats.total}</div>
+                            <div className="text-2xl font-bold text-neutral-600 dark:text-neutral-300">{stats.total}</div>
                             <div className="text-sm text-muted-foreground">Total</div>
                         </div>
-                        <Filter className="w-8 h-8 text-slate-500 opacity-50" />
+                        <Filter className="w-8 h-8 text-neutral-500 opacity-50" />
                     </div>
                 </div>
             </div>
@@ -240,70 +240,111 @@ export default function AdminReplacementRequestsPage() {
                 </select>
             </div>
 
-            {/* Requests Table */}
+            {/* Requests - Mobile Cards View */}
             {isLoading ? (
                 <div className="flex justify-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
             ) : (
-                <div className="border rounded-lg overflow-hidden">
-                    <table className="w-full">
-                        <thead className="bg-muted/50">
-                            <tr>
-                                <th className="text-left px-4 py-3 text-sm font-medium">Order ID</th>
-                                <th className="text-left px-4 py-3 text-sm font-medium">Customer Email</th>
-                                <th className="text-left px-4 py-3 text-sm font-medium">FSN</th>
-                                <th className="text-left px-4 py-3 text-sm font-medium">Status</th>
-                                <th className="text-left px-4 py-3 text-sm font-medium">Submitted</th>
-                                <th className="text-left px-4 py-3 text-sm font-medium">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                            {filteredRequests.length === 0 ? (
+                <>
+                    <div className="lg:hidden space-y-3">
+                        {filteredRequests.length === 0 ? (
+                            <div className="text-center py-12 text-muted-foreground bg-card border rounded-lg">
+                                No replacement requests found
+                            </div>
+                        ) : (
+                            filteredRequests.map(request => (
+                                <div key={request.id} className="bg-card border rounded-lg p-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-mono text-sm font-medium truncate">{request.order_id}</p>
+                                            <p className="text-sm text-muted-foreground truncate mt-1">{request.customer_email}</p>
+                                            <div className="flex items-center flex-wrap gap-2 mt-2">
+                                                <Badge className={statusColors[request.status]}>
+                                                    {request.status}
+                                                </Badge>
+                                                {request.fsn && (
+                                                    <span className="text-xs font-mono text-muted-foreground">{request.fsn}</span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-2">
+                                                {new Date(request.created_at).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => openRequestDetails(request.id)}
+                                            className="shrink-0"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Requests Table - Desktop View */}
+                    <div className="hidden lg:block border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                            <thead className="bg-muted/50">
                                 <tr>
-                                    <td colSpan={6} className="text-center py-12 text-muted-foreground">
-                                        No replacement requests found
-                                    </td>
+                                    <th className="text-left px-4 py-3 text-sm font-medium">Order ID</th>
+                                    <th className="text-left px-4 py-3 text-sm font-medium">Customer Email</th>
+                                    <th className="text-left px-4 py-3 text-sm font-medium">FSN</th>
+                                    <th className="text-left px-4 py-3 text-sm font-medium">Status</th>
+                                    <th className="text-left px-4 py-3 text-sm font-medium">Submitted</th>
+                                    <th className="text-left px-4 py-3 text-sm font-medium">Actions</th>
                                 </tr>
-                            ) : (
-                                filteredRequests.map(request => (
-                                    <tr key={request.id} className="hover:bg-muted/30">
-                                        <td className="px-4 py-3 font-mono text-sm">{request.order_id}</td>
-                                        <td className="px-4 py-3 text-sm">{request.customer_email}</td>
-                                        <td className="px-4 py-3 text-sm font-mono">{request.fsn || '-'}</td>
-                                        <td className="px-4 py-3">
-                                            <Badge className={statusColors[request.status]}>
-                                                {request.status}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-muted-foreground">
-                                            {new Date(request.created_at).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => openRequestDetails(request.id)}
-                                            >
-                                                <Eye className="w-4 h-4 mr-1" />
-                                                View
-                                            </Button>
+                            </thead>
+                            <tbody className="divide-y">
+                                {filteredRequests.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="text-center py-12 text-muted-foreground">
+                                            No replacement requests found
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ) : (
+                                    filteredRequests.map(request => (
+                                        <tr key={request.id} className="hover:bg-muted/30">
+                                            <td className="px-4 py-3 font-mono text-sm">{request.order_id}</td>
+                                            <td className="px-4 py-3 text-sm">{request.customer_email}</td>
+                                            <td className="px-4 py-3 text-sm font-mono">{request.fsn || '-'}</td>
+                                            <td className="px-4 py-3">
+                                                <Badge className={statusColors[request.status]}>
+                                                    {request.status}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-muted-foreground">
+                                                {new Date(request.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => openRequestDetails(request.id)}
+                                                >
+                                                    <Eye className="w-4 h-4 mr-1" />
+                                                    View
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
             )}
 
             {/* Request Details Modal */}
             {isModalOpen && selectedRequest && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
-                    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="bg-slate-100 dark:bg-slate-800 px-6 py-4 flex items-center justify-between sticky top-0">
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                    <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="bg-neutral-100 dark:bg-neutral-800 px-6 py-4 flex items-center justify-between sticky top-0">
                             <h2 className="text-lg font-bold">Replacement Request Details</h2>
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded">
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -342,7 +383,7 @@ export default function AdminReplacementRequestsPage() {
                             </div>
 
                             {/* License Keys */}
-                            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
                                 <h3 className="font-medium mb-3">License Keys</h3>
                                 <div className="space-y-2">
                                     <div>

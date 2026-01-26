@@ -27,7 +27,60 @@ export default async function AdminCouponsPage() {
                 </Link>
             </div>
 
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Coupons - Mobile Cards View */}
+            <div className="lg:hidden space-y-3">
+                {(!coupons || coupons.length === 0) ? (
+                    <div className="p-8 text-center text-muted-foreground bg-card border rounded-lg">
+                        <Tag className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No coupons yet</p>
+                        <Link href="/admin/coupons/new" className="text-primary hover:underline">
+                            Create your first coupon
+                        </Link>
+                    </div>
+                ) : (
+                    coupons?.map((coupon: any) => (
+                        <div key={coupon.id} className="bg-card border rounded-lg p-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <code className="font-mono font-bold bg-muted px-2 py-1 rounded">
+                                        {coupon.code}
+                                    </code>
+                                    <p className="text-sm mt-2">
+                                        {coupon.discount_type === 'percentage'
+                                            ? `${coupon.discount_value}%`
+                                            : `₹${coupon.discount_value}`
+                                        }
+                                        {coupon.max_discount_amount && (
+                                            <span className="text-xs text-muted-foreground ml-1">
+                                                (max ₹{coupon.max_discount_amount})
+                                            </span>
+                                        )}
+                                    </p>
+                                    <div className="flex items-center flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
+                                        <span>Min: ₹{coupon.min_order_amount?.toLocaleString('en-IN') || 0}</span>
+                                        <span>•</span>
+                                        <span>
+                                            Usage: {coupon.usage_count || 0}{coupon.max_usage && ` / ${coupon.max_usage}`}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        {coupon.valid_until
+                                            ? `Expires: ${new Date(coupon.valid_until).toLocaleDateString('en-IN')}`
+                                            : 'No expiry'
+                                        }
+                                    </p>
+                                </div>
+                                <Badge variant={coupon.is_active ? 'default' : 'secondary'}>
+                                    {coupon.is_active ? 'Active' : 'Inactive'}
+                                </Badge>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Coupons Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-muted/50 border-b">

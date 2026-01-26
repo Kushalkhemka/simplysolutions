@@ -132,19 +132,18 @@ export default async function AdminAnalyticsPage() {
                 </div>
                 <div className="divide-y">
                     {topProductsWithPrice?.map((product: any, idx: number) => (
-                        <div key={product.id} className="p-4 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <span className="text-lg font-bold text-muted-foreground w-6">#{idx + 1}</span>
-                                <div>
-                                    <p className="font-medium">{product.name}</p>
+                        <div key={product.id} className="p-4 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                                <span className="text-lg font-bold text-muted-foreground w-6 shrink-0">#{idx + 1}</span>
+                                <div className="min-w-0">
+                                    <p className="font-medium truncate">{product.name}</p>
                                     <p className="text-sm text-muted-foreground">
                                         ₹{product.price.toLocaleString('en-IN')}
                                     </p>
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <p className="font-bold">{product.sold_count}</p>
-                                <p className="text-xs text-muted-foreground">units sold</p>
+                            <div className="text-right shrink-0">
+                                <p className="font-bold whitespace-nowrap">{product.sold_count} <span className="text-xs text-muted-foreground font-normal">sold</span></p>
                             </div>
                         </div>
                     ))}
