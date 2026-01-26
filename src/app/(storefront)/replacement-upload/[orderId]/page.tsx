@@ -124,6 +124,10 @@ export default function ReplacementUploadPage() {
             toast.error('Please upload a screenshot of the error');
             return;
         }
+        if (!issueDescription.trim() || issueDescription.trim().length < 20) {
+            toast.error('Please provide a detailed explanation of the issue (at least 20 characters)');
+            return;
+        }
 
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -430,18 +434,28 @@ export default function ReplacementUploadPage() {
                             </p>
                         </div>
 
-                        {/* Issue Description (Optional) */}
+                        {/* Issue Description (REQUIRED) */}
                         <div>
                             <label className="block text-sm font-bold text-[#0F1111] mb-2">
-                                ISSUE DESCRIPTION <span className="text-[#565959] font-normal">(Optional)</span>
+                                DETAILED EXPLANATION <span className="text-[#CC0C39]">*</span>
                             </label>
                             <textarea
                                 value={issueDescription}
                                 onChange={(e) => setIssueDescription(e.target.value)}
-                                placeholder="Briefly describe the issue you're facing..."
-                                rows={3}
+                                placeholder="Please explain in detail what issue you are facing. For example: 'The license key shows blocked when I try to activate. I have tried activating on a fresh Windows 11 installation but still getting the same error..."
+                                rows={4}
                                 className="w-full px-4 py-3 border border-[#888C8C] rounded text-sm text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] resize-none"
+                                required
                             />
+                            <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                <p className="text-xs text-amber-900">
+                                    <strong>⚠️ Important:</strong> A detailed explanation is <strong>essential for approval</strong> of your replacement request.
+                                    Please describe what error you are seeing, when it occurs, and any steps you have already tried.
+                                </p>
+                            </div>
+                            <p className="text-xs text-[#565959] mt-1">
+                                {issueDescription.trim().length}/20 characters minimum
+                            </p>
                         </div>
 
                         {/* Expected Response Time */}
@@ -459,7 +473,7 @@ export default function ReplacementUploadPage() {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            disabled={isSubmitting || !screenshot || !email.trim()}
+                            disabled={isSubmitting || !screenshot || !email.trim() || issueDescription.trim().length < 20}
                             className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] disabled:from-[#E7E9EC] disabled:to-[#D5D9D9] text-[#0F1111] disabled:text-[#565959] font-bold rounded-lg border border-[#FCD200] disabled:border-[#D5D9D9] shadow-sm transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {isSubmitting ? (
