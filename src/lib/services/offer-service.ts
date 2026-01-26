@@ -79,55 +79,56 @@ export async function checkAndCreateWelcomeOffers(userId: string): Promise<Welco
         return null;
     }
 
-    // Find Windows 11 Pro product for flash deal (exclude combo packs)
-    const { data: windows11Pro } = await adminClient
-        .from('products')
-        .select('id, price, name, slug, main_image_url')
-        .ilike('name', '%windows 11%pro%')
-        .not('name', 'ilike', '%combo%')
-        .eq('is_active', true)
-        .limit(1)
-        .single();
+    // Fetch offer templates from database
+    const { data: templates } = await adminClient
+        .from('welcome_offer_templates')
+        .select(`
+            *,
+            product:products(id, price, name, slug, main_image_url)
+        `)
+        .eq('is_active', true);
 
-    const now = new Date();
-    const flash15Mins = new Date(now.getTime() + 15 * 60 * 1000); // 15 minutes
-    const offer12Hours = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12 hours
-
-    const offersToCreate: any[] = [];
-
-    // Flash Deal: Windows 11 Pro at ₹499 for 15 minutes
-    if (windows11Pro) {
-        offersToCreate.push({
-            user_id: userId,
-            offer_type: 'flash_deal',
-            product_id: windows11Pro.id,
-            original_price: windows11Pro.price,
-            offer_price: 499,
-            discount_value: windows11Pro.price - 499,
-            is_used: false,
-            expires_at: flash15Mins.toISOString(),
-        });
+    if (!templates || templates.length === 0) {
+        return null;
     }
 
-    // Price Slash: 20% off any product (one-time use, valid for 12 hours)
-    offersToCreate.push({
-        user_id: userId,
-        offer_type: 'price_slash',
-        product_id: null, // Can be used on any product
-        discount_value: 20, // 20% discount
-        is_used: false,
-        expires_at: offer12Hours.toISOString(),
-    });
+    const now = new Date();
+    const offersToCreate: any[] = [];
 
-    // BOGO: Buy one get one free (valid for 12 hours, max ₹1000)
-    offersToCreate.push({
-        user_id: userId,
-        offer_type: 'bogo',
-        product_id: null, // Can be used on any product
-        discount_value: 1000, // Max discount cap
-        is_used: false,
-        expires_at: offer12Hours.toISOString(),
-    });
+    for (const template of templates) {
+        const expiresAt = new Date(now.getTime() + template.duration_hours * 60 * 60 * 1000);
+
+        if (template.offer_type === 'flash_deal' && template.product) {
+            offersToCreate.push({
+                user_id: userId,
+                offer_type: 'flash_deal',
+                product_id: template.product.id,
+                original_price: template.product.price,
+                offer_price: template.special_price,
+                discount_value: template.product.price - template.special_price,
+                is_used: false,
+                expires_at: expiresAt.toISOString(),
+            });
+        } else if (template.offer_type === 'price_slash') {
+            offersToCreate.push({
+                user_id: userId,
+                offer_type: 'price_slash',
+                product_id: null,
+                discount_value: template.discount_value, // percentage
+                is_used: false,
+                expires_at: expiresAt.toISOString(),
+            });
+        } else if (template.offer_type === 'bogo') {
+            offersToCreate.push({
+                user_id: userId,
+                offer_type: 'bogo',
+                product_id: null,
+                discount_value: template.max_discount_cap, // max cap
+                is_used: false,
+                expires_at: expiresAt.toISOString(),
+            });
+        }
+    }
 
     // Create offers
     if (offersToCreate.length > 0) {
@@ -145,13 +146,16 @@ export async function checkAndCreateWelcomeOffers(userId: string): Promise<Welco
         const priceSlash = createdOffers?.find(o => o.offer_type === 'price_slash') || null;
         const bogo = createdOffers?.find(o => o.offer_type === 'bogo') || null;
 
-        // Add product info to flash deal
-        if (flashDeal && windows11Pro) {
-            (flashDeal as any).product = {
-                name: windows11Pro.name,
-                slug: windows11Pro.slug,
-                main_image_url: windows11Pro.main_image_url,
-            };
+        // Add product info to flash deal from template
+        if (flashDeal) {
+            const flashTemplate = templates.find(t => t.offer_type === 'flash_deal');
+            if (flashTemplate?.product) {
+                (flashDeal as any).product = {
+                    name: flashTemplate.product.name,
+                    slug: flashTemplate.product.slug,
+                    main_image_url: flashTemplate.product.main_image_url,
+                };
+            }
         }
 
         return {

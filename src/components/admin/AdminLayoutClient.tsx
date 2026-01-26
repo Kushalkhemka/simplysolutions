@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
     Menu, X, LogOut, LayoutDashboard, Package, ShoppingCart, Key,
     Users, Tag, BarChart3, Settings, ShoppingBag, Shield, Mail,
-    Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database
+    Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database, Sparkles
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -16,6 +16,7 @@ const sidebarLinks = [
     { name: 'License Keys', href: '/admin/licenses', icon: Key },
     { name: 'Customers', href: '/admin/customers', icon: Users },
     { name: 'Coupons', href: '/admin/coupons', icon: Tag },
+    { name: 'Welcome Offers', href: '/admin/welcome-offers', icon: Sparkles },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
