@@ -178,20 +178,23 @@ export async function POST(request: NextRequest) {
             .delete()
             .eq('user_id', user.id);
 
-        // Update product sold counts
+        // Update product sold counts AND decrement stock_quantity
         if (orderItems) {
             for (const item of orderItems) {
-                // Get current sold_count and increment it
+                // Get current sold_count and stock_quantity
                 const { data: product } = await adminClient
                     .from('products')
-                    .select('sold_count')
+                    .select('sold_count, stock_quantity')
                     .eq('id', item.product_id)
                     .single();
 
                 if (product) {
                     await adminClient
                         .from('products')
-                        .update({ sold_count: (product.sold_count || 0) + item.quantity })
+                        .update({
+                            sold_count: (product.sold_count || 0) + item.quantity,
+                            stock_quantity: Math.max(0, (product.stock_quantity || 0) - item.quantity)
+                        })
                         .eq('id', item.product_id);
                 }
             }
