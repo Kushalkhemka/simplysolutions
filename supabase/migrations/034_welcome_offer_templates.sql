@@ -40,9 +40,10 @@ CREATE POLICY "Admins can manage offer templates"
     ON welcome_offer_templates
     FOR ALL
     USING (
-        auth.jwt() ->> 'role' = 'admin'
-        OR 
-        auth.uid() IN (SELECT id FROM profiles WHERE is_super_admin = true OR is_admin = true)
+        auth.uid() IN (
+            SELECT id FROM profiles 
+            WHERE role IN ('admin', 'super_admin')
+        )
     );
 
 -- Insert default configurations
