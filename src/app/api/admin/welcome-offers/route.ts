@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
         // Check if user is admin
         const { data: profile } = await supabase
             .from('profiles')
-            .select('is_admin, is_super_admin')
+            .select('role')
             .eq('id', user.id)
             .single();
 
-        if (!profile?.is_admin && !profile?.is_super_admin) {
+        if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
             return unauthorizedResponse('Admin access required');
         }
 
@@ -53,11 +53,11 @@ export async function PUT(request: NextRequest) {
         // Check if user is admin
         const { data: profile } = await supabase
             .from('profiles')
-            .select('is_admin, is_super_admin')
+            .select('role')
             .eq('id', user.id)
             .single();
 
-        if (!profile?.is_admin && !profile?.is_super_admin) {
+        if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
             return unauthorizedResponse('Admin access required');
         }
 

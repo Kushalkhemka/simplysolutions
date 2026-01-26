@@ -80,6 +80,18 @@ const guides = [
         category: 'Combo Packs',
     },
     {
+        title: 'Microsoft Visio 2021 Professional',
+        description: 'Installation and activation guide for Visio Professional 2021',
+        href: '/installation-docs/visio2021',
+        category: 'Microsoft Office',
+    },
+    {
+        title: 'Microsoft Project 2021 Professional',
+        description: 'Installation and activation guide for Project Professional 2021',
+        href: '/installation-docs/project2021',
+        category: 'Microsoft Office',
+    },
+    {
         title: 'Autodesk AutoCAD',
         description: 'Subscription activation guide for AutoCAD',
         href: '/installation-docs/autocad',
