@@ -239,7 +239,7 @@ export function WelcomeOfferModal({ isOpen, onClose, offers, isFirstLogin }: Wel
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-semibold text-foreground">Buy 1 Get 1 FREE!</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">Add 2 items, pay for the expensive one</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Add 2 items • Max discount ₹1,000</p>
                                             </div>
                                             <Button
                                                 onClick={() => handleNavigate('/products')}

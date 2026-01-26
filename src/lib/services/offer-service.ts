@@ -119,11 +119,12 @@ export async function checkAndCreateWelcomeOffers(userId: string): Promise<Welco
         expires_at: offer12Hours.toISOString(),
     });
 
-    // BOGO: Buy one get one free (valid for 12 hours)
+    // BOGO: Buy one get one free (valid for 12 hours, max ₹1000)
     offersToCreate.push({
         user_id: userId,
         offer_type: 'bogo',
         product_id: null, // Can be used on any product
+        discount_value: 1000, // Max discount cap
         is_used: false,
         expires_at: offer12Hours.toISOString(),
     });

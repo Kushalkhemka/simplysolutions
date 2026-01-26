@@ -148,8 +148,8 @@ export async function POST(request: NextRequest) {
             // Check for BOGO first (higher value typically)
             const bogoOffer = userOffers.find(o => o.offer_type === 'bogo');
             if (bogoOffer && validItems.length >= 2) {
-                // BOGO: Cheapest item is FREE
-                offerDiscount = itemPrices[0];
+                // BOGO: Cheapest item is FREE (capped at ₹1000)
+                offerDiscount = Math.min(itemPrices[0], 1000);
                 appliedOfferId = bogoOffer.id;
                 appliedOfferType = 'bogo';
             } else {
