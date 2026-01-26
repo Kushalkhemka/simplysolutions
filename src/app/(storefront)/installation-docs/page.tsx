@@ -56,6 +56,12 @@ const guides = [
         category: 'Windows',
     },
     {
+        title: 'Windows 10/11 Home',
+        description: 'Fresh installation and activation guide for Windows Home',
+        href: '/installation-docs/win10_11home',
+        category: 'Windows',
+    },
+    {
         title: 'Windows 10/11 Enterprise',
         description: 'Installation and upgrade guide for Windows Enterprise edition',
         href: '/installation-docs/win11ent',
