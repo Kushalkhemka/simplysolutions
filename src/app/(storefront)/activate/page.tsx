@@ -26,6 +26,7 @@ import InstallationGuide from '@/components/InstallationGuide';
 import { getInstallationGuide } from '@/lib/installation-guides';
 import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
 import { isComboProduct, getComponentFSNs } from '@/lib/amazon/combo-products';
+import ReplacementKeySteps from '@/components/ReplacementKeySteps';
 
 interface ProductInfo {
     productName: string | null;
@@ -109,6 +110,11 @@ function ActivatePageContent() {
         submittedAt?: string;
     } | null>(null);
     const replacementInputRef = useRef<HTMLInputElement>(null);
+
+    // Instant replacement state for getcid
+    const [showGetcidReplacement, setShowGetcidReplacement] = useState(false);
+    const [getcidReplacementKey, setGetcidReplacementKey] = useState<string | null>(null);
+    const [getcidReplacementLoading, setGetcidReplacementLoading] = useState(false);
 
     // Check for existing replacement request when order is verified
     const checkReplacementStatus = async (orderId: string) => {
@@ -455,7 +461,14 @@ function ActivatePageContent() {
                 setConfirmationId(data.confirmationId);
                 toast.success('Confirmation ID generated successfully!');
             } else {
+                // Check if it's a blocked/exceeded IID error
+                const isBlockedOrExceeded =
+                    data.error?.includes('Blocked IID') ||
+                    data.error?.includes('Exceeded IID') ||
+                    data.error?.includes('blocked') && data.error?.includes('Installation ID');
+
                 setGetcidError(data.error || 'Failed to generate Confirmation ID');
+                setShowGetcidReplacement(isBlockedOrExceeded);
                 toast.error(data.error || 'Failed to generate Confirmation ID');
             }
         } catch (err) {
@@ -464,6 +477,37 @@ function ActivatePageContent() {
             toast.error('Network error. Please try again.');
         } finally {
             setGetcidLoading(false);
+        }
+    };
+
+    const handleGetcidInstantReplacement = async () => {
+        const fullInstallationId = installationIds.join('');
+
+        setGetcidReplacementLoading(true);
+        try {
+            const response = await fetch('/api/getcid/instant-replacement', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: secretCode.trim(),
+                    installationId: fullInstallationId
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setGetcidReplacementKey(data.replacementKey);
+                setShowGetcidReplacement(false);
+                setGetcidError(null);
+                toast.success('Replacement key generated successfully!');
+            } else {
+                toast.error(data.error || 'Failed to generate replacement key');
+            }
+        } catch (error) {
+            console.error('Replacement key error:', error);
+            toast.error('Network error. Please try again.');
+        } finally {
+            setGetcidReplacementLoading(false);
         }
     };
 
@@ -1111,9 +1155,31 @@ function ActivatePageContent() {
 
                                             {/* GetCID Error */}
                                             {getcidError && (
-                                                <div className="mb-4 p-3 bg-[#FCF4F4] border border-[#CC0C39] rounded flex items-center gap-2">
-                                                    <AlertTriangle className="w-4 h-4 text-[#CC0C39] flex-shrink-0" />
-                                                    <span className="text-[#CC0C39] text-sm">{getcidError}</span>
+                                                <div className="mb-4 space-y-3">
+                                                    <div className="p-3 bg-[#FCF4F4] border border-[#CC0C39] rounded flex items-center gap-2">
+                                                        <AlertTriangle className="w-4 h-4 text-[#CC0C39] flex-shrink-0" />
+                                                        <span className="text-[#CC0C39] text-sm">{getcidError}</span>
+                                                    </div>
+
+                                                    {/* Instant Replacement Button */}
+                                                    {showGetcidReplacement && (
+                                                        <button
+                                                            onClick={handleGetcidInstantReplacement}
+                                                            disabled={getcidReplacementLoading}
+                                                            className="w-full py-2.5 bg-gradient-to-b from-[#067D62] to-[#055547] hover:from-[#055547] hover:to-[#044438] disabled:from-[#E7E9EC] disabled:to-[#D5D9D9] text-white disabled:text-[#565959] font-bold rounded-lg border border-[#055547] disabled:border-[#D5D9D9] shadow-md transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                                                        >
+                                                            {getcidReplacementLoading ? (
+                                                                <>
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                    Generating Replacement...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    🔑 GENERATE REPLACEMENT KEY INSTANTLY
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    )}
                                                 </div>
                                             )}
 
@@ -1626,6 +1692,18 @@ function ActivatePageContent() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* GetCID Replacement Key Modal */}
+            {getcidReplacementKey && (
+                <ReplacementKeySteps
+                    replacementKey={getcidReplacementKey}
+                    onClose={() => {
+                        setGetcidReplacementKey(null);
+                        setInstallationIds(Array(9).fill(''));
+                        setGetcidError(null);
+                    }}
+                />
             )}
         </div>
     );

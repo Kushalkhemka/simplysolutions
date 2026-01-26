@@ -33,9 +33,18 @@ interface LicenseKey {
     created_at: string;
 }
 
+interface ProductData {
+    id: string;
+    fsn: string;
+    product_title: string;
+    product_image: string | null;
+    download_link: string | null;
+}
+
 interface OrderDetails extends AmazonOrder {
     license_key?: LicenseKey | null;
     license_keys?: LicenseKey[]; // For combo/multi-key orders
+    productData?: ProductData | null;
 }
 
 export default function AmazonOrdersClient() {
@@ -147,6 +156,7 @@ export default function AmazonOrdersClient() {
 
         let licenseKey: LicenseKey | null = null;
         let licenseKeys: LicenseKey[] = [];
+        let productData: ProductData | null = null;
 
         // Fetch ALL license keys by order_id (for combo/multi-key orders)
         const { data: keysByOrderId } = await supabase
@@ -172,10 +182,24 @@ export default function AmazonOrdersClient() {
             }
         }
 
+        // Fetch product data from products_data table by FSN
+        if (order.fsn) {
+            const { data: prodData } = await supabase
+                .from('products_data')
+                .select('id, fsn, product_title, product_image, download_link')
+                .eq('fsn', order.fsn)
+                .single();
+
+            if (prodData) {
+                productData = prodData;
+            }
+        }
+
         setSelectedOrder({
             ...order,
             license_key: licenseKey,
-            license_keys: licenseKeys
+            license_keys: licenseKeys,
+            productData: productData
         });
         setIsLoadingDetails(false);
     };
@@ -625,11 +649,19 @@ export default function AmazonOrdersClient() {
                             </div>
                         ) : selectedOrder && (
                             <div className="p-6 space-y-4">
-                                {/* Product Name */}
+                                {/* Product Image & Name */}
                                 <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
-                                    <div className="p-2 bg-orange-100 rounded-lg">
-                                        <Package className="h-5 w-5 text-orange-600" />
-                                    </div>
+                                    {selectedOrder.productData?.product_image ? (
+                                        <img
+                                            src={selectedOrder.productData.product_image}
+                                            alt={selectedOrder.productData.product_title}
+                                            className="w-16 h-16 object-contain rounded-lg bg-white border"
+                                        />
+                                    ) : (
+                                        <div className="p-2 bg-orange-100 rounded-lg">
+                                            <Package className="h-5 w-5 text-orange-600" />
+                                        </div>
+                                    )}
                                     <div className="flex-1">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Product Name</p>
                                         {isEditingOrder && editedOrder ? (
@@ -641,7 +673,9 @@ export default function AmazonOrdersClient() {
                                                 placeholder="Enter product name..."
                                             />
                                         ) : (
-                                            <p className="font-medium text-lg">{selectedOrder.product_title || selectedOrder.fsn || 'Not Available'}</p>
+                                            <p className="font-medium text-lg">
+                                                {selectedOrder.productData?.product_title || selectedOrder.product_title || selectedOrder.fsn || 'Not Available'}
+                                            </p>
                                         )}
                                     </div>
                                 </div>

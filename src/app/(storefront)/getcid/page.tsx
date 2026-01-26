@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Key, Copy, CheckCircle, Loader2, AlertTriangle, RefreshCw, Phone, HelpCircle, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import ReplacementKeySteps from '@/components/ReplacementKeySteps';
 
 export default function GetCIDPage() {
     const [secretCode, setSecretCode] = useState('');
@@ -12,6 +13,11 @@ export default function GetCIDPage() {
     const [error, setError] = useState<string | null>(null);
     const [canRetry, setCanRetry] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Instant replacement state
+    const [showReplacementButton, setShowReplacementButton] = useState(false);
+    const [replacementKey, setReplacementKey] = useState<string | null>(null);
+    const [replacementLoading, setReplacementLoading] = useState(false);
 
     const formatInstallationId = (value: string) => {
         const digits = value.replace(/\D/g, '').slice(0, 63);
@@ -69,8 +75,15 @@ export default function GetCIDPage() {
                 setConfirmationId(data.confirmationId);
                 toast.success('Confirmation ID generated successfully!');
             } else {
+                // Check if it's a blocked/exceeded IID error
+                const isBlockedOrExceeded =
+                    data.error?.includes('Blocked IID') ||
+                    data.error?.includes('Exceeded IID') ||
+                    data.error?.includes('blocked') && data.error?.includes('Installation ID');
+
                 setError(data.error);
                 setCanRetry(data.canRetry || false);
+                setShowReplacementButton(isBlockedOrExceeded);
                 toast.error(data.error);
             }
         } catch (err) {
@@ -90,6 +103,35 @@ export default function GetCIDPage() {
 
     const formatConfirmationId = (cid: string) => {
         return cid.match(/.{1,6}/g)?.join(' ') || cid;
+    };
+
+    const handleInstantReplacement = async () => {
+        setReplacementLoading(true);
+        try {
+            const response = await fetch('/api/getcid/instant-replacement', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: secretCode.trim(),
+                    installationId: installationId.replace(/\s/g, '')
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setReplacementKey(data.replacementKey);
+                setShowReplacementButton(false);
+                setError(null);
+                toast.success('Replacement key generated successfully!');
+            } else {
+                toast.error(data.error || 'Failed to generate replacement key');
+            }
+        } catch (error) {
+            console.error('Replacement key error:', error);
+            toast.error('Network error. Please try again.');
+        } finally {
+            setReplacementLoading(false);
+        }
     };
 
     const digitCount = installationId.replace(/\s/g, '').length;
@@ -282,14 +324,36 @@ export default function GetCIDPage() {
 
                                     {/* Error Message */}
                                     {error && (
-                                        <div className="p-3 bg-[#FCF4F4] border border-[#CC0C39] rounded-lg flex items-start gap-2">
-                                            <AlertTriangle className="w-5 h-5 text-[#CC0C39] flex-shrink-0 mt-0.5" />
-                                            <div>
-                                                <span className="text-[#CC0C39] text-sm font-medium">{error}</span>
-                                                {canRetry && (
-                                                    <p className="text-[#CC0C39] text-xs mt-1">You can try again with a different Installation ID.</p>
-                                                )}
+                                        <div className="space-y-3">
+                                            <div className="p-3 bg-[#FCF4F4] border border-[#CC0C39] rounded-lg flex items-start gap-2">
+                                                <AlertTriangle className="w-5 h-5 text-[#CC0C39] flex-shrink-0 mt-0.5" />
+                                                <div>
+                                                    <span className="text-[#CC0C39] text-sm font-medium">{error}</span>
+                                                    {canRetry && (
+                                                        <p className="text-[#CC0C39] text-xs mt-1">You can try again with a different Installation ID.</p>
+                                                    )}
+                                                </div>
                                             </div>
+
+                                            {/* Instant Replacement Button */}
+                                            {showReplacementButton && (
+                                                <button
+                                                    onClick={handleInstantReplacement}
+                                                    disabled={replacementLoading}
+                                                    className="w-full py-3 bg-gradient-to-b from-[#067D62] to-[#055547] hover:from-[#055547] hover:to-[#044438] disabled:from-[#E7E9EC] disabled:to-[#D5D9D9] text-white disabled:text-[#565959] font-bold rounded-lg border border-[#055547] disabled:border-[#D5D9D9] shadow-md transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                                >
+                                                    {replacementLoading ? (
+                                                        <>
+                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                            Generating Replacement...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            🔑 GENERATE REPLACEMENT KEY INSTANTLY
+                                                        </>
+                                                    )}
+                                                </button>
+                                            )}
                                         </div>
                                     )}
 
@@ -359,6 +423,19 @@ export default function GetCIDPage() {
                     </Link>
                 </div>
             </div>
+
+            {/* Replacement Key Modal */}
+            {replacementKey && (
+                <ReplacementKeySteps
+                    replacementKey={replacementKey}
+                    onClose={() => {
+                        setReplacementKey(null);
+                        setSecretCode('');
+                        setInstallationId('');
+                        setError(null);
+                    }}
+                />
+            )}
         </div>
     );
 }
