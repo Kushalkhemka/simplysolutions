@@ -116,9 +116,9 @@ export async function POST(request: NextRequest) {
             };
         }
 
-        // Check for replacement requests
+        // Check for replacement requests (fetch all, not just most recent)
         let replacementInfo = null;
-        const { data: replacementRequest } = await supabase
+        const { data: replacementRequests } = await supabase
             .from('license_replacement_requests')
             .select(`
                 id,
@@ -131,31 +131,58 @@ export async function POST(request: NextRequest) {
                 new_license_key_id
             `)
             .eq('order_id', cleanOrderId)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
+            .order('created_at', { ascending: false });
 
-        if (replacementRequest) {
+        if (replacementRequests && replacementRequests.length > 0) {
+            const latestRequest = replacementRequests[0];
+
+            // Get new license key if approved
             let newLicenseKey = null;
-            if (replacementRequest.status === 'APPROVED' && replacementRequest.new_license_key_id) {
+            if (latestRequest.status === 'APPROVED' && latestRequest.new_license_key_id) {
                 const { data: newKey } = await supabase
                     .from('amazon_activation_license_keys')
                     .select('license_key')
-                    .eq('id', replacementRequest.new_license_key_id)
+                    .eq('id', latestRequest.new_license_key_id)
                     .single();
                 newLicenseKey = newKey?.license_key || null;
             }
 
+            // Check if it was an instant (auto-approved) replacement
+            const isInstantReplacement = latestRequest.admin_notes?.includes('AUTO-APPROVED');
+
             replacementInfo = {
                 hasReplacementRequest: true,
-                status: replacementRequest.status,
-                customerEmail: replacementRequest.customer_email,
-                screenshotUrl: replacementRequest.screenshot_url,
-                adminNotes: replacementRequest.admin_notes,
-                requestedAt: replacementRequest.created_at,
-                reviewedAt: replacementRequest.reviewed_at,
-                newLicenseKey: newLicenseKey
+                totalRequests: replacementRequests.length,
+                latest: {
+                    status: latestRequest.status,
+                    customerEmail: latestRequest.customer_email,
+                    screenshotUrl: latestRequest.screenshot_url,
+                    adminNotes: latestRequest.admin_notes,
+                    requestedAt: latestRequest.created_at,
+                    reviewedAt: latestRequest.reviewed_at,
+                    newLicenseKey: newLicenseKey,
+                    isInstantReplacement: isInstantReplacement
+                },
+                // Include all request history for AI context
+                allRequests: replacementRequests.map(r => ({
+                    id: r.id,
+                    status: r.status,
+                    requestedAt: r.created_at,
+                    reviewedAt: r.reviewed_at,
+                    isInstant: r.admin_notes?.includes('AUTO-APPROVED') || false
+                }))
             };
+
+            // Backward compatibility - also include flat fields
+            Object.assign(replacementInfo, {
+                status: latestRequest.status,
+                customerEmail: latestRequest.customer_email,
+                screenshotUrl: latestRequest.screenshot_url,
+                adminNotes: latestRequest.admin_notes,
+                requestedAt: latestRequest.created_at,
+                reviewedAt: latestRequest.reviewed_at,
+                newLicenseKey: newLicenseKey
+            });
         }
 
         // Get product info from products_data via FSN
@@ -277,14 +304,30 @@ function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any)
 
     // Check for replacement request status
     if (replacementInfo?.hasReplacementRequest) {
+        const isInstant = replacementInfo.latest?.isInstantReplacement || replacementInfo.adminNotes?.includes('AUTO-APPROVED');
+
         if (replacementInfo.status === 'PENDING') {
             actions.push('[PENDING] Customer has a PENDING replacement request. Under investigation (12-24 hours).');
+            actions.push('[ACTION] Ask customer to wait for email notification or check at simplysolutions.co.in/activate');
         } else if (replacementInfo.status === 'APPROVED') {
-            actions.push(`[APPROVED] Replacement APPROVED! New license key: ${replacementInfo.newLicenseKey}`);
+            if (isInstant) {
+                actions.push(`[INSTANT REPLACEMENT] Customer used INSTANT replacement. New key: ${replacementInfo.newLicenseKey}`);
+                actions.push('[NOTE] This was auto-approved for blocked/exceeded Installation ID.');
+            } else {
+                actions.push(`[APPROVED] Replacement APPROVED by admin! New license key: ${replacementInfo.newLicenseKey}`);
+            }
             actions.push('[EMAIL SENT] Customer was notified via email with the new key.');
         } else if (replacementInfo.status === 'REJECTED') {
             actions.push(`[REJECTED] Replacement request was REJECTED. Reason: ${replacementInfo.adminNotes}`);
+            actions.push(`[ACTION] Customer can submit new request at: https://simplysolutions.co.in/replacement-upload/${order.order_id}`);
         }
+
+        if (replacementInfo.totalRequests > 1) {
+            actions.push(`[HISTORY] Customer has ${replacementInfo.totalRequests} replacement request(s) on record.`);
+        }
+    } else {
+        // No replacement request - provide link if they need one
+        actions.push(`[REPLACEMENT] If customer needs a replacement, share link: https://simplysolutions.co.in/replacement-upload/${order.order_id}`);
     }
 
     // Check if combo product
