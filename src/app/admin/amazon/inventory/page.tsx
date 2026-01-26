@@ -30,8 +30,18 @@ export default function LicenseKeyInventoryPage() {
     const [fsnData, setFsnData] = useState<FsnSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortField, setSortField] = useState<SortField>('available');
-    const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+    const [sortField, setSortField] = useState<SortField>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('inventory_sortField') as SortField) || 'available';
+        }
+        return 'available';
+    });
+    const [sortOrder, setSortOrder] = useState<SortOrder>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('inventory_sortOrder') as SortOrder) || 'asc';
+        }
+        return 'asc';
+    });
     const [error, setError] = useState<string | null>(null);
 
     const supabase = createClient();
@@ -113,11 +123,16 @@ export default function LicenseKeyInventoryPage() {
         });
 
     const handleSort = (field: SortField) => {
+        let newOrder: SortOrder = 'asc';
         if (sortField === field) {
-            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortField(field);
-            setSortOrder('asc');
+            newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+        }
+        setSortField(field);
+        setSortOrder(newOrder);
+        // Persist to localStorage
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('inventory_sortField', field);
+            localStorage.setItem('inventory_sortOrder', newOrder);
         }
     };
 
@@ -254,7 +269,7 @@ export default function LicenseKeyInventoryPage() {
                                             <td className="px-4 py-3 text-center text-sm font-medium">{item.total.toLocaleString()}</td>
                                             <td className="px-4 py-3 text-center">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${item.available === 0 ? 'bg-red-100 text-red-800' :
-                                                        item.available < 10 ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'
+                                                    item.available < 10 ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'
                                                     }`}>
                                                     {item.available.toLocaleString()}
                                                 </span>

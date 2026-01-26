@@ -81,6 +81,8 @@ export default function AmazonOrdersClient() {
     const [filterFsn, setFilterFsn] = useState<string>('all');
     const [filterType, setFilterType] = useState<string>('all');
     const [filterGetcid, setFilterGetcid] = useState<string>('all');
+    const [filterWarranty, setFilterWarranty] = useState<string>('all');
+    const [filterRedeemed, setFilterRedeemed] = useState<string>('all');
     const [showFilters, setShowFilters] = useState(false);
     const [uniqueFsns, setUniqueFsns] = useState<string[]>([]);
 
@@ -111,6 +113,16 @@ export default function AmazonOrdersClient() {
         if (filterGetcid !== 'all') {
             query = query.eq('getcid_used', filterGetcid === 'used');
         }
+        if (filterWarranty !== 'all') {
+            query = query.eq('warranty_status', filterWarranty);
+        }
+        if (filterRedeemed !== 'all') {
+            if (filterRedeemed === 'yes') {
+                query = query.not('license_key_id', 'is', null);
+            } else {
+                query = query.is('license_key_id', null);
+            }
+        }
 
         const { data, count, error } = await query.range(from, to);
 
@@ -121,7 +133,7 @@ export default function AmazonOrdersClient() {
             setTotalCount(count || 0);
         }
         setIsLoading(false);
-    }, [currentPage, searchQuery, filterFsn, filterType, filterGetcid, supabase]);
+    }, [currentPage, searchQuery, filterFsn, filterType, filterGetcid, filterWarranty, filterRedeemed, supabase]);
 
     // Fetch unique FSNs for filter dropdown
     const fetchUniqueFsns = useCallback(async () => {
@@ -433,13 +445,15 @@ export default function AmazonOrdersClient() {
                     <Filter className="h-4 w-4" />
                     Filter
                 </button>
-                {(filterFsn !== 'all' || filterType !== 'all' || filterGetcid !== 'all') && (
+                {(filterFsn !== 'all' || filterType !== 'all' || filterGetcid !== 'all' || filterWarranty !== 'all' || filterRedeemed !== 'all') && (
                     <button
                         type="button"
                         onClick={() => {
                             setFilterFsn('all');
                             setFilterType('all');
                             setFilterGetcid('all');
+                            setFilterWarranty('all');
+                            setFilterRedeemed('all');
                             setCurrentPage(1);
                         }}
                         className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
@@ -487,6 +501,31 @@ export default function AmazonOrdersClient() {
                             <option value="all">All</option>
                             <option value="used">Used</option>
                             <option value="not_used">Not Used</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Warranty Status</label>
+                        <select
+                            value={filterWarranty}
+                            onChange={(e) => { setFilterWarranty(e.target.value); setCurrentPage(1); }}
+                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                        >
+                            <option value="all">All</option>
+                            <option value="active">Active</option>
+                            <option value="expired">Expired</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Redeemed</label>
+                        <select
+                            value={filterRedeemed}
+                            onChange={(e) => { setFilterRedeemed(e.target.value); setCurrentPage(1); }}
+                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                        >
+                            <option value="all">All Orders</option>
+                            <option value="yes">Redeemed Only</option>
+                            <option value="no">Not Redeemed</option>
                         </select>
                     </div>
                 </div>
