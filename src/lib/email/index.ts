@@ -930,3 +930,124 @@ export async function sendReviewRequestEmail(data: ReviewRequestEmailData) {
     return { success: false, error };
   }
 }
+
+// Customer Re-engagement Email - sent to customers who haven't ordered in 30+ days
+export interface ReEngagementEmailData {
+  to: string;
+  customerName: string;
+  lastOrderDate: string;
+  daysSinceOrder: number;
+  couponCode?: string;
+  discountPercent?: number;
+}
+
+export async function sendReEngagementEmail(data: ReEngagementEmailData) {
+  const shopUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in';
+  const discountText = data.couponCode && data.discountPercent
+    ? `Use code <strong>${data.couponCode}</strong> for ${data.discountPercent}% off!`
+    : '';
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #DC3E15;">SimplySolutions</h1>
+        </div>
+
+        <!-- Main Card -->
+        <div style="background-color: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
+          
+          <!-- Greeting -->
+          <h2 style="margin: 0 0 16px; font-size: 24px; font-weight: 700; color: #1e293b; text-align: center;">
+            We miss you, ${data.customerName}!
+          </h2>
+          
+          <p style="margin: 0 0 24px; font-size: 16px; color: #64748b; text-align: center; line-height: 1.6;">
+            It's been ${data.daysSinceOrder} days since your last order. We've got some amazing deals waiting for you!
+          </p>
+
+          ${data.couponCode ? `
+          <!-- Coupon Box -->
+          <div style="background: linear-gradient(135deg, #DC3E15, #f97316); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+            <p style="margin: 0 0 8px; font-size: 14px; color: rgba(255,255,255,0.9);">
+              Exclusive offer just for you
+            </p>
+            <p style="margin: 0 0 12px; font-size: 32px; font-weight: 800; color: white; letter-spacing: 2px;">
+              ${data.discountPercent}% OFF
+            </p>
+            <div style="background: white; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+              <code style="font-size: 20px; font-weight: 700; color: #DC3E15; letter-spacing: 2px;">${data.couponCode}</code>
+            </div>
+          </div>
+          ` : ''}
+
+          <!-- CTA Button -->
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${shopUrl}/products" 
+               style="display: inline-block; 
+                      background: #1e293b; 
+                      color: #ffffff; 
+                      padding: 16px 40px; 
+                      font-size: 16px; 
+                      font-weight: 600; 
+                      text-decoration: none; 
+                      border-radius: 8px;
+                      box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              Browse Our Latest Products
+            </a>
+          </div>
+
+          <!-- Featured Products Hint -->
+          <div style="background: #f8fafc; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #e2e8f0;">
+            <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #1e293b;">
+              Popular right now:
+            </p>
+            <p style="margin: 0; font-size: 14px; color: #64748b;">
+              Microsoft Office 2024 • Windows 11 Pro • Adobe Creative Cloud
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 32px;">
+          <p style="margin: 0; font-size: 13px; color: #94a3b8;">
+            © ${new Date().getFullYear()} SimplySolutions. All rights reserved.
+          </p>
+          <p style="margin: 12px 0 0; font-size: 11px; color: #cbd5e1;">
+            You received this email because you're a valued SimplySolutions customer.<br>
+            <a href="${shopUrl}/unsubscribe" style="color: #94a3b8;">Unsubscribe</a>
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const { data: result, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
+      to: data.to,
+      subject: data.couponCode
+        ? `${data.customerName}, here's ${data.discountPercent}% off just for you!`
+        : `We miss you, ${data.customerName}! Come back to SimplySolutions`,
+      html,
+    });
+
+    if (error) {
+      console.error('Re-engagement email send error:', error);
+      return { success: false, error };
+    }
+
+    return { success: true, id: result?.id };
+  } catch (error) {
+    console.error('Re-engagement email service error:', error);
+    return { success: false, error };
+  }
+}
