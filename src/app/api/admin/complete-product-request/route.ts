@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendSubscriptionEmail, send365EnterpriseEmail } from '@/lib/email';
 import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
+import { notifyProductRequestStatus } from '@/lib/push/customer-notifications';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -145,6 +146,18 @@ export async function POST(request: NextRequest) {
                 });
             }
 
+            // Send push notification to customer
+            try {
+                await notifyProductRequestStatus(
+                    productRequest.order_id || requestId,
+                    'fulfilled',
+                    'Microsoft 365 Enterprise'
+                );
+            } catch (pushError) {
+                console.error('Failed to send push notification:', pushError);
+                // Don't fail the request if push fails
+            }
+
             return NextResponse.json({
                 success: true,
                 emailSent: true,
@@ -219,6 +232,18 @@ export async function POST(request: NextRequest) {
                 emailError: 'Failed to send email notification',
                 message: 'Request marked as completed but email notification failed'
             });
+        }
+
+        // Send push notification to customer
+        try {
+            await notifyProductRequestStatus(
+                productRequest.order_id || requestId,
+                'fulfilled',
+                subscriptionConfig?.productName || 'your subscription'
+            );
+        } catch (pushError) {
+            console.error('Failed to send push notification:', pushError);
+            // Don't fail the request if push fails
         }
 
         return NextResponse.json({
