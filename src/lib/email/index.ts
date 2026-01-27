@@ -1051,3 +1051,118 @@ export async function sendReEngagementEmail(data: ReEngagementEmailData) {
     return { success: false, error };
   }
 }
+
+// Warranty Resubmission Reminder Email - sent daily to customers who need to resubmit screenshots
+export interface WarrantyReminderEmailData {
+  to: string;
+  customerName: string;
+  orderId: string;
+  productName?: string;
+  missingSeller: boolean;
+  missingReview: boolean;
+}
+
+export async function sendWarrantyResubmissionReminder(data: WarrantyReminderEmailData) {
+  const shopUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in';
+  const warrantyUrl = `${shopUrl}/warranty?orderId=${data.orderId}`;
+
+  const missingItems: string[] = [];
+  if (data.missingSeller) missingItems.push('Seller Feedback Screenshot');
+  if (data.missingReview) missingItems.push('Product Review Screenshot');
+
+  const missingList = missingItems.map(item => `<li style="margin: 4px 0;">${item}</li>`).join('');
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #DC3E15;">SimplySolutions</h1>
+        </div>
+
+        <!-- Main Card -->
+        <div style="background-color: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
+          
+          <!-- Alert Banner -->
+          <div style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); border: 1px solid #F59E0B; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+            <p style="margin: 0; font-weight: 600; color: #92400E;">
+              ⏰ Action Required: Complete Your Warranty Registration
+            </p>
+          </div>
+
+          <h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #1e293b;">
+            Hi ${data.customerName},
+          </h2>
+          
+          <p style="margin: 0 0 20px; font-size: 16px; color: #475569; line-height: 1.6;">
+            Your warranty registration for order <strong>${data.orderId}</strong>${data.productName ? ` (${data.productName})` : ''} is almost complete!
+          </p>
+
+          <p style="margin: 0 0 12px; font-size: 16px; color: #475569;">
+            We are missing the following:
+          </p>
+
+          <ul style="margin: 0 0 24px; padding-left: 20px; color: #DC3E15; font-weight: 600;">
+            ${missingList}
+          </ul>
+
+          <!-- CTA Button -->
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${warrantyUrl}" 
+               style="display: inline-block; 
+                      background: linear-gradient(135deg, #DC3E15, #f97316); 
+                      color: #ffffff; 
+                      padding: 16px 40px; 
+                      font-size: 16px; 
+                      font-weight: 700; 
+                      text-decoration: none; 
+                      border-radius: 8px;
+                      box-shadow: 0 4px 12px rgba(220, 62, 21, 0.3);">
+              Submit Missing Screenshots
+            </a>
+          </div>
+
+          <p style="margin: 24px 0 0; font-size: 14px; color: #64748b; text-align: center;">
+            Complete your warranty registration to get lifetime support!
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 32px;">
+          <p style="margin: 0 0 8px; font-size: 14px; color: #64748b;">
+            Need help? WhatsApp us at <strong>+91 8178848830</strong>
+          </p>
+          <p style="margin: 0; font-size: 13px; color: #94a3b8;">
+            © ${new Date().getFullYear()} SimplySolutions. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const { data: result, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
+      to: data.to,
+      subject: `⏰ Action Required: Complete your warranty for order ${data.orderId}`,
+      html,
+    });
+
+    if (error) {
+      console.error('Warranty reminder email send error:', error);
+      return { success: false, error };
+    }
+
+    return { success: true, id: result?.id };
+  } catch (error) {
+    console.error('Warranty reminder email service error:', error);
+    return { success: false, error };
+  }
+}
