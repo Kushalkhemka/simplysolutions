@@ -118,7 +118,8 @@ export async function notifyReplacementRequestStatus(
 export async function notifyProductRequestStatus(
     orderId: string,
     status: 'approved' | 'rejected' | 'fulfilled',
-    productName?: string
+    productName?: string,
+    customerEmail?: string
 ) {
     let title: string;
     let body: string;
@@ -130,7 +131,7 @@ export async function notifyProductRequestStatus(
             break;
         case 'fulfilled':
             title = '🎉 Order Fulfilled!';
-            body = `Your ${productName || 'product'} is ready! Check your email for details.`;
+            body = `Your ${productName || 'product'} is ready! Check ${customerEmail ? `your email at ${customerEmail}` : 'your email'} for details.`;
             break;
         case 'rejected':
             title = '❌ Request Update';

@@ -151,7 +151,8 @@ export async function POST(request: NextRequest) {
                 await notifyProductRequestStatus(
                     productRequest.order_id || requestId,
                     'fulfilled',
-                    'Microsoft 365 Enterprise'
+                    'Microsoft 365 Enterprise',
+                    productRequest.email
                 );
             } catch (pushError) {
                 console.error('Failed to send push notification:', pushError);
@@ -239,7 +240,8 @@ export async function POST(request: NextRequest) {
             await notifyProductRequestStatus(
                 productRequest.order_id || requestId,
                 'fulfilled',
-                subscriptionConfig?.productName || 'your subscription'
+                subscriptionConfig?.productName || 'your subscription',
+                productRequest.email
             );
         } catch (pushError) {
             console.error('Failed to send push notification:', pushError);
