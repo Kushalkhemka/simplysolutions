@@ -66,8 +66,24 @@ export function CustomerPushOptIn({ orderId, requestType, showInline = false }: 
                 return;
             }
 
-            // Get service worker registration
-            const registration = await navigator.serviceWorker.ready;
+            // Ensure service worker is registered (important for mobile)
+            let registration: ServiceWorkerRegistration;
+            try {
+                registration = await navigator.serviceWorker.getRegistration('/') as ServiceWorkerRegistration;
+                if (!registration) {
+                    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                }
+
+                // Wait with timeout
+                const timeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Service worker timeout')), 10000)
+                );
+                await Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
+            } catch (swError) {
+                console.error('Service worker error:', swError);
+                toast.error('Service worker not available. Try refreshing.');
+                return;
+            }
 
             // Subscribe to push
             const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;

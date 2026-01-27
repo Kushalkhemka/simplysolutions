@@ -64,9 +64,24 @@ export function PushPermission({ showBanner = true }: PushPermissionProps) {
                 return;
             }
 
-            // Register service worker
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            await navigator.serviceWorker.ready;
+            // Ensure service worker is registered (important for mobile)
+            let registration: ServiceWorkerRegistration;
+            try {
+                registration = await navigator.serviceWorker.getRegistration('/') as ServiceWorkerRegistration;
+                if (!registration) {
+                    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                }
+
+                // Wait with timeout
+                const timeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Service worker timeout')), 10000)
+                );
+                await Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
+            } catch (swError) {
+                console.error('Service worker error:', swError);
+                toast.error('Service worker not available. Try refreshing.');
+                return;
+            }
 
             // Get VAPID public key
             const vapidRes = await fetch('/api/push/vapid-key');
@@ -106,7 +121,15 @@ export function PushPermission({ showBanner = true }: PushPermissionProps) {
     const unsubscribe = async () => {
         setIsLoading(true);
         try {
-            const registration = await navigator.serviceWorker.ready;
+            // Wait with timeout
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Service worker timeout')), 10000)
+            );
+            const registration = await Promise.race([
+                navigator.serviceWorker.ready,
+                timeoutPromise
+            ]) as ServiceWorkerRegistration;
+
             const subscription = await registration.pushManager.getSubscription();
 
             if (subscription) {
@@ -216,25 +239,39 @@ export function NotificationToggle() {
     };
 
     const toggle = async () => {
+        setIsLoading(true);
+
+        // Add timeout for service worker ready
+        const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Service worker timeout')), 10000)
+        );
+
         if (isSubscribed) {
             // Unsubscribe logic
-            setIsLoading(true);
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-                await subscription.unsubscribe();
-                await fetch('/api/push/unsubscribe', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ endpoint: subscription.endpoint }),
-                });
+            try {
+                const registration = await Promise.race([
+                    navigator.serviceWorker.ready,
+                    timeoutPromise
+                ]) as ServiceWorkerRegistration;
+
+                const subscription = await registration.pushManager.getSubscription();
+                if (subscription) {
+                    await subscription.unsubscribe();
+                    await fetch('/api/push/unsubscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ endpoint: subscription.endpoint }),
+                    });
+                }
+                setIsSubscribed(false);
+                toast.success('Notifications disabled');
+            } catch (error) {
+                console.error('Unsubscribe error:', error);
+                toast.error('Failed to disable notifications');
             }
-            setIsSubscribed(false);
             setIsLoading(false);
-            toast.success('Notifications disabled');
         } else {
             // Subscribe
-            setIsLoading(true);
             try {
                 const permission = await Notification.requestPermission();
                 if (permission !== 'granted') {
@@ -243,8 +280,20 @@ export function NotificationToggle() {
                     return;
                 }
 
-                const registration = await navigator.serviceWorker.register('/sw.js');
-                await navigator.serviceWorker.ready;
+                // Ensure service worker is registered (important for mobile)
+                let registration: ServiceWorkerRegistration;
+                try {
+                    registration = await navigator.serviceWorker.getRegistration('/') as ServiceWorkerRegistration;
+                    if (!registration) {
+                        registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                    }
+                    await Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
+                } catch (swError) {
+                    console.error('Service worker error:', swError);
+                    toast.error('Service worker not available. Try refreshing.');
+                    setIsLoading(false);
+                    return;
+                }
 
                 const vapidRes = await fetch('/api/push/vapid-key');
                 const { key: vapidKey } = await vapidRes.json();
