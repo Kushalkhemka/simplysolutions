@@ -185,6 +185,109 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        // Check for subscription products (AutoCAD, Canva, 365E5)
+        let subscriptionInfo = null;
+        const fsnUpper = order.fsn?.toUpperCase() || '';
+
+        if (fsnUpper.startsWith('AUTOCAD') || fsnUpper.startsWith('CANVA')) {
+            // Check product_requests table for AutoCAD/Canva
+            const { data: productRequest } = await supabase
+                .from('product_requests')
+                .select('*')
+                .eq('order_id', cleanOrderId)
+                .single();
+
+            if (productRequest) {
+                const productType = fsnUpper.startsWith('AUTOCAD') ? 'AutoCAD' : 'Canva Pro';
+                const installGuideUrl = fsnUpper.startsWith('AUTOCAD')
+                    ? 'https://simplysolutions.co.in/installation-docs/autocad'
+                    : 'https://simplysolutions.co.in/installation-docs/canva';
+
+                subscriptionInfo = {
+                    isSubscription: true,
+                    productType: productType,
+                    status: productRequest.is_completed ? 'COMPLETED' : 'PENDING',
+                    customerEmail: productRequest.email,
+                    requestedAt: productRequest.created_at,
+                    completedAt: productRequest.completed_at || null,
+                    installationGuideUrl: installGuideUrl,
+                    message: productRequest.is_completed
+                        ? `${productType} has been added to customer email: ${productRequest.email}. Customer should follow the installation guide.`
+                        : `${productType} request is PENDING. Customer should wait for email notification.`
+                };
+            } else {
+                // No request submitted yet
+                const productType = fsnUpper.startsWith('AUTOCAD') ? 'AutoCAD' : 'Canva Pro';
+                subscriptionInfo = {
+                    isSubscription: true,
+                    productType: productType,
+                    status: 'NOT_SUBMITTED',
+                    message: `Customer has not submitted their ${productType} request yet. Direct them to the activation page.`,
+                    activationUrl: fsnUpper.startsWith('AUTOCAD')
+                        ? 'https://simplysolutions.co.in/autocad'
+                        : 'https://simplysolutions.co.in/canva'
+                };
+            }
+        } else if (fsnUpper.startsWith('365E5') || fsnUpper.startsWith('365E')) {
+            // Check office365_requests table for 365 Enterprise
+            const { data: office365Request } = await supabase
+                .from('office365_requests')
+                .select('*')
+                .eq('order_id', cleanOrderId)
+                .single();
+
+            if (office365Request) {
+                subscriptionInfo = {
+                    isSubscription: true,
+                    productType: 'Microsoft 365 Enterprise',
+                    status: office365Request.is_completed ? 'COMPLETED' : 'PENDING',
+                    customerEmail: office365Request.email,
+                    customerName: `${office365Request.first_name} ${office365Request.last_name}`,
+                    whatsappNumber: office365Request.whatsapp_number,
+                    requestedAt: office365Request.created_at,
+                    completedAt: office365Request.completed_at || null,
+                    // Include credentials ONLY if completed
+                    credentials: office365Request.is_completed ? {
+                        username: office365Request.generated_email,
+                        password: office365Request.generated_password
+                    } : null,
+                    installationGuideUrl: 'https://simplysolutions.co.in/installation-docs/office365',
+                    message: office365Request.is_completed
+                        ? `Microsoft 365 account created! Username: ${office365Request.generated_email}, Password: ${office365Request.generated_password}`
+                        : 'Microsoft 365 request is PENDING. Account will be created within 24-48 working hours.'
+                };
+            } else {
+                // Check legacy product_requests table
+                const { data: legacyRequest } = await supabase
+                    .from('product_requests')
+                    .select('*')
+                    .eq('order_id', cleanOrderId)
+                    .eq('request_type', '365e5')
+                    .single();
+
+                if (legacyRequest) {
+                    subscriptionInfo = {
+                        isSubscription: true,
+                        productType: 'Microsoft 365 Enterprise',
+                        status: legacyRequest.is_completed ? 'COMPLETED' : 'PENDING',
+                        customerEmail: legacyRequest.email,
+                        requestedAt: legacyRequest.created_at,
+                        message: legacyRequest.is_completed
+                            ? 'Request completed. Customer should check email for credentials.'
+                            : 'Microsoft 365 request is PENDING. Account will be created within 24-48 working hours.'
+                    };
+                } else {
+                    subscriptionInfo = {
+                        isSubscription: true,
+                        productType: 'Microsoft 365 Enterprise',
+                        status: 'NOT_SUBMITTED',
+                        message: 'Customer has not submitted their Microsoft 365 request yet. Direct them to the activation page.',
+                        activationUrl: 'https://simplysolutions.co.in/365enterprise'
+                    };
+                }
+            }
+        }
+
         // Get product info from products_data via FSN
         let productInfo = null;
         if (order.fsn) {
@@ -274,7 +377,10 @@ export async function POST(request: NextRequest) {
             },
 
             // Suggested Actions for AI
-            suggestedActions: getSuggestedActions(order, licenseInfo, replacementInfo),
+            suggestedActions: getSuggestedActions(order, licenseInfo, replacementInfo, subscriptionInfo),
+
+            // Subscription Product Info (AutoCAD, Canva, 365 Enterprise)
+            subscription: subscriptionInfo,
 
             // Special handling for preactivated products
             preactivatedProduct: order.fsn?.toUpperCase() === 'OFFICE2024-MAC' ? {
@@ -296,7 +402,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper function to suggest actions based on order state
-function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any): string[] {
+function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any, subscriptionInfo: any): string[] {
     const actions: string[] = [];
 
     if (order.is_fraud) {
@@ -311,45 +417,74 @@ function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any)
         actions.push(`[ISSUE] Customer has reported activation issue. Status: ${order.issue_status}`);
     }
 
-    // Check for replacement request status
-    if (replacementInfo?.hasReplacementRequest) {
-        const isInstant = replacementInfo.latest?.isInstantReplacement || replacementInfo.adminNotes?.includes('AUTO-APPROVED');
+    // Check for subscription products first (AutoCAD, Canva, 365E5)
+    if (subscriptionInfo) {
+        const productType = subscriptionInfo.productType;
 
-        if (replacementInfo.status === 'PENDING') {
-            actions.push('[PENDING] Customer has a PENDING replacement request. Under investigation (12-24 hours).');
-            actions.push('[ACTION] Ask customer to wait for email notification or check at simplysolutions.co.in/activate');
-        } else if (replacementInfo.status === 'APPROVED') {
-            if (isInstant) {
-                actions.push(`[INSTANT REPLACEMENT] Customer used INSTANT replacement. New key: ${replacementInfo.newLicenseKey}`);
-                actions.push('[NOTE] This was auto-approved for blocked/exceeded Installation ID.');
+        if (subscriptionInfo.status === 'COMPLETED') {
+            if (subscriptionInfo.credentials) {
+                // 365E5 with credentials
+                actions.push(`[SUBSCRIPTION COMPLETED] ${productType} account has been created!`);
+                actions.push(`[CREDENTIALS] Username: ${subscriptionInfo.credentials.username}`);
+                actions.push(`[CREDENTIALS] Password: ${subscriptionInfo.credentials.password}`);
+                actions.push(`[ACTION] Customer should sign in at office.com with the above credentials.`);
             } else {
-                actions.push(`[APPROVED] Replacement APPROVED by admin! New license key: ${replacementInfo.newLicenseKey}`);
+                // AutoCAD/Canva completed
+                actions.push(`[SUBSCRIPTION COMPLETED] ${productType} has been added to customer email: ${subscriptionInfo.customerEmail}`);
+                actions.push(`[ACTION] Customer should follow installation guide: ${subscriptionInfo.installationGuideUrl}`);
             }
-            actions.push('[EMAIL SENT] Customer was notified via email with the new key.');
-        } else if (replacementInfo.status === 'REJECTED') {
-            actions.push(`[REJECTED] Replacement request was REJECTED. Reason: ${replacementInfo.adminNotes}`);
-            actions.push(`[ACTION] Customer can submit new request at: https://simplysolutions.co.in/replacement-upload/${order.order_id}`);
+        } else if (subscriptionInfo.status === 'PENDING') {
+            actions.push(`[SUBSCRIPTION PENDING] ${productType} request is being processed.`);
+            actions.push('[PROCESSING TIME] Typically completed within 24-48 working hours.');
+            actions.push('[ACTION] Customer should wait for email/WhatsApp notification.');
+        } else if (subscriptionInfo.status === 'NOT_SUBMITTED') {
+            actions.push(`[SUBSCRIPTION NOT SUBMITTED] Customer has not submitted their ${productType} request.`);
+            actions.push(`[ACTION] Direct customer to activation page: ${subscriptionInfo.activationUrl}`);
         }
 
-        if (replacementInfo.totalRequests > 1) {
-            actions.push(`[HISTORY] Customer has ${replacementInfo.totalRequests} replacement request(s) on record.`);
+        // Don't show generic license key actions for subscription products
+    } else {
+        // Non-subscription products - show regular license key actions
+        // Check for replacement request status
+        if (replacementInfo?.hasReplacementRequest) {
+            const isInstant = replacementInfo.latest?.isInstantReplacement || replacementInfo.adminNotes?.includes('AUTO-APPROVED');
+
+            if (replacementInfo.status === 'PENDING') {
+                actions.push('[PENDING] Customer has a PENDING replacement request. Under investigation (12-24 hours).');
+                actions.push('[ACTION] Ask customer to wait for email notification or check at simplysolutions.co.in/activate');
+            } else if (replacementInfo.status === 'APPROVED') {
+                if (isInstant) {
+                    actions.push(`[INSTANT REPLACEMENT] Customer used INSTANT replacement. New key: ${replacementInfo.newLicenseKey}`);
+                    actions.push('[NOTE] This was auto-approved for blocked/exceeded Installation ID.');
+                } else {
+                    actions.push(`[APPROVED] Replacement APPROVED by admin! New license key: ${replacementInfo.newLicenseKey}`);
+                }
+                actions.push('[EMAIL SENT] Customer was notified via email with the new key.');
+            } else if (replacementInfo.status === 'REJECTED') {
+                actions.push(`[REJECTED] Replacement request was REJECTED. Reason: ${replacementInfo.adminNotes}`);
+                actions.push(`[ACTION] Customer can submit new request at: https://simplysolutions.co.in/replacement-upload/${order.order_id}`);
+            }
+
+            if (replacementInfo.totalRequests > 1) {
+                actions.push(`[HISTORY] Customer has ${replacementInfo.totalRequests} replacement request(s) on record.`);
+            }
+        } else {
+            // No replacement request - provide link if they need one
+            actions.push(`[REPLACEMENT] If customer needs a replacement, share link: https://simplysolutions.co.in/replacement-upload/${order.order_id}`);
         }
-    } else {
-        // No replacement request - provide link if they need one
-        actions.push(`[REPLACEMENT] If customer needs a replacement, share link: https://simplysolutions.co.in/replacement-upload/${order.order_id}`);
-    }
 
-    // Check if combo product
-    if (order.fsn && isComboProduct(order.fsn)) {
-        const components = getComponentFSNs(order.fsn);
-        actions.push(`[COMBO] This is a COMBO product. Customer receives ${components.length} license keys: ${components.join(' + ')}`);
-    }
+        // Check if combo product
+        if (order.fsn && isComboProduct(order.fsn)) {
+            const components = getComponentFSNs(order.fsn);
+            actions.push(`[COMBO] This is a COMBO product. Customer receives ${components.length} license keys: ${components.join(' + ')}`);
+        }
 
-    if (licenseInfo?.isRedeemed) {
-        actions.push('[REDEEMED] License key already issued. Customer can use existing key.');
-        actions.push('[ACTION] Share download link and installation guide.');
-    } else {
-        actions.push('[NOT REDEEMED] License key not yet redeemed. Customer can activate at simplysolutions.co.in/activate');
+        if (licenseInfo?.isRedeemed) {
+            actions.push('[REDEEMED] License key already issued. Customer can use existing key.');
+            actions.push('[ACTION] Share download link and installation guide.');
+        } else {
+            actions.push('[NOT REDEEMED] License key not yet redeemed. Customer can activate at simplysolutions.co.in/activate');
+        }
     }
 
     if (order.getcid_used) {
