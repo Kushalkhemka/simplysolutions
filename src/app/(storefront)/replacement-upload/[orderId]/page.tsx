@@ -18,6 +18,7 @@ import {
     Phone
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
 
 export default function ReplacementUploadPage() {
     const params = useParams();
@@ -275,6 +276,8 @@ export default function ReplacementUploadPage() {
     if (submitted) {
         return (
             <div className="min-h-screen bg-[#EAEDED] flex items-center justify-center p-4">
+                {/* Push notification prompt */}
+                <CustomerPushAutoPrompt orderId={orderId} requestType="replacement" />
                 <div className="max-w-lg w-full bg-white rounded-lg shadow-lg overflow-hidden">
                     <div className="bg-[#067D62] text-white p-6 text-center">
                         <CheckCircle className="w-16 h-16 mx-auto mb-4" />

@@ -27,6 +27,7 @@ import { getInstallationGuide } from '@/lib/installation-guides';
 import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
 import { isComboProduct, getComponentFSNs } from '@/lib/amazon/combo-products';
 import ReplacementKeySteps from '@/components/ReplacementKeySteps';
+import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
 
 interface ProductInfo {
     productName: string | null;
@@ -1617,6 +1618,9 @@ function ActivatePageContent() {
                                     <span className="text-[#067D62] group-hover:text-[#0A9A77] font-bold text-sm">Register →</span>
                                 </div>
                             </a>
+
+                            {/* Push notification prompt */}
+                            <CustomerPushAutoPrompt orderId={secretCode} requestType="activation" />
 
                             <button
                                 onClick={handleSuccessPopupClose}

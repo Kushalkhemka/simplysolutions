@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 interface CustomerPushOptInProps {
     orderId?: string;
-    requestType: 'replacement' | 'product_request' | 'warranty';
+    requestType: 'replacement' | 'product_request' | 'warranty' | 'activation';
     showInline?: boolean; // Show as inline toggle vs floating banner
 }
 
