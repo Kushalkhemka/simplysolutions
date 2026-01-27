@@ -684,6 +684,35 @@ export default function FBAActivatePage() {
                                 </p>
                             </div>
 
+                            {/* Optional Email Input for Updates */}
+                            <div className="bg-[#F0F9FF] border border-[#BAE6FD] rounded-lg p-4 mb-4">
+                                <p className="text-sm font-medium text-[#0369A1] mb-2">
+                                    📧 Get installation help & updates (optional)
+                                </p>
+                                <input
+                                    type="email"
+                                    placeholder="your.email@example.com"
+                                    className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
+                                    onBlur={async (e) => {
+                                        const email = e.target.value.trim();
+                                        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                                            try {
+                                                await fetch('/api/activate/save-email', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ orderId: orderId.trim(), email }),
+                                                });
+                                            } catch (err) {
+                                                console.error('Error saving email:', err);
+                                            }
+                                        }
+                                    }}
+                                />
+                                <p className="text-xs text-[#64748B] mt-1.5">
+                                    We&apos;ll send helpful tips for product activation
+                                </p>
+                            </div>
+
                             <div className="bg-[#FFF4E5] border border-[#FF9900] rounded-lg p-4 mb-6">
                                 <div className="flex items-start gap-3">
                                     <AlertTriangle className="w-5 h-5 text-[#FF9900] flex-shrink-0 mt-0.5" />
