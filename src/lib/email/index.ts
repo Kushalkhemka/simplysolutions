@@ -819,3 +819,114 @@ export async function sendDigitalDeliveryEmail(data: DigitalDeliveryEmailData) {
     return { success: false, error };
   }
 }
+
+// Review Request Email - sent 3 days after activation
+export interface ReviewRequestEmailData {
+  to: string;
+  customerName: string;
+  orderId: string;
+  productName: string;
+}
+
+export async function sendReviewRequestEmail(data: ReviewRequestEmailData) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #DC3E15;">SimplySolutions</h1>
+        </div>
+
+        <!-- Main Card -->
+        <div style="background-color: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
+          
+          <!-- Greeting -->
+          <h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #1e293b; text-align: center;">
+            How was your experience?
+          </h2>
+          
+          <p style="margin: 0 0 24px; font-size: 16px; color: #64748b; text-align: center; line-height: 1.6;">
+            Hi ${data.customerName},<br>
+            We hope you're enjoying your <strong>${data.productName}</strong>! 
+          </p>
+
+          <p style="margin: 0 0 24px; font-size: 16px; color: #64748b; text-align: center; line-height: 1.6;">
+            Your feedback helps other customers make informed decisions and helps us improve our service.
+          </p>
+
+          <!-- Review CTA -->
+          <div style="text-align: center; margin: 32px 0;">
+            <p style="margin: 0 0 16px; font-size: 14px; color: #64748b;">
+              If you purchased from Amazon, please leave us a review:
+            </p>
+            <a href="https://www.amazon.in/review/create-review" 
+               style="display: inline-block; 
+                      background: linear-gradient(135deg, #FF9900, #FFB84D); 
+                      color: #1e293b; 
+                      padding: 16px 40px; 
+                      font-size: 16px; 
+                      font-weight: 700; 
+                      text-decoration: none; 
+                      border-radius: 8px;
+                      box-shadow: 0 4px 16px rgba(255, 153, 0, 0.3);">
+              Leave a Review on Amazon
+            </a>
+          </div>
+
+          <!-- Divider -->
+          <div style="margin: 32px 0; border-top: 1px solid #e2e8f0;"></div>
+
+          <!-- Support Section -->
+          <div style="text-align: center;">
+            <p style="margin: 0 0 12px; font-size: 14px; color: #64748b;">
+              Having any issues with your product?
+            </p>
+            <a href="https://wa.me/918178848830" 
+               style="display: inline-block; background: #25D366; color: white; padding: 10px 24px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px;">
+              Contact Support on WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 32px;">
+          <p style="margin: 0 0 8px; font-size: 13px; color: #94a3b8;">
+            Order ID: ${data.orderId}
+          </p>
+          <p style="margin: 0; font-size: 13px; color: #94a3b8;">
+            © ${new Date().getFullYear()} SimplySolutions. All rights reserved.
+          </p>
+          <p style="margin: 12px 0 0; font-size: 11px; color: #cbd5e1;">
+            You received this email because you made a purchase from SimplySolutions.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const { data: result, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
+      to: data.to,
+      subject: `How was your experience with ${data.productName}?`,
+      html,
+    });
+
+    if (error) {
+      console.error('Review request email send error:', error);
+      return { success: false, error };
+    }
+
+    return { success: true, id: result?.id };
+  } catch (error) {
+    console.error('Review request email service error:', error);
+    return { success: false, error };
+  }
+}
