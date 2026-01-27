@@ -117,6 +117,10 @@ function ActivatePageContent() {
     const [getcidReplacementKey, setGetcidReplacementKey] = useState<string | null>(null);
     const [getcidReplacementLoading, setGetcidReplacementLoading] = useState(false);
 
+    // Email capture ref and state
+    const captureEmailRef = useRef<HTMLInputElement>(null);
+    const [emailSaved, setEmailSaved] = useState(false);
+
     // Check for existing replacement request when order is verified
     const checkReplacementStatus = async (orderId: string) => {
         try {
@@ -333,6 +337,8 @@ function ActivatePageContent() {
             if (data.licenses && data.licenses.length > 0) {
                 console.log('DEBUG: Setting activation result with', data.licenses.length, 'licenses');
                 console.log('DEBUG: isCombo=', data.isCombo, 'licenses=', data.licenses);
+                // Reset emailSaved when activating a new order
+                setEmailSaved(false);
                 setActivationResult({
                     success: true,
                     isCombo: data.isCombo,
@@ -348,15 +354,19 @@ function ActivatePageContent() {
                     },
                     alreadyRedeemed: data.alreadyRedeemed,
                     windowsInstallType: installType || null,
+                    hasValidEmail: data.hasValidEmail,
                 });
             } else {
                 // Fallback for old format
+                // Reset emailSaved when activating a new order
+                setEmailSaved(false);
                 setActivationResult({
                     success: true,
                     licenseKey: data.licenseKey,
                     productInfo: data.productInfo || {},
                     alreadyRedeemed: data.alreadyRedeemed,
                     windowsInstallType: installType || null,
+                    hasValidEmail: data.hasValidEmail,
                 });
             }
 
@@ -937,33 +947,48 @@ function ActivatePageContent() {
                                                                 Received a faulty license key? Request Replacement
                                                             </button>
 
-                                                            {/* Email Capture for Updates */}
-                                                            <div className="mt-3 p-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-lg">
-                                                                <label className="block text-sm font-medium text-[#0369A1] mb-2">
-                                                                    📧 Enter your email for installation help (optional)
-                                                                </label>
-                                                                <input
-                                                                    type="email"
-                                                                    placeholder="your.email@example.com"
-                                                                    className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
-                                                                    onBlur={async (e) => {
-                                                                        const email = e.target.value.trim();
-                                                                        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                                                                            try {
-                                                                                await fetch('/api/activate/save-email', {
-                                                                                    method: 'POST',
-                                                                                    headers: { 'Content-Type': 'application/json' },
-                                                                                    body: JSON.stringify({ orderId: secretCode.trim(), email }),
-                                                                                });
-                                                                                toast.success('Email saved!');
-                                                                            } catch (err) {
-                                                                                console.error('Error saving email:', err);
-                                                                            }
-                                                                        }
-                                                                    }}
-                                                                />
-                                                                <p className="text-xs text-[#64748B] mt-1">We&apos;ll send helpful activation tips</p>
-                                                            </div>
+                                                            {/* Email Capture for Updates - hide if email already saved */}
+                                                            {!emailSaved && !activationResult.hasValidEmail && (
+                                                                <div className="mt-3 p-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-lg">
+                                                                    <label className="block text-sm font-medium text-[#0369A1] mb-2">
+                                                                        Enter your Email for future communication*
+                                                                    </label>
+                                                                    <div className="flex gap-2">
+                                                                        <input
+                                                                            type="email"
+                                                                            ref={captureEmailRef}
+                                                                            placeholder="your.email@example.com"
+                                                                            className="flex-1 px-3 py-2 border border-[#888C8C] rounded text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
+                                                                        />
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={async () => {
+                                                                                const email = captureEmailRef.current?.value?.trim() || '';
+                                                                                if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                                                                                    try {
+                                                                                        await fetch('/api/activate/save-email', {
+                                                                                            method: 'POST',
+                                                                                            headers: { 'Content-Type': 'application/json' },
+                                                                                            body: JSON.stringify({ orderId: secretCode.trim(), email }),
+                                                                                        });
+                                                                                        toast.success('Email saved!');
+                                                                                        setEmailSaved(true);
+                                                                                        if (captureEmailRef.current) captureEmailRef.current.value = '';
+                                                                                    } catch (err) {
+                                                                                        console.error('Error saving email:', err);
+                                                                                        toast.error('Failed to save email');
+                                                                                    }
+                                                                                } else {
+                                                                                    toast.error('Please enter a valid email');
+                                                                                }
+                                                                            }}
+                                                                            className="px-4 py-2 bg-[#0369A1] hover:bg-[#0284C7] text-white font-medium rounded text-sm transition-colors"
+                                                                        >
+                                                                            Submit
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </>
                                                     ) : (
                                                         <div className="bg-[#FFFBEB] border border-[#FCD34D] rounded-lg p-4">

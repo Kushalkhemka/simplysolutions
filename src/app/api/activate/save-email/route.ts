@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .update({
                 contact_email: email.toLowerCase().trim(),
-                contact_name: email.split('@')[0], // Use email prefix as name
             })
             .eq('order_id', orderId.trim());
 

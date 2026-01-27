@@ -160,9 +160,9 @@ export const metadata: Metadata = {
     canonical: BASE_URL,
   },
   icons: {
-    icon: "/logo-icon.png",
-    shortcut: "/logo-icon.png",
-    apple: "/logo-icon.png",
+    icon: "/logo-symbol.png",
+    shortcut: "/logo-symbol.png",
+    apple: "/logo-symbol.png",
   },
   category: "software",
   // Add verification when you have the Google Search Console code
