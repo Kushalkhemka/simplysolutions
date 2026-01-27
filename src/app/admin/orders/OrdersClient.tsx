@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Eye, CheckCircle, XCircle, Download, Loader2, Calendar, Filter } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, Download, Loader2, Calendar, Filter, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Order {
@@ -32,6 +32,8 @@ export default function OrdersClient() {
     const [dateTo, setDateTo] = useState('');
     const [showExportModal, setShowExportModal] = useState(false);
     const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const supabase = createClient();
 
@@ -85,6 +87,31 @@ export default function OrdersClient() {
         if (statusFilter === 'delivered') return order.status === 'delivered';
         return true;
     });
+
+    const deleteOrder = async () => {
+        if (!deleteOrderId) return;
+
+        setIsDeleting(true);
+        try {
+            const response = await fetch(`/api/admin/orders/${deleteOrderId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                setOrders(orders.filter(o => o.id !== deleteOrderId));
+                toast.success('Order deleted successfully');
+            } else {
+                const data = await response.json();
+                toast.error(data.error || 'Failed to delete order');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            toast.error('Failed to delete order');
+        } finally {
+            setIsDeleting(false);
+            setDeleteOrderId(null);
+        }
+    };
 
     const exportToCSV = async () => {
         setIsExporting(true);
@@ -259,11 +286,23 @@ export default function OrdersClient() {
                                     })}
                                 </p>
                             </div>
-                            <Link href={`/admin/orders/${order.id}`}>
-                                <Button size="sm" variant="outline" className="shrink-0">
-                                    <Eye className="h-4 w-4" />
-                                </Button>
-                            </Link>
+                            <div className="flex gap-2">
+                                <Link href={`/admin/orders/${order.id}`}>
+                                    <Button size="sm" variant="outline" className="shrink-0">
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                                {order.payment_status === 'pending' && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                        onClick={() => setDeleteOrderId(order.id)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -322,12 +361,24 @@ export default function OrdersClient() {
                                         ₹{order.total_amount?.toLocaleString('en-IN')}
                                     </td>
                                     <td className="p-4 text-right">
-                                        <Link href={`/admin/orders/${order.id}`}>
-                                            <Button size="sm" variant="outline" className="gap-1">
-                                                <Eye className="h-4 w-4" />
-                                                View
-                                            </Button>
-                                        </Link>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Link href={`/admin/orders/${order.id}`}>
+                                                <Button size="sm" variant="outline" className="gap-1">
+                                                    <Eye className="h-4 w-4" />
+                                                    View
+                                                </Button>
+                                            </Link>
+                                            {order.payment_status === 'pending' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                    onClick={() => setDeleteOrderId(order.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -407,6 +458,52 @@ export default function OrdersClient() {
                                         <>
                                             <Download className="h-4 w-4" />
                                             Export CSV
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteOrderId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50" onClick={() => !isDeleting && setDeleteOrderId(null)} />
+                    <div className="relative bg-card border rounded-xl shadow-xl w-full max-w-sm">
+                        <div className="p-6 text-center">
+                            <div className="mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+                                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                            </div>
+                            <h2 className="text-lg font-bold mb-2">Delete Order?</h2>
+                            <p className="text-sm text-muted-foreground mb-6">
+                                This will permanently delete the order and all associated items. This action cannot be undone.
+                            </p>
+                            <div className="flex gap-3">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setDeleteOrderId(null)}
+                                    disabled={isDeleting}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    className="flex-1 gap-2"
+                                    onClick={deleteOrder}
+                                    disabled={isDeleting}
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 className="h-4 w-4" />
+                                            Delete
                                         </>
                                     )}
                                 </Button>

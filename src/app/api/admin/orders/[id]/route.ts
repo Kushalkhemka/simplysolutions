@@ -87,3 +87,36 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         return errorResponse('Internal server error', 500);
     }
 }
+
+// DELETE /api/admin/orders/[id] - Delete an order
+export async function DELETE(request: NextRequest, { params }: Params) {
+    try {
+        const admin = await checkAdmin();
+        if (!admin) return unauthorizedResponse('Admin access required');
+
+        const { id } = await params;
+        const adminClient = getAdminClient();
+
+        // Delete order items first (foreign key constraint)
+        await adminClient
+            .from('order_items')
+            .delete()
+            .eq('order_id', id);
+
+        // Delete the order
+        const { error } = await adminClient
+            .from('orders')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Order delete error:', error);
+            return errorResponse('Failed to delete order', 500);
+        }
+
+        return successResponse({ message: 'Order deleted successfully' });
+    } catch (error) {
+        console.error('Admin delete order error:', error);
+        return errorResponse('Internal server error', 500);
+    }
+}

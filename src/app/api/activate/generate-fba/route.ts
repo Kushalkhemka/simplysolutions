@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { isComboProduct, getComponentFSNs } from '@/lib/amazon/combo-products';
+import { checkAndAlertLowInventory } from '@/lib/push/admin-notifications';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -182,6 +183,13 @@ export async function POST(request: NextRequest) {
 
         if (orderUpdateError) {
             console.error('Error updating order with license key:', orderUpdateError);
+        }
+
+        // Check inventory levels and alert admins if low (async, don't block)
+        for (const componentFSN of componentFSNs) {
+            checkAndAlertLowInventory(componentFSN).catch(err =>
+                console.error('Failed to check low inventory:', err)
+            );
         }
 
         // Build license results with product info

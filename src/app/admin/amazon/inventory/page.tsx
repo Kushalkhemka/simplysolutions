@@ -146,10 +146,10 @@ export default function LicenseKeyInventoryPage() {
     const outOfStockCount = fsnData.filter(item => item.available === 0).length;
 
     const getStockStatus = (available: number) => {
-        if (available === 0) return { color: 'bg-red-100 text-red-800 border-red-200', label: 'Out of Stock' };
-        if (available < 10) return { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Low Stock' };
-        if (available < 50) return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Medium' };
-        return { color: 'bg-green-100 text-green-800 border-green-200', label: 'In Stock' };
+        if (available === 0) return { color: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800', label: 'Out of Stock' };
+        if (available < 10) return { color: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800', label: 'Low Stock' };
+        if (available < 50) return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800', label: 'Medium' };
+        return { color: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800', label: 'In Stock' };
     };
 
     return (
@@ -184,17 +184,17 @@ export default function LicenseKeyInventoryPage() {
                     <div className="flex items-center gap-2 text-muted-foreground text-sm"><Key className="h-4 w-4" />Total Keys</div>
                     <p className="text-2xl font-bold mt-1">{totals.total.toLocaleString()}</p>
                 </div>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-green-700 text-sm"><CheckCircle className="h-4 w-4" />Available</div>
-                    <p className="text-2xl font-bold mt-1 text-green-800">{totals.available.toLocaleString()}</p>
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-green-700 dark:text-green-400 text-sm"><CheckCircle className="h-4 w-4" />Available</div>
+                    <p className="text-2xl font-bold mt-1 text-green-800 dark:text-green-300">{totals.available.toLocaleString()}</p>
                 </div>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-orange-700 text-sm"><AlertTriangle className="h-4 w-4" />Low Stock FSNs</div>
-                    <p className="text-2xl font-bold mt-1 text-orange-800">{lowStockCount}</p>
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-orange-700 dark:text-orange-400 text-sm"><AlertTriangle className="h-4 w-4" />Low Stock FSNs</div>
+                    <p className="text-2xl font-bold mt-1 text-orange-800 dark:text-orange-300">{lowStockCount}</p>
                 </div>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-red-700 text-sm"><AlertTriangle className="h-4 w-4" />Out of Stock</div>
-                    <p className="text-2xl font-bold mt-1 text-red-800">{outOfStockCount}</p>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-red-700 dark:text-red-400 text-sm"><AlertTriangle className="h-4 w-4" />Out of Stock</div>
+                    <p className="text-2xl font-bold mt-1 text-red-800 dark:text-red-300">{outOfStockCount}</p>
                 </div>
             </div>
 
@@ -216,7 +216,7 @@ export default function LicenseKeyInventoryPage() {
             </div>
 
             {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-800 dark:text-red-300">
                     <p className="font-medium">Error loading data</p>
                     <p className="text-sm">{error}</p>
                 </div>
@@ -230,73 +230,113 @@ export default function LicenseKeyInventoryPage() {
                         <p className="mt-2 text-muted-foreground">Loading inventory data...</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-muted/50">
-                                <tr>
-                                    <th className="px-4 py-3 text-left">
-                                        <button onClick={() => handleSort('fsn')} className="flex items-center gap-1 text-sm font-medium hover:text-primary">
-                                            FSN <ArrowUpDown className="h-3 w-3" />
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium">Product</th>
-                                    <th className="px-4 py-3 text-center">
-                                        <button onClick={() => handleSort('total')} className="flex items-center gap-1 text-sm font-medium hover:text-primary mx-auto">
-                                            Total <ArrowUpDown className="h-3 w-3" />
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-3 text-center">
-                                        <button onClick={() => handleSort('available')} className="flex items-center gap-1 text-sm font-medium hover:text-primary mx-auto">
-                                            Available <ArrowUpDown className="h-3 w-3" />
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-3 text-center">
-                                        <button onClick={() => handleSort('redeemed')} className="flex items-center gap-1 text-sm font-medium hover:text-primary mx-auto">
-                                            Redeemed <ArrowUpDown className="h-3 w-3" />
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-3 text-center text-sm font-medium">Status</th>
-                                    <th className="px-4 py-3 text-center text-sm font-medium">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                                {filteredAndSortedData.map((item) => {
-                                    const status = getStockStatus(item.available);
-                                    return (
-                                        <tr key={item.fsn} className="hover:bg-muted/30">
-                                            <td className="px-4 py-3 font-mono text-sm font-medium">{item.fsn}</td>
-                                            <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">{item.productTitle}</td>
-                                            <td className="px-4 py-3 text-center text-sm font-medium">{item.total.toLocaleString()}</td>
-                                            <td className="px-4 py-3 text-center">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${item.available === 0 ? 'bg-red-100 text-red-800' :
-                                                    item.available < 10 ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'
-                                                    }`}>
-                                                    {item.available.toLocaleString()}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-center text-sm text-muted-foreground">{item.redeemed.toLocaleString()}</td>
-                                            <td className="px-4 py-3 text-center">
-                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${status.color}`}>
-                                                    {status.label}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
-                                                <Link href={`/admin/amazon/keys?fsn=${encodeURIComponent(item.fsn)}`} className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                                                    View <ExternalLink className="h-3 w-3" />
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                    <>
+                        {/* Mobile Card View */}
+                        <div className="lg:hidden divide-y">
+                            {filteredAndSortedData.map((item) => {
+                                const status = getStockStatus(item.available);
+                                return (
+                                    <div key={item.fsn} className="p-4 space-y-3">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-mono text-sm font-medium truncate">{item.fsn}</p>
+                                                <p className="text-xs text-muted-foreground truncate">{item.productTitle}</p>
+                                            </div>
+                                            <span className={`ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border shrink-0 ${status.color}`}>
+                                                {status.label}
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                                            <div className="bg-muted/30 rounded-lg p-2">
+                                                <p className="font-bold">{item.total}</p>
+                                                <p className="text-xs text-muted-foreground">Total</p>
+                                            </div>
+                                            <div className={`rounded-lg p-2 ${item.available === 0 ? 'bg-red-100 dark:bg-red-900/30' : item.available < 10 ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
+                                                <p className={`font-bold ${item.available === 0 ? 'text-red-700 dark:text-red-400' : item.available < 10 ? 'text-orange-700 dark:text-orange-400' : 'text-green-700 dark:text-green-400'}`}>{item.available}</p>
+                                                <p className="text-xs text-muted-foreground">Available</p>
+                                            </div>
+                                            <div className="bg-muted/30 rounded-lg p-2">
+                                                <p className="font-bold">{item.redeemed}</p>
+                                                <p className="text-xs text-muted-foreground">Redeemed</p>
+                                            </div>
+                                        </div>
+                                        <Link href={`/admin/amazon/keys?fsn=${encodeURIComponent(item.fsn)}`} className="flex items-center justify-center gap-1 text-sm text-primary hover:underline">
+                                            View Keys <ExternalLink className="h-3 w-3" />
+                                        </Link>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <div className="hidden lg:block overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-muted/50">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left">
+                                            <button onClick={() => handleSort('fsn')} className="flex items-center gap-1 text-sm font-medium hover:text-primary">
+                                                FSN <ArrowUpDown className="h-3 w-3" />
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium">Product</th>
+                                        <th className="px-4 py-3 text-center">
+                                            <button onClick={() => handleSort('total')} className="flex items-center gap-1 text-sm font-medium hover:text-primary mx-auto">
+                                                Total <ArrowUpDown className="h-3 w-3" />
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-center">
+                                            <button onClick={() => handleSort('available')} className="flex items-center gap-1 text-sm font-medium hover:text-primary mx-auto">
+                                                Available <ArrowUpDown className="h-3 w-3" />
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-center">
+                                            <button onClick={() => handleSort('redeemed')} className="flex items-center gap-1 text-sm font-medium hover:text-primary mx-auto">
+                                                Redeemed <ArrowUpDown className="h-3 w-3" />
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-center text-sm font-medium">Status</th>
+                                        <th className="px-4 py-3 text-center text-sm font-medium">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y">
+                                    {filteredAndSortedData.map((item) => {
+                                        const status = getStockStatus(item.available);
+                                        return (
+                                            <tr key={item.fsn} className="hover:bg-muted/30">
+                                                <td className="px-4 py-3 font-mono text-sm font-medium">{item.fsn}</td>
+                                                <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">{item.productTitle}</td>
+                                                <td className="px-4 py-3 text-center text-sm font-medium">{item.total.toLocaleString()}</td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${item.available === 0 ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                                                        item.available < 10 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                        }`}>
+                                                        {item.available.toLocaleString()}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-center text-sm text-muted-foreground">{item.redeemed.toLocaleString()}</td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${status.color}`}>
+                                                        {status.label}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <Link href={`/admin/amazon/keys?fsn=${encodeURIComponent(item.fsn)}`} className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                                                        View <ExternalLink className="h-3 w-3" />
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
 
                         {filteredAndSortedData.length === 0 && (
                             <div className="p-8 text-center text-muted-foreground">
                                 {searchQuery ? 'No FSNs match your search' : 'No license keys found'}
                             </div>
                         )}
-                    </div>
+                    </>
                 )}
             </div>
         </div>

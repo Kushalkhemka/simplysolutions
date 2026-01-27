@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Save, Loader2 } from 'lucide-react';
+import { Settings, Save, Loader2, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { AdminPushToggle } from '@/components/admin/AdminPushToggle';
 
 export default function AdminSettingsPage() {
     const [isSaving, setIsSaving] = useState(false);
@@ -58,6 +59,24 @@ export default function AdminSettingsPage() {
                             value={settings.siteDescription}
                             onChange={(e) => setSettings({ ...settings, siteDescription: e.target.value })}
                         />
+                    </div>
+                </div>
+
+                {/* Notification Settings */}
+                <div className="bg-card border rounded-lg p-6 space-y-4">
+                    <h2 className="font-semibold flex items-center gap-2">
+                        <Bell className="h-4 w-4" />
+                        Push Notifications
+                    </h2>
+
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-medium text-sm">Admin Notifications</p>
+                            <p className="text-xs text-muted-foreground">
+                                Receive alerts for new orders, replacement requests, and low inventory
+                            </p>
+                        </div>
+                        <AdminPushToggle />
                     </div>
                 </div>
 

@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { InstallAppPrompt } from "@/components/pwa/InstallAppPrompt";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -185,6 +186,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
           <Toaster />
+          <InstallAppPrompt />
         </ThemeProvider>
       </body>
     </html>

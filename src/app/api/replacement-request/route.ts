@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { notifyAdminReplacementRequest } from '@/lib/push/admin-notifications';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -109,6 +110,11 @@ export async function POST(request: NextRequest) {
                 { status: 500 }
             );
         }
+
+        // Notify admins of new replacement request (async, don't block response)
+        notifyAdminReplacementRequest(orderId, customerEmail, order.fsn).catch(err =>
+            console.error('Failed to send admin notification:', err)
+        );
 
         return NextResponse.json({
             success: true,

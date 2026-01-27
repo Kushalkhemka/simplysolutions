@@ -5,6 +5,7 @@ import {
     sendWarrantyRejectionEmail,
     sendWarrantyResubmissionEmail
 } from '@/lib/emails/warranty-emails';
+import { notifyWarrantyStatus } from '@/lib/push/customer-notifications';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -114,6 +115,13 @@ export async function PATCH(
                 });
             }
 
+            // Send push notification
+            try {
+                await notifyWarrantyStatus(warranty.order_id, 'approved', productName);
+            } catch (pushError) {
+                console.error('Failed to send warranty approval push:', pushError);
+            }
+
         } else if (action === 'reject') {
             updateData.status = 'REJECTED';
             updateData.rejection_reason = adminNotes || 'Could not verify warranty';
@@ -126,6 +134,13 @@ export async function PATCH(
                     productName,
                     adminNotes
                 });
+            }
+
+            // Send push notification
+            try {
+                await notifyWarrantyStatus(warranty.order_id, 'rejected', productName);
+            } catch (pushError) {
+                console.error('Failed to send warranty rejection push:', pushError);
             }
 
         } else if (action === 'resubmit') {

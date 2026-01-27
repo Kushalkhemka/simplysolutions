@@ -62,11 +62,34 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, ...updates } = body;
+
+        // Extract only the fields that exist in the database table
+        const {
+            id,
+            is_active,
+            duration_hours,
+            discount_value,
+            max_discount_cap,
+            special_price,
+            title,
+            description,
+            product_id
+        } = body;
 
         if (!id) {
             return errorResponse('Offer template ID is required', 400);
         }
+
+        // Only include valid database fields
+        const updates: Record<string, unknown> = {};
+        if (is_active !== undefined) updates.is_active = is_active;
+        if (duration_hours !== undefined) updates.duration_hours = duration_hours;
+        if (discount_value !== undefined) updates.discount_value = discount_value;
+        if (max_discount_cap !== undefined) updates.max_discount_cap = max_discount_cap;
+        if (special_price !== undefined) updates.special_price = special_price;
+        if (title !== undefined) updates.title = title;
+        if (description !== undefined) updates.description = description;
+        if (product_id !== undefined) updates.product_id = product_id;
 
         const { data, error } = await supabase
             .from('welcome_offer_templates')
@@ -75,7 +98,10 @@ export async function PUT(request: NextRequest) {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Database update error:', error);
+            throw error;
+        }
 
         return successResponse({ template: data });
     } catch (error) {

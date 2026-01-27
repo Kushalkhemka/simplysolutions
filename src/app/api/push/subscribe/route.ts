@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
                 endpoint: subscription.endpoint,
                 keys: subscription.keys,
                 is_active: true,
+                is_admin_subscriber: subscription.isAdminSubscriber || false,
                 user_agent: request.headers.get('user-agent') || null,
                 updated_at: new Date().toISOString(),
             }, {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { notifyReplacementRequestStatus } from '@/lib/push/customer-notifications';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -146,6 +147,17 @@ export async function PATCH(
                 }
             }
 
+            // Send push notification to customer
+            try {
+                await notifyReplacementRequestStatus(
+                    replacementRequest.order_id,
+                    'approved',
+                    replacementRequest.fsn || 'your product'
+                );
+            } catch (pushError) {
+                console.error('Failed to send approval push notification:', pushError);
+            }
+
             return NextResponse.json({
                 success: true,
                 message: 'Replacement request approved successfully',
@@ -212,6 +224,17 @@ export async function PATCH(
                     console.error('Failed to send rejection email:', emailError);
                     // Don't fail the request if email fails
                 }
+            }
+
+            // Send push notification to customer
+            try {
+                await notifyReplacementRequestStatus(
+                    replacementRequest.order_id,
+                    'rejected',
+                    replacementRequest.fsn || 'your product'
+                );
+            } catch (pushError) {
+                console.error('Failed to send rejection push notification:', pushError);
             }
 
             return NextResponse.json({

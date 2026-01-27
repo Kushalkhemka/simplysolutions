@@ -239,10 +239,10 @@ export default function FraudManagementClient() {
 
     const getReasonBadge = (reason: string | null) => {
         const colors: Record<string, string> = {
-            refund_after_redeem: 'bg-red-100 text-red-800',
-            return_request: 'bg-orange-100 text-orange-800',
-            suspicious_activity: 'bg-yellow-100 text-yellow-800',
-            chargeback: 'bg-purple-100 text-purple-800',
+            refund_after_redeem: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+            return_request: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+            suspicious_activity: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+            chargeback: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
         };
         const labels: Record<string, string> = {
             refund_after_redeem: 'Refund After Use',
@@ -251,7 +251,7 @@ export default function FraudManagementClient() {
             chargeback: 'Chargeback',
         };
         return (
-            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${colors[reason || ''] || 'bg-gray-100 text-gray-800'}`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${colors[reason || ''] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}>
                 <AlertTriangle className="h-3 w-3" />
                 {labels[reason || ''] || reason || 'Unknown'}
             </span>
@@ -279,13 +279,13 @@ export default function FraudManagementClient() {
 
             {/* Tabs */}
             <div className="grid grid-cols-2 gap-4">
-                <button onClick={() => setActiveTab('orders')} className={`bg-red-50 border border-red-200 rounded-lg p-4 text-left transition-all ${activeTab === 'orders' ? 'ring-2 ring-red-400' : 'hover:ring-2 hover:ring-red-400'}`}>
-                    <p className="text-2xl font-bold text-red-800">{totalCount}</p>
-                    <p className="text-sm text-red-600">Fraud Orders</p>
+                <button onClick={() => setActiveTab('orders')} className={`bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-left transition-all ${activeTab === 'orders' ? 'ring-2 ring-red-400' : 'hover:ring-2 hover:ring-red-400'}`}>
+                    <p className="text-2xl font-bold text-red-800 dark:text-red-400">{totalCount}</p>
+                    <p className="text-sm text-red-600 dark:text-red-500">Fraud Orders</p>
                 </button>
-                <button onClick={() => setActiveTab('ips')} className={`bg-gray-50 border border-gray-200 rounded-lg p-4 text-left transition-all ${activeTab === 'ips' ? 'ring-2 ring-gray-400' : 'hover:ring-2 hover:ring-gray-400'}`}>
-                    <p className="text-2xl font-bold text-gray-800">{blockedIPs.length}</p>
-                    <p className="text-sm text-gray-600">Blocked IPs</p>
+                <button onClick={() => setActiveTab('ips')} className={`bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-left transition-all ${activeTab === 'ips' ? 'ring-2 ring-gray-400' : 'hover:ring-2 hover:ring-gray-400'}`}>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-gray-200">{blockedIPs.length}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Blocked IPs</p>
                 </button>
             </div>
 
@@ -305,7 +305,7 @@ export default function FraudManagementClient() {
                         ) : (
                             <>
                                 <table className="w-full">
-                                    <thead className="bg-red-50">
+                                    <thead className="bg-red-50 dark:bg-red-900/20">
                                         <tr>
                                             <th className="px-4 py-3 text-left text-sm font-medium">Order ID</th>
                                             <th className="px-4 py-3 text-left text-sm font-medium">Product</th>
@@ -317,7 +317,7 @@ export default function FraudManagementClient() {
                                     </thead>
                                     <tbody className="divide-y">
                                         {fraudOrders.map((o) => (
-                                            <tr key={o.id} className="hover:bg-red-50/50">
+                                            <tr key={o.id} className="hover:bg-red-50/50 dark:hover:bg-red-900/10">
                                                 <td className="px-4 py-3 font-mono text-sm">{o.order_id}</td>
                                                 <td className="px-4 py-3">
                                                     <p className="text-sm font-medium">{o.fsn || '-'}</p>
@@ -355,7 +355,7 @@ export default function FraudManagementClient() {
             ) : (
                 <div className="bg-card border rounded-lg overflow-hidden">
                     <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gray-50 dark:bg-gray-800/50">
                             <tr>
                                 <th className="px-4 py-3 text-left text-sm font-medium">IP Address</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Reason</th>
@@ -370,7 +370,7 @@ export default function FraudManagementClient() {
                                     <td className="px-4 py-3 text-sm">{ip.reason || '-'}</td>
                                     <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(ip.blocked_at)}</td>
                                     <td className="px-4 py-3">
-                                        <button onClick={() => handleUnblockIP(ip)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">Unblock</button>
+                                        <button onClick={() => handleUnblockIP(ip)} className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded hover:bg-green-200 dark:hover:bg-green-900/50">Unblock</button>
                                     </td>
                                 </tr>
                             ))}
@@ -385,9 +385,9 @@ export default function FraudManagementClient() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/50" onClick={() => setShowAddModal(false)} />
                     <div className="relative bg-card border rounded-xl shadow-xl w-full max-w-md m-4">
-                        <div className="border-b px-6 py-4 flex items-center justify-between bg-red-50">
-                            <h2 className="text-xl font-bold text-red-800">Mark as Fraud</h2>
-                            <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-red-100 rounded-full"><X className="h-5 w-5" /></button>
+                        <div className="border-b px-6 py-4 flex items-center justify-between bg-red-50 dark:bg-red-900/20 rounded-t-xl">
+                            <h2 className="text-xl font-bold text-red-800 dark:text-red-400">Mark as Fraud</h2>
+                            <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full"><X className="h-5 w-5" /></button>
                         </div>
                         <form onSubmit={handleAddFraud} className="p-6 space-y-4">
                             <div>
