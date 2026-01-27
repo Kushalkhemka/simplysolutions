@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         // Search in amazon_orders by order_id (works for both secret codes and amazon order IDs)
         const result = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status')
+            .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status, customer_email')
             .eq('order_id', cleanCode)
             .single();
         const order = result.data;
@@ -96,12 +96,16 @@ export async function POST(request: NextRequest) {
             }
 
             const orderIsCombo = order.fsn ? isComboProduct(order.fsn) : false;
+            // Check if order already has a valid non-marketplace email
+            const hasValidEmail = order.customer_email &&
+                !order.customer_email.includes('@marketplace.amazon');
             return NextResponse.json({
                 success: true,
                 alreadyRedeemed: true,
                 isCombo: orderIsCombo,
                 comboFsn: orderIsCombo ? order.fsn : undefined,
                 orderQuantity,
+                hasValidEmail,
                 licenses
             });
         }
@@ -197,6 +201,9 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        // Check if order already has a valid non-marketplace email
+        const hasValidEmail = order.customer_email &&
+            !order.customer_email.includes('@marketplace.amazon');
         return NextResponse.json({
             success: true,
             alreadyRedeemed: false,
@@ -204,6 +211,7 @@ export async function POST(request: NextRequest) {
             comboFsn: isCombo ? fsn : undefined, // Original combo FSN for installation guide
             orderQuantity,
             fulfillmentType: order.fulfillment_type,
+            hasValidEmail,
             licenses
         });
 

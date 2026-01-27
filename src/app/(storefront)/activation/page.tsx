@@ -28,6 +28,7 @@ interface ActivationResult {
     licenseKey: string;
     productInfo: ProductInfo;
     alreadyRedeemed?: boolean;
+    hasValidEmail?: boolean;
 }
 
 export default function FBAActivatePage() {
@@ -451,35 +452,38 @@ export default function FBAActivatePage() {
                                         )}
                                     </div>
 
-                                    {/* Email Capture for Updates */}
-                                    <div className="mt-4 p-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-lg">
-                                        <label className="block text-sm font-medium text-[#0369A1] mb-2">
-                                            📧 Enter your email for installation help (optional)
-                                        </label>
-                                        <input
-                                            type="email"
-                                            placeholder="your.email@example.com"
-                                            className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
-                                            onBlur={async (e) => {
-                                                const email = e.target.value.trim();
-                                                if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                                                    try {
-                                                        await fetch('/api/activate/save-email', {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify({ orderId: orderId.trim(), email }),
-                                                        });
-                                                        toast.success('Email saved!');
-                                                    } catch (err) {
-                                                        console.error('Error saving email:', err);
+                                    {/* Email Capture for Updates - only show if no valid email stored */}
+                                    {!activationResult.hasValidEmail && (
+                                        <div className="mt-4 p-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-lg">
+                                            <label className="block text-sm font-medium text-[#0369A1] mb-2">
+                                                📧 Enter your email for installation help (optional)
+                                            </label>
+                                            <input
+                                                type="email"
+                                                placeholder="your.email@example.com"
+                                                className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
+                                                onBlur={async (e) => {
+                                                    const email = e.target.value.trim();
+                                                    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                                                        try {
+                                                            await fetch('/api/activate/save-email', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ orderId: orderId.trim(), email }),
+                                                            });
+                                                            toast.success('Email saved!');
+                                                        } catch (err) {
+                                                            console.error('Error saving email:', err);
+                                                        }
                                                     }
-                                                }
-                                            }}
-                                        />
-                                        <p className="text-xs text-[#64748B] mt-1">We&apos;ll send helpful activation tips</p>
-                                    </div>
+                                                }}
+                                            />
+                                            <p className="text-xs text-[#64748B] mt-1">We&apos;ll send helpful activation tips</p>
+                                        </div>
+                                    )}
 
                                     {/* Phone Activation Section */}
+
 
                                     <div ref={installationRef} className="pt-6 mt-6 border-t border-[#DDD]">
                                         <div className="flex items-center justify-between mb-3">
