@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink, Clock, Search, BookOpen } from 'lucide-react';
+import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink, Clock, Search, BookOpen, Mail, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
 
@@ -17,6 +17,7 @@ function Enterprise365Content() {
     const searchParams = useSearchParams();
     const [orderId, setOrderId] = useState('');
     const [email, setEmail] = useState('');
+    const [confirmEmail, setConfirmEmail] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -89,13 +90,18 @@ function Enterprise365Content() {
         e.preventDefault();
         setError(null);
 
-        if (!orderId.trim() || !email.trim() || !displayName.trim()) {
-            setError('Please fill in Order ID, Display Name, and Email');
+        if (!orderId.trim() || !email.trim() || !confirmEmail.trim() || !displayName.trim()) {
+            setError('Please fill in Order ID, Display Name, and both Email fields');
             return;
         }
 
         if (!/\S+@\S+\.\S+/.test(email)) {
             setError('Please enter a valid email address');
+            return;
+        }
+
+        if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+            setError('Email addresses do not match. Please check and try again.');
             return;
         }
 
@@ -284,17 +290,52 @@ function Enterprise365Content() {
                                 <CheckCircle className="w-6 h-6" />
                                 <div>
                                     <p className="font-bold">Request Submitted!</p>
-                                    <p className="text-sm opacity-90">We&apos;ll process within 24 hours</p>
+                                    <p className="text-sm opacity-90">We&apos;ll process within 24-48 working hours</p>
                                 </div>
                             </div>
 
-                            <div className="p-6">
-                                <p className="text-[#565959] mb-4">
+                            <div className="p-6 space-y-4">
+                                <p className="text-[#565959]">
                                     Your Microsoft 365 account will be created and credentials sent to:
                                 </p>
-                                <div className="p-3 bg-[#FCF5EE] border border-[#FF9900] rounded mb-4">
+                                <div className="p-3 bg-[#FCF5EE] border border-[#FF9900] rounded">
                                     <p className="font-bold text-[#0F1111]">{email}</p>
                                     {phoneNumber && <p className="text-sm text-[#565959]">WhatsApp: {phoneNumber}</p>}
+                                </div>
+
+                                {/* Highlighted Come Back Warning Box */}
+                                <div className="bg-[#FFF4E5] border-2 border-[#FF9900] rounded-lg p-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-10 h-10 bg-[#FF9900] rounded-full flex items-center justify-center flex-shrink-0">
+                                            <RefreshCw className="w-5 h-5 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-[#0F1111] text-base mb-2">
+                                                Important: Come Back to Check Your Request
+                                            </p>
+                                            <ul className="text-sm text-[#0F1111] space-y-2">
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-[#FF9900] font-bold">•</span>
+                                                    <span>Please <strong className="text-[#CC0C39]">come back to this page (/365enterprise)</strong> after <strong>24-48 working hours</strong> to check your request status</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-[#FF9900] font-bold">•</span>
+                                                    <span>Enter your <strong>Order ID / Secret Code</strong> to retrieve your credentials once ready</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-[#FF9900] font-bold">•</span>
+                                                    <span><strong className="text-[#CC0C39]">Check your Spam/Junk folder</strong> - Our emails sometimes land there</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Bookmark Reminder */}
+                                <div className="bg-[#E7F4E4] border border-[#067D62] rounded-lg p-3 text-center">
+                                    <p className="text-sm text-[#067D62] font-medium">
+                                        Bookmark this page: <strong className="text-[#0F1111]">simplysolutions.co.in/365enterprise</strong>
+                                    </p>
                                 </div>
 
                                 <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
@@ -496,16 +537,50 @@ function Enterprise365Content() {
                                     <label className="block text-sm font-bold text-[#0F1111] mb-2">
                                         PERSONAL EMAIL *
                                     </label>
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="johndoe@gmail.com"
-                                        className="w-full px-4 py-3 border border-[#888C8C] rounded text-base text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] placeholder:text-[#6B7280]"
-                                    />
+                                    <div className="flex">
+                                        <div className="bg-[#F0F2F2] border border-r-0 border-[#888C8C] rounded-l px-3 flex items-center">
+                                            <Mail className="w-5 h-5 text-[#FF9900]" />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="johndoe@gmail.com"
+                                            className="flex-1 px-4 py-3 border border-[#888C8C] rounded-r text-base text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] placeholder:text-[#6B7280]"
+                                        />
+                                    </div>
                                     <p className="text-xs text-[#CC0C39] mt-1">
-                                        <span className="font-bold">*Note:</span> Password with Login ID will be sent to this mail
+                                        <span className="font-bold">*Note:</span> Password with Login ID will be sent to this email
                                     </p>
+                                </div>
+
+                                {/* Confirm Email */}
+                                <div>
+                                    <label className="block text-sm font-bold text-[#0F1111] mb-2">
+                                        CONFIRM EMAIL *
+                                    </label>
+                                    <div className="flex">
+                                        <div className={`border border-r-0 rounded-l px-3 flex items-center ${confirmEmail && email.trim().toLowerCase() === confirmEmail.trim().toLowerCase() ? 'bg-[#E7F4E4] border-[#067D62]' : 'bg-[#F0F2F2] border-[#888C8C]'}`}>
+                                            <Mail className={`w-5 h-5 ${confirmEmail && email.trim().toLowerCase() === confirmEmail.trim().toLowerCase() ? 'text-[#067D62]' : 'text-[#FF9900]'}`} />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            value={confirmEmail}
+                                            onChange={(e) => setConfirmEmail(e.target.value)}
+                                            placeholder="Re-enter your email"
+                                            className={`flex-1 px-4 py-3 border rounded-r text-base text-[#0F1111] bg-white focus:outline-none focus:ring-2 placeholder:text-[#6B7280] ${confirmEmail && email.trim().toLowerCase() === confirmEmail.trim().toLowerCase() ? 'border-[#067D62] focus:ring-[#067D62] focus:border-[#067D62]' : 'border-[#888C8C] focus:ring-[#FF9900] focus:border-[#FF9900]'}`}
+                                        />
+                                    </div>
+                                    {confirmEmail && email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase() && (
+                                        <p className="text-xs text-[#CC0C39] mt-1 font-medium">
+                                            Email addresses do not match
+                                        </p>
+                                    )}
+                                    {confirmEmail && email.trim().toLowerCase() === confirmEmail.trim().toLowerCase() && (
+                                        <p className="text-xs text-[#067D62] mt-1 font-medium flex items-center gap-1">
+                                            <CheckCircle className="w-3 h-3" /> Email addresses match
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* WhatsApp Number */}
@@ -534,7 +609,7 @@ function Enterprise365Content() {
                                 {/* Submit Button - Amazon Yellow */}
                                 <button
                                     type="submit"
-                                    disabled={isLoading || !orderId.trim() || !displayName.trim() || !email.trim()}
+                                    disabled={isLoading || !orderId.trim() || !displayName.trim() || !email.trim() || !confirmEmail.trim() || email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()}
                                     className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isLoading ? (

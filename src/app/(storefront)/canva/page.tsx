@@ -10,6 +10,7 @@ function CanvaContent() {
     const searchParams = useSearchParams();
     const [orderId, setOrderId] = useState('');
     const [email, setEmail] = useState('');
+    const [confirmEmail, setConfirmEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -26,13 +27,18 @@ function CanvaContent() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!orderId.trim() || !email.trim()) {
-            toast.error('Please fill in all fields');
+        if (!orderId.trim() || !email.trim() || !confirmEmail.trim()) {
+            toast.error('Please fill in all required fields');
             return;
         }
 
         if (!/\S+@\S+\.\S+/.test(email)) {
             toast.error('Please enter a valid email address');
+            return;
+        }
+
+        if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+            toast.error('Email addresses do not match. Please check and try again.');
             return;
         }
 
@@ -117,8 +123,32 @@ function CanvaContent() {
                                         <p className="font-bold text-[#0F1111] mt-1">{email}</p>
                                     </div>
 
+                                    {/* Highlighted Warning Box */}
+                                    <div className="bg-[#FFF4E5] border-2 border-[#FF9900] rounded-lg p-4 mb-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-8 h-8 bg-[#FF9900] rounded-full flex items-center justify-center flex-shrink-0">
+                                                <Mail className="w-4 h-4 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-[#0F1111] text-base mb-2">
+                                                    Important: Check Your Email
+                                                </p>
+                                                <ul className="text-sm text-[#0F1111] space-y-2">
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-[#FF9900] font-bold">•</span>
+                                                        <span><strong className="text-[#CC0C39]">Check your Spam/Junk folder</strong> - Our emails sometimes land there</span>
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-[#FF9900] font-bold">•</span>
+                                                        <span>You will receive an email <strong>within the next 24 working hours</strong> for the update on this request</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <p className="text-sm text-[#565959]">
-                                        Please check your email (including spam folder) within 24 hours for your Canva Pro subscription details.
+                                        If you don&apos;t receive an email within 24 working hours, please contact us on WhatsApp.
                                     </p>
                                 </div>
                             </div>
@@ -251,6 +281,35 @@ function CanvaContent() {
                                     </p>
                                 </div>
 
+                                {/* Confirm Email Input */}
+                                <div>
+                                    <label className="block text-sm font-bold text-[#0F1111] mb-2">
+                                        CONFIRM EMAIL ADDRESS
+                                    </label>
+                                    <div className="flex">
+                                        <div className={`border border-r-0 rounded-l px-3 flex items-center ${confirmEmail && email.trim().toLowerCase() === confirmEmail.trim().toLowerCase() ? 'bg-[#E7F4E4] border-[#067D62]' : 'bg-[#F0F2F2] border-[#888C8C]'}`}>
+                                            <Mail className={`w-5 h-5 ${confirmEmail && email.trim().toLowerCase() === confirmEmail.trim().toLowerCase() ? 'text-[#067D62]' : 'text-[#FF9900]'}`} />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            value={confirmEmail}
+                                            onChange={(e) => setConfirmEmail(e.target.value)}
+                                            placeholder="Re-enter your email"
+                                            className={`flex-1 px-4 py-3 border rounded-r text-base text-[#0F1111] bg-white focus:outline-none focus:ring-2 placeholder:text-[#6B7280] ${confirmEmail && email.trim().toLowerCase() === confirmEmail.trim().toLowerCase() ? 'border-[#067D62] focus:ring-[#067D62] focus:border-[#067D62]' : 'border-[#888C8C] focus:ring-[#FF9900] focus:border-[#FF9900]'}`}
+                                        />
+                                    </div>
+                                    {confirmEmail && email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase() && (
+                                        <p className="text-xs text-[#CC0C39] mt-1 font-medium">
+                                            Email addresses do not match
+                                        </p>
+                                    )}
+                                    {confirmEmail && email.trim().toLowerCase() === confirmEmail.trim().toLowerCase() && (
+                                        <p className="text-xs text-[#067D62] mt-1 font-medium flex items-center gap-1">
+                                            <CheckCircle className="w-3 h-3" /> Email addresses match
+                                        </p>
+                                    )}
+                                </div>
+
                                 {/* WhatsApp Phone Input */}
                                 <div>
                                     <label className="block text-sm font-bold text-[#0F1111] mb-2">
@@ -277,7 +336,7 @@ function CanvaContent() {
                                 {/* Submit Button */}
                                 <button
                                     type="submit"
-                                    disabled={isLoading || !orderId.trim() || !email.trim()}
+                                    disabled={isLoading || !orderId.trim() || !email.trim() || !confirmEmail.trim() || email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()}
                                     className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] disabled:from-[#E7E9EC] disabled:to-[#D5D9D9] text-[#0F1111] disabled:text-[#565959] font-bold rounded-lg border border-[#FCD200] disabled:border-[#D5D9D9] shadow-sm transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {isLoading ? (
