@@ -57,6 +57,11 @@ export async function GET(request: NextRequest) {
                 continue;
             }
 
+            // Skip warranty-registered orders - already captured review during warranty process
+            if (order.warranty_status && order.warranty_status !== 'none') {
+                continue;
+            }
+
             try {
 
                 // Send review request email
