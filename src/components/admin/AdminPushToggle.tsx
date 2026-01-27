@@ -73,7 +73,7 @@ export function AdminPushToggle() {
         setIsLoading(true);
 
         try {
-            // Request notification permission
+            // Request notification permission first
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
                 toast.error('Notification permission denied');
@@ -83,6 +83,11 @@ export function AdminPushToggle() {
 
             // Get VAPID public key
             const vapidRes = await fetch('/api/push/vapid-key');
+            if (!vapidRes.ok) {
+                toast.error('Failed to get push configuration');
+                setIsLoading(false);
+                return;
+            }
             const { publicKey } = await vapidRes.json();
 
             if (!publicKey) {
@@ -91,8 +96,34 @@ export function AdminPushToggle() {
                 return;
             }
 
+            // Ensure service worker is registered first (important for mobile)
+            let registration: ServiceWorkerRegistration;
+            try {
+                // First try to get existing registration
+                registration = await navigator.serviceWorker.getRegistration('/') as ServiceWorkerRegistration;
+
+                if (!registration) {
+                    // Register if not found
+                    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                }
+
+                // Wait for the service worker to be ready with timeout
+                const timeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Service worker timeout')), 10000)
+                );
+
+                await Promise.race([
+                    navigator.serviceWorker.ready,
+                    timeoutPromise
+                ]);
+            } catch (swError) {
+                console.error('Service worker error:', swError);
+                toast.error('Service worker not available. Try refreshing the page.');
+                setIsLoading(false);
+                return;
+            }
+
             // Subscribe to push
-            const registration = await navigator.serviceWorker.ready;
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(publicKey),
@@ -124,7 +155,16 @@ export function AdminPushToggle() {
         setIsLoading(true);
 
         try {
-            const registration = await navigator.serviceWorker.ready;
+            // Add timeout for service worker ready
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Service worker timeout')), 10000)
+            );
+
+            const registration = await Promise.race([
+                navigator.serviceWorker.ready,
+                timeoutPromise
+            ]) as ServiceWorkerRegistration;
+
             const subscription = await registration.pushManager.getSubscription();
 
             if (subscription) {
