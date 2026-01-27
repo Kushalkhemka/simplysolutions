@@ -189,6 +189,20 @@ export async function POST(request: NextRequest) {
         let subscriptionInfo = null;
         const fsnUpper = order.fsn?.toUpperCase() || '';
 
+        // Fetch installation doc for subscription products from products_data
+        let subscriptionInstallDoc: string | null = null;
+        if (fsnUpper.startsWith('AUTOCAD') || fsnUpper.startsWith('CANVA') || fsnUpper.startsWith('365E5') || fsnUpper.startsWith('365E')) {
+            const { data: subProductData } = await supabase
+                .from('products_data')
+                .select('installation_doc')
+                .eq('fsn', order.fsn)
+                .single();
+
+            if (subProductData?.installation_doc) {
+                subscriptionInstallDoc = `https://simplysolutions.co.in/installation-docs/${subProductData.installation_doc}`;
+            }
+        }
+
         if (fsnUpper.startsWith('AUTOCAD') || fsnUpper.startsWith('CANVA')) {
             // Check product_requests table for AutoCAD/Canva
             const { data: productRequest } = await supabase
@@ -199,9 +213,6 @@ export async function POST(request: NextRequest) {
 
             if (productRequest) {
                 const productType = fsnUpper.startsWith('AUTOCAD') ? 'AutoCAD' : 'Canva Pro';
-                const installGuideUrl = fsnUpper.startsWith('AUTOCAD')
-                    ? 'https://simplysolutions.co.in/installation-docs/autocad'
-                    : 'https://simplysolutions.co.in/installation-docs/canva';
 
                 subscriptionInfo = {
                     isSubscription: true,
@@ -210,7 +221,7 @@ export async function POST(request: NextRequest) {
                     customerEmail: productRequest.email,
                     requestedAt: productRequest.created_at,
                     completedAt: productRequest.completed_at || null,
-                    installationGuideUrl: installGuideUrl,
+                    installationGuideUrl: subscriptionInstallDoc,
                     message: productRequest.is_completed
                         ? `${productType} has been added to customer email: ${productRequest.email}. Customer should follow the installation guide.`
                         : `${productType} request is PENDING. Customer should wait for email notification.`
@@ -251,7 +262,7 @@ export async function POST(request: NextRequest) {
                         username: office365Request.generated_email,
                         password: office365Request.generated_password
                     } : null,
-                    installationGuideUrl: 'https://simplysolutions.co.in/installation-docs/office365',
+                    installationGuideUrl: subscriptionInstallDoc,
                     message: office365Request.is_completed
                         ? `Microsoft 365 account created! Username: ${office365Request.generated_email}, Password: ${office365Request.generated_password}`
                         : 'Microsoft 365 request is PENDING. Account will be created within 24-48 working hours.'
@@ -272,6 +283,7 @@ export async function POST(request: NextRequest) {
                         status: legacyRequest.is_completed ? 'COMPLETED' : 'PENDING',
                         customerEmail: legacyRequest.email,
                         requestedAt: legacyRequest.created_at,
+                        installationGuideUrl: subscriptionInstallDoc,
                         message: legacyRequest.is_completed
                             ? 'Request completed. Customer should check email for credentials.'
                             : 'Microsoft 365 request is PENDING. Account will be created within 24-48 working hours.'
