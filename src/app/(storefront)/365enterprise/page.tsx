@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink, Clock, Search, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
+import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
 
 interface CompletedRequest {
     generatedEmail: string;
@@ -259,6 +260,8 @@ function Enterprise365Content() {
     if (isSubmitted) {
         return (
             <div className="min-h-screen bg-[#EAEDED]">
+                {/* Push notification prompt */}
+                <CustomerPushAutoPrompt orderId={orderId} requestType="product_request" />
                 <div className="bg-[#067D62] text-white py-3 px-4">
                     <div className="container-dense flex items-center justify-center gap-2 text-sm font-medium">
                         <CheckCircle className="w-5 h-5" />

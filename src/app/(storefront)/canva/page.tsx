@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Mail, Send, CheckCircle, Loader2, ShoppingCart, HelpCircle, Palette, Phone } from 'lucide-react';
 import { toast } from 'sonner';
+import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
 
 function CanvaContent() {
     const searchParams = useSearchParams();
@@ -68,6 +69,8 @@ function CanvaContent() {
     if (isSubmitted) {
         return (
             <div className="min-h-screen bg-[#EAEDED]">
+                {/* Push notification prompt */}
+                <CustomerPushAutoPrompt orderId={orderId} requestType="product_request" />
                 {/* Success Banner */}
                 <div className="bg-[#067D62] text-white py-3 px-4">
                     <div className="container-dense flex items-center justify-center gap-2 text-sm font-medium">
