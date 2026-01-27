@@ -99,7 +99,7 @@ export async function notifyReplacementRequestStatus(
     status: 'approved' | 'rejected',
     productName?: string
 ) {
-    const title = status === 'approved' ? '✅ Replacement Approved!' : '❌ Replacement Update';
+    const title = status === 'approved' ? 'Replacement Approved' : 'Replacement Update';
     const body = status === 'approved'
         ? `Your replacement for ${productName || 'your order'} has been approved. Check your email for the new activation key.`
         : `Your replacement request for ${productName || 'your order'} requires attention. Please check your email.`;
@@ -126,15 +126,15 @@ export async function notifyProductRequestStatus(
 
     switch (status) {
         case 'approved':
-            title = '✅ Request Approved!';
+            title = 'Request Approved';
             body = `Your request for ${productName || 'your product'} has been approved.`;
             break;
         case 'fulfilled':
-            title = '🎉 Order Fulfilled!';
+            title = 'Order Fulfilled';
             body = `Your ${productName || 'product'} is ready! Check ${customerEmail ? `your email at ${customerEmail}` : 'your email'} for details.`;
             break;
         case 'rejected':
-            title = '❌ Request Update';
+            title = 'Request Update';
             body = `Your request for ${productName || 'your product'} requires attention.`;
             break;
     }
@@ -155,7 +155,7 @@ export async function notifyWarrantyStatus(
     status: 'approved' | 'rejected',
     productName?: string
 ) {
-    const title = status === 'approved' ? '✅ Warranty Registered!' : '❌ Warranty Update';
+    const title = status === 'approved' ? 'Warranty Registered' : 'Warranty Update';
     const body = status === 'approved'
         ? `Your warranty for ${productName || 'your product'} has been registered successfully.`
         : `Your warranty registration for ${productName || 'your product'} requires attention.`;
@@ -177,7 +177,7 @@ export async function notify365E5Fulfilled(
     generatedEmail: string,
     generatedPassword: string
 ) {
-    const title = '🎉 Your Microsoft 365 is Ready!';
+    const title = 'Your Microsoft 365 is Ready';
     const body = `Login: ${generatedEmail} | Password: ${generatedPassword}. Details sent to ${customerEmail} (check spam folder too!)`;
 
     await sendCustomerNotification(orderId, {
