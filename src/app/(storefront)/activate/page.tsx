@@ -57,6 +57,7 @@ interface ActivationResult {
     windowsInstallType?: 'upgrade' | 'fresh' | null;
     isSubscription?: boolean;
     subscriptionConfig?: any;
+    hasValidEmail?: boolean;
 }
 
 function ActivatePageContent() {
@@ -927,13 +928,45 @@ function ActivatePageContent() {
                                             {(!replacementStatus?.found || replacementStatus.status === 'REJECTED') && (
                                                 <>
                                                     {!showReplacementForm ? (
-                                                        <button
-                                                            onClick={() => setShowReplacementForm(true)}
-                                                            className="w-full py-2 text-sm text-[#007185] hover:text-[#C7511F] hover:underline transition-colors flex items-center justify-center gap-2"
-                                                        >
-                                                            <RefreshCw className="w-4 h-4" />
-                                                            Received a faulty license key? Request Replacement
-                                                        </button>
+                                                        <>
+                                                            <button
+                                                                onClick={() => setShowReplacementForm(true)}
+                                                                className="w-full py-2 text-sm text-[#007185] hover:text-[#C7511F] hover:underline transition-colors flex items-center justify-center gap-2"
+                                                            >
+                                                                <RefreshCw className="w-4 h-4" />
+                                                                Received a faulty license key? Request Replacement
+                                                            </button>
+
+                                                            {/* Email Capture for Updates - only show if no valid email stored */}
+                                                            {!activationResult.hasValidEmail && (
+                                                                <div className="mt-3 p-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-lg">
+                                                                    <label className="block text-sm font-medium text-[#0369A1] mb-2">
+                                                                        📧 Enter your email for installation help (optional)
+                                                                    </label>
+                                                                    <input
+                                                                        type="email"
+                                                                        placeholder="your.email@example.com"
+                                                                        className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
+                                                                        onBlur={async (e) => {
+                                                                            const email = e.target.value.trim();
+                                                                            if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                                                                                try {
+                                                                                    await fetch('/api/activate/save-email', {
+                                                                                        method: 'POST',
+                                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                                        body: JSON.stringify({ orderId: secretCode.trim(), email }),
+                                                                                    });
+                                                                                    toast.success('Email saved!');
+                                                                                } catch (err) {
+                                                                                    console.error('Error saving email:', err);
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <p className="text-xs text-[#64748B] mt-1">We&apos;ll send helpful activation tips</p>
+                                                                </div>
+                                                            )}
+                                                        </>
                                                     ) : (
                                                         <div className="bg-[#FFFBEB] border border-[#FCD34D] rounded-lg p-4">
                                                             <div className="flex items-center justify-between mb-3">
