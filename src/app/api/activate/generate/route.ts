@@ -42,13 +42,23 @@ export async function POST(request: NextRequest) {
         // Search in amazon_orders by order_id (works for both secret codes and amazon order IDs)
         const result = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status, customer_email')
+            .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status, contact_email')
             .eq('order_id', cleanCode)
-            .single();
-        const order = result.data;
-        const orderError = result.error;
+            .maybeSingle();
 
-        if (orderError || !order) {
+        let order = result.data;
+
+        // Fallback: try case-insensitive search if exact match fails
+        if (!order) {
+            const fallbackResult = await supabase
+                .from('amazon_orders')
+                .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status, contact_email')
+                .ilike('order_id', cleanCode)
+                .maybeSingle();
+            order = fallbackResult.data;
+        }
+
+        if (!order) {
             return NextResponse.json({
                 success: false,
                 error: isAmazonOrderId ? 'Amazon Order ID not found' : 'Secret code not found'
@@ -97,8 +107,8 @@ export async function POST(request: NextRequest) {
 
             const orderIsCombo = order.fsn ? isComboProduct(order.fsn) : false;
             // Check if order already has a valid non-marketplace email
-            const hasValidEmail = order.customer_email &&
-                !order.customer_email.includes('@marketplace.amazon');
+            const hasValidEmail = order.contact_email &&
+                !order.contact_email.includes('@marketplace.amazon');
             return NextResponse.json({
                 success: true,
                 alreadyRedeemed: true,
@@ -202,8 +212,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if order already has a valid non-marketplace email
-        const hasValidEmail = order.customer_email &&
-            !order.customer_email.includes('@marketplace.amazon');
+        const hasValidEmail = order.contact_email &&
+            !order.contact_email.includes('@marketplace.amazon');
         return NextResponse.json({
             success: true,
             alreadyRedeemed: false,

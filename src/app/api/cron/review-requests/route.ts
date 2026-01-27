@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
             .gte('activated_at', startOfDay.toISOString())
             .lt('activated_at', endOfDay.toISOString())
             .is('review_email_sent_at', null)
-            .not('customer_email', 'is', null);
+            .not('contact_email', 'is', null);
 
         if (error) {
             console.error('Error fetching orders for review emails:', error);
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
         for (const order of orders) {
             // Skip Amazon marketplace relay emails - cannot send to these
-            if (order.customer_email?.includes('@marketplace.amazon')) {
+            if (order.contact_email?.includes('@marketplace.amazon')) {
                 continue;
             }
 
@@ -66,8 +66,8 @@ export async function GET(request: NextRequest) {
 
                 // Send review request email
                 const result = await sendReviewRequestEmail({
-                    to: order.customer_email,
-                    customerName: order.customer_name || order.customer_email.split('@')[0],
+                    to: order.contact_email,
+                    customerName: order.contact_name || order.contact_email.split('@')[0],
                     orderId: order.order_id,
                     productName: order.product_name || 'your product',
                 });

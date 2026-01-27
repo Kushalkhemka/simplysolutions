@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
         const { error } = await supabase
             .from('amazon_orders')
             .update({
-                customer_email: email.toLowerCase().trim(),
-                customer_name: email.split('@')[0], // Use email prefix as name
+                contact_email: email.toLowerCase().trim(),
+                contact_name: email.split('@')[0], // Use email prefix as name
             })
             .eq('order_id', orderId.trim());
 

@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
         // Get all unique customer emails with their last order date
         const { data: customers, error } = await adminClient
             .from('amazon_orders')
-            .select('customer_email, customer_name, created_at')
-            .not('customer_email', 'is', null)
+            .select('contact_email, contact_name, created_at')
+            .not('contact_email', 'is', null)
             .lt('created_at', thirtyDaysAgo.toISOString())
             .order('created_at', { ascending: false });
 
@@ -56,17 +56,17 @@ export async function GET(request: NextRequest) {
         const customerMap = new Map<string, { email: string; name: string; lastOrderDate: Date }>();
 
         for (const order of customers) {
-            if (!order.customer_email) continue;
+            if (!order.contact_email) continue;
             // Skip Amazon marketplace relay emails - cannot send to these
-            if (order.customer_email.includes('@marketplace.amazon')) continue;
+            if (order.contact_email.includes('@marketplace.amazon')) continue;
 
-            const existing = customerMap.get(order.customer_email);
+            const existing = customerMap.get(order.contact_email);
             const orderDate = new Date(order.created_at);
 
             if (!existing || orderDate > existing.lastOrderDate) {
-                customerMap.set(order.customer_email, {
-                    email: order.customer_email,
-                    name: order.customer_name || order.customer_email.split('@')[0],
+                customerMap.set(order.contact_email, {
+                    email: order.contact_email,
+                    name: order.contact_name || order.contact_email.split('@')[0],
                     lastOrderDate: orderDate,
                 });
             }
@@ -75,11 +75,11 @@ export async function GET(request: NextRequest) {
         // Check which customers have recent orders (exclude them)
         const { data: recentOrders } = await adminClient
             .from('amazon_orders')
-            .select('customer_email')
+            .select('contact_email')
             .gte('created_at', thirtyDaysAgo.toISOString())
-            .not('customer_email', 'is', null);
+            .not('contact_email', 'is', null);
 
-        const recentCustomers = new Set(recentOrders?.map(o => o.customer_email) || []);
+        const recentCustomers = new Set(recentOrders?.map(o => o.contact_email) || []);
 
         // Check which customers received re-engagement email in last 30 days
         const { data: recentEmails } = await adminClient
