@@ -122,6 +122,11 @@ function ActivatePageContent() {
     const captureEmailRef = useRef<HTMLInputElement>(null);
     const [emailSaved, setEmailSaved] = useState(false);
 
+    // Preactivated product countdown state
+    const [showPreactivatedCountdown, setShowPreactivatedCountdown] = useState(false);
+    const [countdownSeconds, setCountdownSeconds] = useState(5);
+    const [preactivatedFsn, setPreactivatedFsn] = useState<string | null>(null);
+
     // Check for existing replacement request when order is verified
     const checkReplacementStatus = async (orderId: string) => {
         try {
@@ -234,6 +239,26 @@ function ActivatePageContent() {
                 if (fsnUpper.startsWith('365E5') || fsnUpper.startsWith('365E')) {
                     toast.info('Redirecting to Microsoft 365 Enterprise activation page...');
                     router.push(`/365enterprise?orderId=${encodeURIComponent(secretCode.trim())}`);
+                    return;
+                }
+
+                // Handle OFFICE2024-MAC - preactivated product, show countdown and redirect to guide
+                if (fsnUpper === 'OFFICE2024-MAC') {
+                    setPreactivatedFsn(fsnUpper);
+                    setShowPreactivatedCountdown(true);
+                    setIsLoading(false);
+
+                    // Start countdown
+                    let seconds = 5;
+                    setCountdownSeconds(seconds);
+                    const countdownInterval = setInterval(() => {
+                        seconds--;
+                        setCountdownSeconds(seconds);
+                        if (seconds <= 0) {
+                            clearInterval(countdownInterval);
+                            router.push('/installation-docs/office2024mac');
+                        }
+                    }, 1000);
                     return;
                 }
             }
@@ -547,6 +572,61 @@ function ActivatePageContent() {
                     </p>
                 </div>
             </div>
+
+            {/* Preactivated Product Countdown Overlay */}
+            {showPreactivatedCountdown && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-[#0078D4] to-[#00BCF2] text-white px-6 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="w-7 h-7" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold">Product Verified!</h2>
+                                    <p className="text-sm opacity-90">Microsoft Office 2024 for Mac</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 text-center">
+                            <div className="mb-6">
+                                <div className="w-20 h-20 mx-auto bg-[#E7F4E4] rounded-full flex items-center justify-center mb-4">
+                                    <CheckCircle className="w-10 h-10 text-[#067D62]" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-[#0F1111] mb-2">
+                                    PREACTIVATED Product
+                                </h3>
+                                <p className="text-[#565959]">
+                                    No license key required! This product comes preactivated.
+                                </p>
+                            </div>
+
+                            {/* Countdown */}
+                            <div className="bg-[#FCF5EE] border-2 border-[#FF9900] rounded-xl p-6 mb-6">
+                                <p className="text-sm text-[#565959] mb-2">Follow the Installation Guide</p>
+                                <p className="text-lg font-bold text-[#0F1111] mb-4">
+                                    Redirecting in...
+                                </p>
+                                <div className="text-6xl font-bold text-[#FF9900] mb-2">
+                                    {countdownSeconds}
+                                </div>
+                                <p className="text-sm text-[#565959]">seconds</p>
+                            </div>
+
+                            {/* Skip Button */}
+                            <button
+                                onClick={() => router.push('/installation-docs/office2024mac')}
+                                className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all"
+                            >
+                                Go to Installation Guide Now →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Main Content */}
             <div className="container-dense py-8 md:py-12">

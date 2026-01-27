@@ -216,6 +216,7 @@ export async function POST(request: NextRequest) {
             // Order Status
             status: {
                 isRedeemed: !!licenseInfo,
+                isPreactivated: order.fsn?.toUpperCase() === 'OFFICE2024-MAC',
                 hasFraudFlag: order.is_fraud || false,
                 fraudReason: order.fraud_reason || null,
                 isReturned: order.is_returned || false,
@@ -273,7 +274,15 @@ export async function POST(request: NextRequest) {
             },
 
             // Suggested Actions for AI
-            suggestedActions: getSuggestedActions(order, licenseInfo, replacementInfo)
+            suggestedActions: getSuggestedActions(order, licenseInfo, replacementInfo),
+
+            // Special handling for preactivated products
+            preactivatedProduct: order.fsn?.toUpperCase() === 'OFFICE2024-MAC' ? {
+                isPreactivated: true,
+                noKeyRequired: true,
+                message: 'This is a PREACTIVATED product. No license key is needed. Customer should follow the installation guide.',
+                installationGuideUrl: 'https://simplysolutions.co.in/installation-docs/office2024mac'
+            } : null
         });
 
     } catch (error) {
@@ -349,6 +358,12 @@ function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any)
 
     if (!order.fsn) {
         actions.push('[WARNING] Product FSN not mapped. May need manual verification.');
+    }
+
+    // Special handling for preactivated products
+    if (order.fsn?.toUpperCase() === 'OFFICE2024-MAC') {
+        actions.push('[PREACTIVATED] This is Office 2024 Mac - PREACTIVATED product. NO LICENSE KEY NEEDED.');
+        actions.push('[ACTION] Customer should follow installation guide at: https://simplysolutions.co.in/installation-docs/office2024mac');
     }
 
     return actions;
