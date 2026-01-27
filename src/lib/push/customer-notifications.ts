@@ -167,3 +167,23 @@ export async function notifyWarrantyStatus(
         tag: `warranty-${orderId}`,
     });
 }
+
+/**
+ * Notify customer when 365 E5 account is fulfilled with credentials
+ */
+export async function notify365E5Fulfilled(
+    orderId: string,
+    customerEmail: string,
+    generatedEmail: string,
+    generatedPassword: string
+) {
+    const title = '🎉 Your Microsoft 365 is Ready!';
+    const body = `Login: ${generatedEmail} | Password: ${generatedPassword}. Details sent to ${customerEmail} (check spam folder too!)`;
+
+    await sendCustomerNotification(orderId, {
+        title,
+        body,
+        url: '/activate',
+        tag: `365e5-${orderId}`,
+    });
+}

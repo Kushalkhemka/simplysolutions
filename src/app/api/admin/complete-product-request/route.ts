@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendSubscriptionEmail, send365EnterpriseEmail } from '@/lib/email';
 import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
-import { notifyProductRequestStatus } from '@/lib/push/customer-notifications';
+import { notifyProductRequestStatus, notify365E5Fulfilled } from '@/lib/push/customer-notifications';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -146,13 +146,13 @@ export async function POST(request: NextRequest) {
                 });
             }
 
-            // Send push notification to customer
+            // Send push notification to customer with credentials
             try {
-                await notifyProductRequestStatus(
+                await notify365E5Fulfilled(
                     productRequest.order_id || requestId,
-                    'fulfilled',
-                    'Microsoft 365 Enterprise',
-                    productRequest.email
+                    productRequest.email,
+                    generatedEmail.trim(),
+                    generatedPassword.trim()
                 );
             } catch (pushError) {
                 console.error('Failed to send push notification:', pushError);
