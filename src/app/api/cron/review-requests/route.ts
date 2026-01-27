@@ -52,7 +52,13 @@ export async function GET(request: NextRequest) {
         const errors: string[] = [];
 
         for (const order of orders) {
+            // Skip Amazon marketplace relay emails - cannot send to these
+            if (order.customer_email?.includes('@marketplace.amazon')) {
+                continue;
+            }
+
             try {
+
                 // Send review request email
                 const result = await sendReviewRequestEmail({
                     to: order.customer_email,

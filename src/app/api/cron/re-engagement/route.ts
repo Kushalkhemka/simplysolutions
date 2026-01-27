@@ -57,6 +57,8 @@ export async function GET(request: NextRequest) {
 
         for (const order of customers) {
             if (!order.customer_email) continue;
+            // Skip Amazon marketplace relay emails - cannot send to these
+            if (order.customer_email.includes('@marketplace.amazon')) continue;
 
             const existing = customerMap.get(order.customer_email);
             const orderDate = new Date(order.created_at);
