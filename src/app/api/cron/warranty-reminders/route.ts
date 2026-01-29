@@ -59,6 +59,11 @@ export async function GET(request: NextRequest) {
             }
 
             try {
+                // Add delay between emails to respect Resend rate limit (2 requests/second)
+                if (sentCount > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                }
+
                 const result = await sendWarrantyResubmissionReminder({
                     to: warranty.customer_email,
                     customerName: warranty.customer_email.split('@')[0],

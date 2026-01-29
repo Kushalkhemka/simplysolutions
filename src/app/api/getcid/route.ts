@@ -198,13 +198,15 @@ export async function POST(request: NextRequest) {
             await incrementTokenUsage(tokenInfo.token);
 
             const newCount = currentUses + 1;
-            // Update order getcid usage
+            // Update order getcid usage AND store the installation/confirmation IDs
             await supabase
                 .from('amazon_orders')
                 .update({
                     getcid_count: newCount,
                     getcid_used: newCount >= maxUses,
-                    getcid_used_at: new Date().toISOString()
+                    getcid_used_at: new Date().toISOString(),
+                    installation_id: cleanIid,
+                    confirmation_id: trimmedResponse
                 })
                 .eq('order_id', cleanIdentifier);
 
