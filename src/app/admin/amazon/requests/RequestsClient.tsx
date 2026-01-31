@@ -163,8 +163,8 @@ Username - ${request.username_prefix || '-'}`;
             return `Product Name - AUTOCAD ${duration}
 Email - ${request.email || '-'}`;
         } else if (requestType === 'canva') {
-            return `Product Name - CANVA
-Email - ${request.email || '-'}`;
+            // For Canva, only copy the email
+            return request.email || '';
         } else {
             return `Product Type - ${request.request_type?.toUpperCase() || 'OTHER'}
 Email - ${request.email || '-'}`;
