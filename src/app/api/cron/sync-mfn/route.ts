@@ -158,7 +158,15 @@ export async function GET(request: NextRequest) {
 
         // Prepare orders with ALL fields
         const ordersToInsert = [];
+        const seenOrderIds = new Set<string>();
+
         for (const order of newOrders) {
+            // Skip duplicates within the same batch
+            if (seenOrderIds.has(order.AmazonOrderId)) {
+                continue;
+            }
+            seenOrderIds.add(order.AmazonOrderId);
+
             const items = await fetchOrderItems(accessToken, order.AmazonOrderId);
             const firstItem = items[0];
             const asin = firstItem?.ASIN;
@@ -190,7 +198,13 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        const { error } = await supabase.from('amazon_orders').insert(ordersToInsert);
+        // Use upsert to handle race conditions - if order already exists, just update synced_at
+        const { error } = await supabase
+            .from('amazon_orders')
+            .upsert(ordersToInsert, {
+                onConflict: 'order_id',
+                ignoreDuplicates: true  // Skip updates for existing records
+            });
 
         if (error) {
             return NextResponse.json({
