@@ -154,6 +154,9 @@ export async function PATCH(
             updateData.status = 'NEEDS_RESUBMISSION';
             updateData.missing_seller_feedback = missingSeller || false;
             updateData.missing_product_review = missingReview || false;
+            // Reset reminder count for fresh reminder cycle
+            updateData.reminder_count = 0;
+            updateData.last_reminder_sent_at = null;
 
             // Keep existing screenshots - they will be overwritten when customer uploads new ones
             // Don't delete them immediately so admin can still review them if needed

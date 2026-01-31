@@ -1052,7 +1052,7 @@ export async function sendReEngagementEmail(data: ReEngagementEmailData) {
   }
 }
 
-// Warranty Resubmission Reminder Email - sent daily to customers who need to resubmit screenshots
+// Warranty Resubmission Reminder Email - sent every 2 days to customers who need to resubmit screenshots
 export interface WarrantyReminderEmailData {
   to: string;
   customerName: string;
@@ -1060,6 +1060,8 @@ export interface WarrantyReminderEmailData {
   productName?: string;
   missingSeller: boolean;
   missingReview: boolean;
+  reminderNumber?: number;  // Which reminder this is (1, 2, or 3)
+  maxReminders?: number;    // Maximum reminders to send (default 3)
 }
 
 export async function sendWarrantyResubmissionReminder(data: WarrantyReminderEmailData) {
@@ -1071,6 +1073,49 @@ export async function sendWarrantyResubmissionReminder(data: WarrantyReminderEma
   if (data.missingReview) missingItems.push('Product Review Screenshot');
 
   const missingList = missingItems.map(item => `<li style="margin: 4px 0;">${item}</li>`).join('');
+
+  // Determine urgency level based on reminder number
+  const reminderNumber = data.reminderNumber || 1;
+  const maxReminders = data.maxReminders || 3;
+  const isLastReminder = reminderNumber >= maxReminders;
+
+  // Urgency banner and subject line based on reminder number
+  let urgencyBanner = '';
+  let subjectLine = `⏰ Action Required: Complete your warranty for order ${data.orderId}`;
+
+  if (reminderNumber === 1) {
+    urgencyBanner = `
+      <div style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); border: 1px solid #F59E0B; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <p style="margin: 0; font-weight: 600; color: #92400E;">
+          ⏰ Reminder: Complete Your Warranty Registration
+        </p>
+      </div>
+    `;
+  } else if (reminderNumber === 2) {
+    urgencyBanner = `
+      <div style="background: linear-gradient(135deg, #FED7AA, #FDBA74); border: 1px solid #EA580C; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <p style="margin: 0; font-weight: 600; color: #9A3412;">
+          ⚠️ Second Reminder: Don't Miss Your Lifetime Warranty!
+        </p>
+        <p style="margin: 8px 0 0; font-size: 13px; color: #C2410C;">
+          This is reminder ${reminderNumber} of ${maxReminders}
+        </p>
+      </div>
+    `;
+    subjectLine = `⚠️ Second Reminder: Complete warranty for order ${data.orderId}`;
+  } else {
+    urgencyBanner = `
+      <div style="background: linear-gradient(135deg, #FECACA, #FCA5A5); border: 2px solid #DC2626; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <p style="margin: 0; font-weight: 700; color: #991B1B;">
+          🚨 FINAL REMINDER: Last Chance for Your Lifetime Warranty!
+        </p>
+        <p style="margin: 8px 0 0; font-size: 13px; color: #B91C1C;">
+          This is your final reminder. No more reminders will be sent.
+        </p>
+      </div>
+    `;
+    subjectLine = `🚨 FINAL REMINDER: Complete warranty for order ${data.orderId}`;
+  }
 
   const html = `
     <!DOCTYPE html>
@@ -1089,12 +1134,8 @@ export async function sendWarrantyResubmissionReminder(data: WarrantyReminderEma
         <!-- Main Card -->
         <div style="background-color: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
           
-          <!-- Alert Banner -->
-          <div style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); border: 1px solid #F59E0B; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-            <p style="margin: 0; font-weight: 600; color: #92400E;">
-              ⏰ Action Required: Complete Your Warranty Registration
-            </p>
-          </div>
+          <!-- Dynamic Alert Banner based on reminder number -->
+          ${urgencyBanner}
 
           <h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #1e293b;">
             Hi ${data.customerName},
@@ -1151,7 +1192,7 @@ export async function sendWarrantyResubmissionReminder(data: WarrantyReminderEma
     const { data: result, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
       to: data.to,
-      subject: `⏰ Action Required: Complete your warranty for order ${data.orderId}`,
+      subject: subjectLine,
       html,
     });
 
