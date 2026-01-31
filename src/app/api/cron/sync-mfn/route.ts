@@ -82,11 +82,17 @@ async function fetchMFNOrders(accessToken: string, createdAfter: string): Promis
 }
 
 async function fetchOrderItems(accessToken: string, orderId: string): Promise<any[]> {
+    // Add rate limiting delay to prevent throttling
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     const url = `${SP_API_CONFIG.endpoint}/orders/v0/orders/${orderId}/orderItems`;
     const response = await fetch(url, {
         headers: { 'x-amz-access-token': accessToken }
     });
-    if (!response.ok) return [];
+    if (!response.ok) {
+        console.error(`Failed to fetch order items for ${orderId}: ${response.status}`);
+        return [];
+    }
     const data = await response.json();
     return data.payload?.OrderItems || [];
 }
@@ -126,20 +132,27 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Check existing orders
+        // Check existing orders - get those with null FSN so we can update them
         const orderIds = orders.map((o: any) => o.AmazonOrderId);
         const { data: existingOrders } = await supabase
             .from('amazon_orders')
-            .select('order_id')
+            .select('order_id, fsn')
             .in('order_id', orderIds);
 
-        const existingSet = new Set((existingOrders || []).map((o: any) => o.order_id));
-        const newOrders = orders.filter((o: any) => !existingSet.has(o.AmazonOrderId));
+        // Create a map of existing orders with their FSN status
+        const existingOrdersMap = new Map((existingOrders || []).map((o: any) => [o.order_id, o.fsn]));
 
-        if (newOrders.length === 0) {
+        // Process orders that are new OR have null FSN (need FSN update)
+        const ordersToProcess = orders.filter((o: any) => {
+            const existingFsn = existingOrdersMap.get(o.AmazonOrderId);
+            // Include if: not exists, or exists but FSN is null
+            return existingFsn === undefined || existingFsn === null;
+        });
+
+        if (ordersToProcess.length === 0) {
             return NextResponse.json({
                 success: true,
-                message: 'All orders already synced',
+                message: 'All orders already synced with FSN',
                 ordersFound: orders.length,
                 ordersInserted: 0,
                 duration: `${Date.now() - startTime}ms`
@@ -159,8 +172,9 @@ export async function GET(request: NextRequest) {
         // Prepare orders with ALL fields
         const ordersToInsert = [];
         const seenOrderIds = new Set<string>();
+        const unmappedAsins = new Set<string>();
 
-        for (const order of newOrders) {
+        for (const order of ordersToProcess) {
             // Skip duplicates within the same batch
             if (seenOrderIds.has(order.AmazonOrderId)) {
                 continue;
@@ -170,15 +184,22 @@ export async function GET(request: NextRequest) {
             const items = await fetchOrderItems(accessToken, order.AmazonOrderId);
             const firstItem = items[0];
             const asin = firstItem?.ASIN;
+            const sellerSku = firstItem?.SellerSKU;
 
             // Use ASIN mapping to get FSN
             const mappedFSN = asin ? asinToFSN.get(asin) : null;
+
+            // Track unmapped ASINs for debugging
+            if (asin && !mappedFSN) {
+                unmappedAsins.add(asin);
+                console.log(`[sync-mfn] Unmapped ASIN: ${asin}, SellerSKU: ${sellerSku}, Order: ${order.AmazonOrderId}`);
+            }
 
             ordersToInsert.push({
                 order_id: order.AmazonOrderId,
                 fulfillment_type: 'amazon_mfn',
                 // Use FSN from ASIN mapping, fallback to SellerSKU only if no mapping exists
-                fsn: mappedFSN || firstItem?.SellerSKU || null,
+                fsn: mappedFSN || sellerSku || null,
                 // Order details
                 order_date: order.PurchaseDate || null,
                 order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
@@ -198,12 +219,17 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Use upsert to handle race conditions - if order already exists, just update synced_at
+        // Log summary of unmapped ASINs
+        if (unmappedAsins.size > 0) {
+            console.log(`[sync-mfn] Found ${unmappedAsins.size} unmapped ASINs:`, Array.from(unmappedAsins));
+        }
+
+        // Use upsert to handle race conditions and update existing orders with new FSN if available
         const { error } = await supabase
             .from('amazon_orders')
             .upsert(ordersToInsert, {
-                onConflict: 'order_id',
-                ignoreDuplicates: true  // Skip updates for existing records
+                onConflict: 'order_id'
+                // Don't use ignoreDuplicates - we want to update existing orders with correct FSN
             });
 
         if (error) {
@@ -219,6 +245,8 @@ export async function GET(request: NextRequest) {
             message: 'MFN orders synced successfully',
             ordersFound: orders.length,
             ordersInserted: ordersToInsert.length,
+            unmappedAsinCount: unmappedAsins.size,
+            unmappedAsins: Array.from(unmappedAsins),
             duration: `${Date.now() - startTime}ms`
         });
 
