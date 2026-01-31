@@ -110,11 +110,11 @@ export async function GET(request: NextRequest) {
 
         const accessToken = await getAccessToken();
 
-        // Fetch MFN orders from last 7 days
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        // Fetch MFN orders from last 2 days
+        const twoDaysAgo = new Date();
+        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-        const orders = await fetchMFNOrders(accessToken, sevenDaysAgo.toISOString());
+        const orders = await fetchMFNOrders(accessToken, twoDaysAgo.toISOString());
 
         if (orders.length === 0) {
             return NextResponse.json({
