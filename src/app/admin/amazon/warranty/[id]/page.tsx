@@ -435,6 +435,138 @@ export default function WarrantyReviewPage({ params }: { params: Promise<{ id: s
                 </div>
             )}
 
+            {/* Status Change Card - Show for REJECTED and VERIFIED statuses */}
+            {(warranty.status === 'REJECTED' || warranty.status === 'VERIFIED') && (
+                <div className="bg-card border rounded-xl p-6">
+                    <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                        {warranty.status === 'REJECTED' ? (
+                            <>
+                                <XCircle className="h-5 w-5 text-red-500" />
+                                Change Rejected Status
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle className="h-5 w-5 text-green-500" />
+                                Change Approved Status
+                            </>
+                        )}
+                    </h2>
+
+                    {warranty.status === 'REJECTED' && (
+                        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-800">
+                                <strong>Customer requested reconsideration?</strong> You can approve this warranty or request new screenshots from the customer.
+                            </p>
+                        </div>
+                    )}
+
+                    {warranty.status === 'VERIFIED' && (
+                        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-800">
+                                <strong>⚠️ Warning:</strong> This warranty has already been approved. Changing the status will revoke the warranty.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Admin Notes */}
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium mb-2">Admin Notes (for status change)</label>
+                        <textarea
+                            value={adminNotes}
+                            onChange={(e) => setAdminNotes(e.target.value)}
+                            placeholder="Add reason for status change..."
+                            className="w-full p-3 border rounded-lg bg-background resize-none"
+                            rows={3}
+                        />
+                    </div>
+
+                    {/* Missing Screenshot Checkboxes - For requesting resubmission */}
+                    {(warranty.status === 'REJECTED' || warranty.status === 'VERIFIED') && (
+                        <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                            <p className="font-medium text-orange-800 mb-3">
+                                {warranty.status === 'VERIFIED' ? 'Request New Screenshots (to revoke and request resubmission)' : 'Request New Screenshots'}
+                            </p>
+                            <p className="text-sm text-orange-700 mb-4">Select what the customer needs to resubmit:</p>
+                            <div className="flex flex-wrap gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={missingSeller}
+                                        onChange={(e) => setMissingSeller(e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                    />
+                                    <span className="text-sm text-orange-800">Seller Feedback Screenshot</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={missingReview}
+                                        onChange={(e) => setMissingReview(e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                    />
+                                    <span className="text-sm text-orange-800">Product Review Screenshot</span>
+                                </label>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-3">
+                        {warranty.status === 'REJECTED' && (
+                            <>
+                                <button
+                                    onClick={() => handleAction('approve')}
+                                    disabled={actionLoading}
+                                    className="flex-1 min-w-[150px] py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                                    Approve Warranty
+                                </button>
+
+                                {(missingSeller || missingReview) && (
+                                    <button
+                                        onClick={() => handleAction('resubmit')}
+                                        disabled={actionLoading}
+                                        className="flex-1 min-w-[150px] py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                        Request Resubmission
+                                    </button>
+                                )}
+                            </>
+                        )}
+
+                        {warranty.status === 'VERIFIED' && (
+                            <>
+                                <button
+                                    onClick={() => handleAction('resubmit')}
+                                    disabled={actionLoading || (!missingSeller && !missingReview)}
+                                    className="flex-1 min-w-[150px] py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                    Request Resubmission
+                                </button>
+
+                                <button
+                                    onClick={() => handleAction('reject')}
+                                    disabled={actionLoading}
+                                    className="flex-1 min-w-[150px] py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                                    Revoke / Reject
+                                </button>
+                            </>
+                        )}
+                    </div>
+
+                    {!warranty.customer_email && (
+                        <p className="mt-4 text-sm text-yellow-600 bg-yellow-50 p-3 rounded-lg">
+                            ⚠️ No customer email available. Customer will not receive email notifications.
+                        </p>
+                    )}
+                </div>
+            )}
+
             {/* Resend Email for NEEDS_RESUBMISSION */}
             {warranty.status === 'NEEDS_RESUBMISSION' && (
                 <div className="bg-card border rounded-xl p-6">
