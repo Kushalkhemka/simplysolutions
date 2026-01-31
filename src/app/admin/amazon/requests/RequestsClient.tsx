@@ -239,6 +239,15 @@ Email - ${request.email || '-'}`;
                 toast.error('Please enter generated email and password');
                 return;
             }
+            // Validate username prefix matches
+            if (selectedRequest.username_prefix) {
+                const emailPrefix = generatedEmail.split('@')[0].toLowerCase();
+                const expectedPrefix = selectedRequest.username_prefix.toLowerCase();
+                if (emailPrefix !== expectedPrefix) {
+                    toast.error(`Email prefix "${emailPrefix}" does not match requested username "${expectedPrefix}"`);
+                    return;
+                }
+            }
         }
 
         setIsCompleting(true);
@@ -754,19 +763,52 @@ Email - ${request.email || '-'}`;
                                         </div>
                                     </div>
 
+                                    {/* Requested Username Display */}
+                                    {selectedRequest.username_prefix && (
+                                        <div className="rounded-lg border border-purple-500/30 bg-purple-500/5 p-3">
+                                            <p className="text-xs text-purple-500 mb-1 font-medium">Customer Requested Username</p>
+                                            <code className="text-sm font-mono font-bold text-purple-700 dark:text-purple-300">
+                                                {selectedRequest.username_prefix}
+                                            </code>
+                                            <p className="text-xs text-purple-500/70 mt-1">
+                                                Generated email must start with this username
+                                            </p>
+                                        </div>
+                                    )}
+
                                     {/* Generated Email */}
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-foreground flex items-center gap-2">
                                             <User className="h-4 w-4 text-muted-foreground" />
-                                            Generated Email
+                                            Generated Email (User ID)
                                         </label>
                                         <input
                                             type="email"
                                             value={generatedEmail}
                                             onChange={(e) => setGeneratedEmail(e.target.value)}
-                                            className="w-full px-3 py-2.5 rounded-lg border border-border bg-muted/50 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none transition-colors font-mono text-sm"
-                                            placeholder="username@tenant.onmicrosoft.com"
+                                            className={`w-full px-3 py-2.5 rounded-lg border bg-muted/50 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none transition-colors font-mono text-sm ${generatedEmail && selectedRequest.username_prefix
+                                                ? generatedEmail.split('@')[0].toLowerCase() === selectedRequest.username_prefix.toLowerCase()
+                                                    ? 'border-green-500'
+                                                    : 'border-red-500'
+                                                : 'border-border'
+                                                }`}
+                                            placeholder={selectedRequest.username_prefix
+                                                ? `${selectedRequest.username_prefix}@tenant.onmicrosoft.com`
+                                                : 'username@tenant.onmicrosoft.com'
+                                            }
                                         />
+                                        {/* Validation indicator */}
+                                        {generatedEmail && selectedRequest.username_prefix && (
+                                            <p className={`text-xs flex items-center gap-1 ${generatedEmail.split('@')[0].toLowerCase() === selectedRequest.username_prefix.toLowerCase()
+                                                ? 'text-green-600'
+                                                : 'text-red-600'
+                                                }`}>
+                                                {generatedEmail.split('@')[0].toLowerCase() === selectedRequest.username_prefix.toLowerCase()
+                                                    ? <><CheckCircle className="h-3 w-3" /> Username matches requested prefix</>
+                                                    : <><AlertCircle className="h-3 w-3" /> Username does not match "{selectedRequest.username_prefix}"</>
+                                                }
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* Generated Password */}
