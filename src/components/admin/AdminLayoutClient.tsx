@@ -6,14 +6,13 @@ import { usePathname } from 'next/navigation';
 import {
     Menu, X, LogOut, LayoutDashboard, Package, ShoppingCart, Key,
     Users, Tag, BarChart3, Settings, ShoppingBag, Shield, Mail,
-    Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database, Sparkles, Bell
+    Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database, Sparkles, Bell, MessageSquareWarning
 } from 'lucide-react';
 
 const sidebarLinks = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Products', href: '/admin/products', icon: Package },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
-    { name: 'License Keys', href: '/admin/licenses', icon: Key },
     { name: 'Customers', href: '/admin/customers', icon: Users },
     { name: 'Coupons', href: '/admin/coupons', icon: Tag },
     { name: 'Welcome Offers', href: '/admin/welcome-offers', icon: Sparkles },
@@ -32,6 +31,7 @@ const amazonLinks = [
     { name: 'Activation Issues', href: '/admin/amazon/issues', icon: AlertTriangle },
     { name: 'Fraud Orders', href: '/admin/amazon/fraud', icon: ShieldX },
     { name: 'Warranty Claims', href: '/admin/amazon/warranty', icon: Shield },
+    { name: 'Feedback Appeals', href: '/admin/amazon/feedback-appeals', icon: MessageSquareWarning },
     { name: 'Product Requests', href: '/admin/amazon/requests', icon: Mail },
     { name: 'GetCID Test', href: '/admin/amazon/getcid', icon: Terminal },
     { name: 'GetCID Tokens', href: '/admin/amazon/getcid-tokens', icon: Database },
@@ -88,9 +88,8 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
 
             {/* Sidebar - Desktop & Mobile */}
             <aside className={`
-                fixed lg:sticky top-0 left-0 z-50 h-screen w-72 bg-card border-r shrink-0
+                fixed top-0 left-0 z-50 h-screen w-72 bg-card border-r shrink-0
                 transform transition-transform duration-300 ease-in-out
-                lg:transform-none
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}>
                 <div className="h-full flex flex-col">
@@ -104,7 +103,7 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
                     </div>
 
                     {/* Navigation */}
-                    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                    <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {sidebarLinks.map((link) => (
                             <Link
                                 key={link.href}
@@ -156,8 +155,8 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
                 </div>
             </aside>
 
-            {/* Main Content - Takes full width on mobile */}
-            <div className="flex-1 flex flex-col min-h-screen w-full lg:w-auto pt-[52px] lg:pt-0">
+            {/* Main Content - Takes full width on mobile, offset for fixed sidebar on desktop */}
+            <div className="flex-1 flex flex-col min-h-screen w-full lg:ml-72 pt-[52px] lg:pt-0">
                 {children}
             </div>
         </div>
