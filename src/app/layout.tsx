@@ -178,6 +178,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Preconnect to external domains for faster resource loading */}
+        <link rel="preconnect" href="https://qcsdnlakugvnwlflhwpo.supabase.co" />
+        <link rel="preconnect" href="https://api.simplysolutions.co.in" />
+        <link rel="dns-prefetch" href="https://m.media-amazon.com" />
+        <link rel="dns-prefetch" href="https://i.postimg.cc" />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
         <Script
           src="https://cdn.razorpay.com/widgets/affordability/affordability.js"
