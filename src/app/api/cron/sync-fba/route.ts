@@ -20,6 +20,7 @@ import {
     updateSyncStatus,
     SellerAccountWithCredentials
 } from '@/lib/amazon/seller-accounts';
+import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
 
 // India marketplace (A21TJRUUN4KGV) uses the EU region endpoint
 const SP_API_ENDPOINT = 'https://sellingpartnerapi-eu.amazon.com';
@@ -297,6 +298,7 @@ export async function GET(request: NextRequest) {
     }
 
     const startTime = Date.now();
+    const logId = await logCronStart('sync-fba');
 
     try {
         const supabase = createClient(
@@ -354,6 +356,8 @@ export async function GET(request: NextRequest) {
             }
         }
 
+        await logCronSuccess(logId, totalInserted + totalUpdated, { results });
+
         return NextResponse.json({
             success: true,
             message: 'FBA orders synced successfully',
@@ -366,6 +370,7 @@ export async function GET(request: NextRequest) {
 
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await logCronError(logId, errorMessage);
         return NextResponse.json({
             success: false,
             error: errorMessage,

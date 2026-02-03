@@ -7,7 +7,7 @@ import {
     Menu, X, LogOut, LayoutDashboard, Package, ShoppingCart, Key,
     Users, Tag, BarChart3, Settings, ShoppingBag, Shield, Mail,
     Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database, Sparkles, Bell, MessageSquareWarning,
-    Clock, FileCheck, Store
+    Clock, FileCheck, Store, Activity
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -18,6 +18,7 @@ const sidebarLinks = [
     { name: 'Coupons', href: '/admin/coupons', icon: Tag },
     { name: 'Welcome Offers', href: '/admin/welcome-offers', icon: Sparkles },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { name: 'Cron Dashboard', href: '/admin/cron-dashboard', icon: Activity },
     { name: 'Push Subscribers', href: '/admin/push-subscribers', icon: Bell },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];

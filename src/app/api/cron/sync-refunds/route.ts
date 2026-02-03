@@ -17,6 +17,7 @@ import {
     getActiveSellerAccounts,
     SellerAccountWithCredentials
 } from '@/lib/amazon/seller-accounts';
+import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
 
 // Coolify hosting - can use longer timeouts
 export const maxDuration = 900; // 15 minutes
@@ -181,6 +182,8 @@ async function syncRefundsForAccount(
 }
 
 export async function GET(request: NextRequest) {
+    const logId = await logCronStart('sync-refunds');
+
     try {
         // Verify cron secret for security
         const authHeader = request.headers.get('authorization');
@@ -244,11 +247,14 @@ export async function GET(request: NextRequest) {
 
         console.log('[sync-refunds] Completed:', JSON.stringify(summary));
 
+        await logCronSuccess(logId, totalOrdersUpdated, { results });
+
         return NextResponse.json(summary);
 
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('[sync-refunds] Error:', errorMessage);
+        await logCronError(logId, errorMessage);
         return NextResponse.json({
             error: errorMessage
         }, { status: 500 });

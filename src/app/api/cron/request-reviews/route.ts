@@ -16,6 +16,7 @@ import {
     getActiveSellerAccounts,
     SellerAccountWithCredentials
 } from '@/lib/amazon/seller-accounts';
+import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
 
 export const maxDuration = 300; // 5 minutes
 
@@ -158,6 +159,8 @@ async function requestReviewsForAccount(
 }
 
 export async function GET(request: NextRequest) {
+    const logId = await logCronStart('request-reviews');
+
     try {
         // Verify cron secret
         const authHeader = request.headers.get('authorization');
@@ -225,11 +228,14 @@ export async function GET(request: NextRequest) {
 
         console.log('[request-reviews] Completed:', summary);
 
+        await logCronSuccess(logId, totalProcessed, { results });
+
         return NextResponse.json(summary);
 
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('[request-reviews] Error:', errorMessage);
+        await logCronError(logId, errorMessage);
         return NextResponse.json({
             error: errorMessage
         }, { status: 500 });
