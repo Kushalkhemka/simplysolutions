@@ -71,7 +71,9 @@ async function fetchFBAOrders(accessToken: string, marketplaceId: string, create
         });
 
         if (!response.ok) {
-            throw new Error(`SP-API error: ${response.status}`);
+            const errorBody = await response.text();
+            console.error(`[sync-fba] SP-API error: ${response.status} - ${errorBody}`);
+            throw new Error(`SP-API error: ${response.status} - ${errorBody.substring(0, 200)}`);
         }
 
         const data = await response.json();
