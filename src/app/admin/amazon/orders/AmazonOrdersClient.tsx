@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2, Edit2, Save, Phone, Ban } from 'lucide-react';
+import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2, Edit2, Save, Phone, Ban, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { isComboProduct } from '@/lib/amazon/combo-products';
 
@@ -21,6 +21,7 @@ interface AmazonOrder {
     confirmation_id: string | null;
     product_title: string | null;
     license_key_id: string | null;
+    is_refunded: boolean | null;
     created_at: string;
     updated_at: string;
 }
@@ -76,6 +77,9 @@ export default function AmazonOrdersClient() {
 
     // Status update state
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+    // Refund toggle state
+    const [isTogglingRefund, setIsTogglingRefund] = useState(false);
 
     // Filter state
     const [filterFsn, setFilterFsn] = useState<string>('all');
@@ -397,6 +401,40 @@ export default function AmazonOrdersClient() {
             toast.error(error instanceof Error ? error.message : 'Failed to update status');
         } finally {
             setIsUpdatingStatus(false);
+        }
+    };
+
+    // Toggle refund status
+    const toggleRefundStatus = async (orderId: string, currentStatus: boolean) => {
+        setIsTogglingRefund(true);
+        try {
+            const response = await fetch('/api/admin/amazon-orders/refund', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, isRefunded: !currentStatus })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update refund status');
+            }
+
+            const newStatus = !currentStatus;
+
+            // Update local state
+            if (selectedOrder) {
+                setSelectedOrder({ ...selectedOrder, is_refunded: newStatus });
+            }
+            setOrders(prev => prev.map(o =>
+                o.order_id === orderId ? { ...o, is_refunded: newStatus } : o
+            ));
+
+            toast.success(newStatus ? 'Order marked as refunded' : 'Refund status removed');
+        } catch (error) {
+            console.error('Error toggling refund status:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to update refund status');
+        } finally {
+            setIsTogglingRefund(false);
         }
     };
 
@@ -1041,6 +1079,43 @@ export default function AmazonOrdersClient() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Refund Status - Only show for FBA orders */}
+                                {selectedOrder.fulfillment_type === 'amazon_fba' && (
+                                    <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border-l-4 border-l-orange-500">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-orange-100 rounded-lg">
+                                                <DollarSign className="h-5 w-5 text-orange-600" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground uppercase tracking-wide">Refund Status</p>
+                                                <p className="font-medium">
+                                                    {selectedOrder.is_refunded ? (
+                                                        <span className="text-red-600">⚠️ Order Refunded - Activation Blocked</span>
+                                                    ) : (
+                                                        <span className="text-green-600">✓ Not Refunded</span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => toggleRefundStatus(selectedOrder.order_id, selectedOrder.is_refunded || false)}
+                                            disabled={isTogglingRefund}
+                                            className={`px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${selectedOrder.is_refunded
+                                                    ? 'bg-green-600 text-white hover:bg-green-700'
+                                                    : 'bg-red-600 text-white hover:bg-red-700'
+                                                } disabled:opacity-50`}
+                                        >
+                                            {isTogglingRefund ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : selectedOrder.is_refunded ? (
+                                                'Remove Refund Flag'
+                                            ) : (
+                                                'Mark as Refunded'
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { isComboProduct, getComponentFSNs } from '@/lib/amazon/combo-products';
 import { checkAndAlertLowInventory } from '@/lib/push/admin-notifications';
+import { checkFBARedemption } from '@/lib/amazon/fba-redemption-check';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -47,6 +48,20 @@ export async function POST(request: NextRequest) {
                 error: 'This order has been blocked. Please contact support for assistance.'
             }, { status: 403 });
         }
+
+        // Check FBA redemption eligibility (pending orders, delivery delay, etc.)
+        const redemptionCheck = await checkFBARedemption(order);
+        if (!redemptionCheck.canRedeem) {
+            return NextResponse.json({
+                success: false,
+                error: redemptionCheck.reason,
+                redeemableAt: redemptionCheck.redeemableAt?.toISOString(),
+                daysRemaining: redemptionCheck.daysRemaining,
+                canAppeal: redemptionCheck.canAppeal,
+                appealStatus: redemptionCheck.appealStatus
+            }, { status: 403 });
+        }
+
 
         // Get quantity from order (default to 1)
         const orderQuantity = order.quantity || 1;

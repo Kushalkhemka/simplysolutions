@@ -32,15 +32,14 @@ export async function GET(request: NextRequest) {
         // - Never logged in (last_login_at is null)
         // - OR last login was 30+ days ago
         const { data: inactiveUsers, error } = await adminClient
-            .from('users')
+            .from('profiles')
             .select('id, email, full_name, last_login_at, created_at')
             .or(`last_login_at.is.null,last_login_at.lt.${thirtyDaysAgo.toISOString()}`)
-            .not('email', 'is', null)
-            .eq('role', 'customer'); // Only target customers, not admins
+            .not('email', 'is', null);
 
         if (error) {
             console.error('Error fetching inactive users:', error);
-            return NextResponse.json({ error: 'Database error' }, { status: 500 });
+            return NextResponse.json({ error: 'Database error', details: error.message }, { status: 500 });
         }
 
         if (!inactiveUsers || inactiveUsers.length === 0) {

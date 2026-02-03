@@ -1,7 +1,15 @@
 /**
  * Cron endpoint to sync FBA (Amazon Fulfilled) orders
- * Schedule: Every 24 hours at 2 AM
- * Uses ASIN mapping to get FSN for product identification
+ * Schedule: Every 15 minutes (configurable in Vercel/deployment)
+ * 
+ * Features:
+ * - Syncs new FBA orders from Amazon SP-API
+ * - Updates existing orders when fulfillment status changes
+ * - Stores synced_at timestamp for activation delay calculation
+ * - Uses ASIN mapping to get FSN for product identification
+ * 
+ * NOTE: This is for FBA (AFN) orders only. MFN orders use sync-mfn endpoint.
+ * NOTE: Redeemable date is calculated dynamically at activation time, not here.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -122,29 +130,40 @@ export async function GET(request: NextRequest) {
                 message: 'No FBA orders found',
                 ordersFound: 0,
                 ordersInserted: 0,
+                ordersUpdated: 0,
                 duration: `${Date.now() - startTime}ms`
             });
         }
 
-        // Check existing orders
+        // Check existing orders with their current fulfillment status
         const orderIds = orders.map((o: any) => o.AmazonOrderId);
         const { data: existingOrders } = await supabase
             .from('amazon_orders')
-            .select('order_id')
+            .select('order_id, fulfillment_status, shipped_at, state')
             .in('order_id', orderIds);
 
-        const existingSet = new Set((existingOrders || []).map((o: any) => o.order_id));
-        const newOrders = orders.filter((o: any) => !existingSet.has(o.AmazonOrderId));
+        const existingMap = new Map<string, { order_id: string; fulfillment_status: string | null; shipped_at: string | null; state: string | null }>();
+        (existingOrders || []).forEach((o: any) => {
+            existingMap.set(o.order_id, o);
+        });
 
-        if (newOrders.length === 0) {
-            return NextResponse.json({
-                success: true,
-                message: 'All FBA orders already synced',
-                ordersFound: orders.length,
-                ordersInserted: 0,
-                duration: `${Date.now() - startTime}ms`
-            });
-        }
+        // Separate new orders from existing orders that need status updates
+        const newOrders = orders.filter((o: any) => !existingMap.has(o.AmazonOrderId));
+        const ordersToUpdate = orders.filter((o: any) => {
+            const existing = existingMap.get(o.AmazonOrderId);
+            if (!existing) return false;
+
+            // Update if:
+            // 1. Status changed from Pending to something else (Shipped, Canceled, etc.)
+            // 2. Order is Shipped but shipped_at is null (backfill)
+            // 3. Order is missing state info but now available (backfill)
+            const statusChanged = (existing.fulfillment_status === 'Pending' || existing.fulfillment_status === null)
+                && o.OrderStatus !== 'Pending';
+            const needsShippedAt = o.OrderStatus === 'Shipped' && !existing.shipped_at;
+            const needsState = !existing.state && o.ShippingAddress?.StateOrRegion;
+
+            return statusChanged || needsShippedAt || needsState;
+        });
 
         // Fetch ASIN mapping for FSN lookup
         const { data: asinMappings } = await supabase
@@ -156,7 +175,7 @@ export async function GET(request: NextRequest) {
             asinToFSN.set(m.asin, m.fsn);
         });
 
-        // Prepare orders - only first item synced, multi-product orders logged separately
+        // Prepare new orders for insert
         const ordersToInsert = [];
         const multiProductOrders = [];
 
@@ -193,9 +212,24 @@ export async function GET(request: NextRequest) {
             const asin = firstItem?.ASIN;
             const mappedFSN = asin ? asinToFSN.get(asin) : null;
 
+            const amazonOrderStatus = order.OrderStatus || 'Pending';
+            const postalCode = order.ShippingAddress?.PostalCode || null;
+            const state = order.ShippingAddress?.StateOrRegion || null;
+
+            // Calculate shipped_at if order is already shipped
+            let shippedAt = null;
+            if (amazonOrderStatus === 'Shipped') {
+                shippedAt = order.LastUpdateDate || new Date().toISOString();
+            }
+
+            // Note: redeemable_at is calculated dynamically at activation time
+            // using synced_at + current state delay from fba_state_delays table
+            // This ensures admin changes to delays take effect immediately
+
             ordersToInsert.push({
                 order_id: order.AmazonOrderId,
                 fulfillment_type: 'amazon_fba',
+                fulfillment_status: amazonOrderStatus,
                 fsn: mappedFSN || firstItem?.SellerSKU || null,
                 order_date: order.PurchaseDate || null,
                 order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
@@ -204,26 +238,84 @@ export async function GET(request: NextRequest) {
                 buyer_email: order.BuyerInfo?.BuyerEmail || null,
                 contact_email: order.BuyerInfo?.BuyerEmail || null,
                 city: order.ShippingAddress?.City || null,
-                state: order.ShippingAddress?.StateOrRegion || null,
-                postal_code: order.ShippingAddress?.PostalCode || null,
+                state: state,
+                postal_code: postalCode,
                 country: order.ShippingAddress?.CountryCode || 'IN',
                 warranty_status: 'PENDING',
+                shipped_at: shippedAt,
                 synced_at: new Date().toISOString()
             });
         }
 
-        // Insert regular orders
-        const { error } = await supabase.from('amazon_orders').insert(ordersToInsert);
+        // Insert new orders
+        let insertError = null;
+        if (ordersToInsert.length > 0) {
+            const { error } = await supabase.from('amazon_orders').insert(ordersToInsert);
+            insertError = error;
+        }
 
         // Log multi-product orders for admin
         if (multiProductOrders.length > 0) {
             await supabase.from('multi_fsn_orders').insert(multiProductOrders);
         }
 
-        if (error) {
+        // Update existing orders that changed status (Pending -> Shipped/Canceled)
+        let ordersUpdated = 0;
+        for (const order of ordersToUpdate) {
+            const amazonOrderStatus = order.OrderStatus;
+            const postalCode = order.ShippingAddress?.PostalCode || null;
+            const state = order.ShippingAddress?.StateOrRegion || null;
+
+            // Calculate shipped_at for shipped orders
+            let shippedAt = null;
+            if (amazonOrderStatus === 'Shipped') {
+                shippedAt = order.LastUpdateDate || new Date().toISOString();
+            }
+
+            const updateData: any = {
+                fulfillment_status: amazonOrderStatus,
+                updated_at: new Date().toISOString()
+            };
+
+            // Update address info when available (becomes available after shipping)
+            if (order.ShippingAddress) {
+                updateData.city = order.ShippingAddress.City || null;
+                updateData.state = state;
+                updateData.postal_code = postalCode;
+                updateData.country = order.ShippingAddress.CountryCode || 'IN';
+            }
+
+            if (shippedAt) {
+                updateData.shipped_at = shippedAt;
+                // Note: redeemable_at is calculated from synced_at on insert, not updated here
+            }
+
+            // Update buyer email if now available
+            if (order.BuyerInfo?.BuyerEmail) {
+                updateData.buyer_email = order.BuyerInfo.BuyerEmail;
+                updateData.contact_email = order.BuyerInfo.BuyerEmail;
+            }
+
+            // Update order total if now available
+            if (order.OrderTotal?.Amount) {
+                updateData.order_total = parseFloat(order.OrderTotal.Amount);
+                updateData.currency = order.OrderTotal.CurrencyCode || 'INR';
+            }
+
+            const { error: updateError } = await supabase
+                .from('amazon_orders')
+                .update(updateData)
+                .eq('order_id', order.AmazonOrderId);
+
+            if (!updateError) {
+                ordersUpdated++;
+            }
+        }
+
+        if (insertError) {
             return NextResponse.json({
                 success: false,
-                error: error.message,
+                error: insertError.message,
                 duration: `${Date.now() - startTime}ms`
             }, { status: 500 });
         }
@@ -233,6 +325,7 @@ export async function GET(request: NextRequest) {
             message: 'FBA orders synced successfully',
             ordersFound: orders.length,
             ordersInserted: ordersToInsert.length,
+            ordersUpdated,
             duration: `${Date.now() - startTime}ms`
         });
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkFBARedemption } from '@/lib/amazon/fba-redemption-check';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -16,6 +17,29 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 { error: 'Order ID and Display Name are required' },
                 { status: 400 }
+            );
+        }
+
+        // Verify order exists and check FBA eligibility
+        const { data: order } = await supabase
+            .from('amazon_orders')
+            .select('*')
+            .eq('order_id', orderId.trim())
+            .single();
+
+        if (!order) {
+            return NextResponse.json(
+                { error: 'Order not found. Please verify your order ID.' },
+                { status: 404 }
+            );
+        }
+
+        // Check FBA redemption eligibility
+        const redemptionCheck = await checkFBARedemption(order);
+        if (!redemptionCheck.canRedeem) {
+            return NextResponse.json(
+                { error: redemptionCheck.reason, canAppeal: redemptionCheck.canAppeal },
+                { status: 403 }
             );
         }
 

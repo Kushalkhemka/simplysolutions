@@ -397,19 +397,19 @@ export default function ActivationIssuesClient() {
                                         <td className="px-4 py-3">
                                             {order.issue_status === 'pending' && (
                                                 <div className="flex items-center gap-2">
-                                                    <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                                                    <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50">
                                                         <Key className="h-3 w-3 inline mr-1" />Assign
                                                     </button>
-                                                    <button onClick={() => handleNotify(order)} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                                                    <button onClick={() => handleNotify(order)} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50">
                                                         <Bell className="h-3 w-3 inline" />
                                                     </button>
-                                                    <button onClick={() => handleCancel(order)} className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                                                    <button onClick={() => handleCancel(order)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50">
                                                         <XCircle className="h-3 w-3" />
                                                     </button>
                                                 </div>
                                             )}
                                             {order.issue_status === 'notified' && (
-                                                <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                                                <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50">
                                                     <Key className="h-3 w-3 inline mr-1" />Assign
                                                 </button>
                                             )}

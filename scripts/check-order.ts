@@ -1,8 +1,6 @@
-/**
- * Check order and license key availability
- */
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
+
 dotenv.config({ path: '.env.local' });
 
 const supabase = createClient(
@@ -10,58 +8,55 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-async function check() {
-    const orderId = '403-4952479-4416365';
+async function checkOrder(orderId: string) {
+    console.log(`\n🔍 Checking order: ${orderId}\n`);
 
-    // 1. Check amazon_orders for this order
-    console.log('=== Checking Order:', orderId, '===');
-    const { data: order, error: orderError } = await supabase
+    const { data, error } = await supabase
         .from('amazon_orders')
         .select('*')
         .eq('order_id', orderId)
         .single();
 
-    if (orderError || !order) {
-        console.log('❌ Order NOT found in amazon_orders table!');
-        console.log('Error:', orderError?.message);
+    if (error) {
+        console.error('❌ Error:', error.message);
         return;
     }
 
-    console.log('✅ Order found:');
-    console.log('   FSN:', order.fsn);
-    console.log('   Fulfillment:', order.fulfillment_type);
-    console.log('   License Key ID:', order.license_key_id);
-    console.log('   Warranty Status:', order.warranty_status);
-
-    // 2. Check available license keys for this FSN
-    const fsn = order.fsn;
-    if (!fsn) {
-        console.log('\n❌ No FSN set for this order!');
+    if (!data) {
+        console.log('⚠️ Order not found in database');
         return;
     }
 
-    console.log('\n=== Checking License Keys for FSN:', fsn, '===');
+    console.log('✅ Order found:\n');
+    console.log('📦 Order Details:');
+    console.log('─'.repeat(50));
+    console.log(`   Order ID:       ${data.order_id}`);
+    console.log(`   FSN:            ${data.fsn || 'N/A'}`);
+    console.log(`   Order Date:     ${data.order_date || 'N/A'}`);
+    console.log(`   Order Total:    ${data.order_total} ${data.currency || 'INR'}`);
+    console.log(`   Quantity:       ${data.quantity || 1}`);
+    console.log(`   Fulfillment:    ${data.fulfillment_type}`);
 
-    const { data: keys, count } = await supabase
-        .from('amazon_activation_license_keys')
-        .select('*', { count: 'exact' })
-        .eq('product_type', fsn)
-        .eq('is_redeemed', false);
+    console.log('\n📧 Customer Info:');
+    console.log('─'.repeat(50));
+    console.log(`   Buyer Email:    ${data.buyer_email || 'N/A'}`);
+    console.log(`   Contact Email:  ${data.contact_email || 'N/A'}`);
 
-    console.log('Available (non-redeemed) keys:', count);
-    if (keys && keys.length > 0) {
-        console.log('Sample key:', keys[0].license_key?.substring(0, 10) + '...');
-    }
+    console.log('\n📍 Shipping Address:');
+    console.log('─'.repeat(50));
+    console.log(`   City:           ${data.city || 'N/A'}`);
+    console.log(`   State:          ${data.state || 'N/A'}`);
+    console.log(`   Postal Code:    ${data.postal_code || 'N/A'}`);  // PINCODE
+    console.log(`   Country:        ${data.country || 'N/A'}`);
 
-    // 3. Also check all product_types in license keys
-    const { data: allProductTypes } = await supabase
-        .from('amazon_activation_license_keys')
-        .select('product_type')
-        .eq('is_redeemed', false);
+    console.log('\n🔄 Status:');
+    console.log('─'.repeat(50));
+    console.log(`   Warranty:       ${data.warranty_status || 'N/A'}`);
+    console.log(`   Synced At:      ${data.synced_at || 'N/A'}`);
 
-    const uniqueTypes = new Set((allProductTypes || []).map(k => k.product_type));
-    console.log('\n=== Available product_types with keys ===');
-    console.log(Array.from(uniqueTypes).join(', '));
+    console.log('\n📋 Full Raw Data:');
+    console.log('─'.repeat(50));
+    console.log(JSON.stringify(data, null, 2));
 }
 
-check();
+checkOrder('402-1362587-2805137');

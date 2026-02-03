@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkFBARedemption } from '@/lib/amazon/fba-redemption-check';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
         // Verify the order exists in amazon_orders table
         const { data: order, error: queryError } = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn')
+            .select('*')
             .eq('order_id', cleanOrderId)
             .single();
 
@@ -86,6 +87,15 @@ export async function POST(request: NextRequest) {
                         : 'Secret code not found. Please check your code and try again.'
                 },
                 { status: 404 }
+            );
+        }
+
+        // Check FBA redemption eligibility (pending orders, delivery delay, etc.)
+        const redemptionCheck = await checkFBARedemption(order);
+        if (!redemptionCheck.canRedeem) {
+            return NextResponse.json(
+                { error: redemptionCheck.reason, canAppeal: redemptionCheck.canAppeal },
+                { status: 403 }
             );
         }
 

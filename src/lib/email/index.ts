@@ -829,6 +829,8 @@ export interface ReviewRequestEmailData {
 }
 
 export async function sendReviewRequestEmail(data: ReviewRequestEmailData) {
+  const warrantyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in'}/warranty?orderId=${data.orderId}`;
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -844,61 +846,113 @@ export async function sendReviewRequestEmail(data: ReviewRequestEmailData) {
         </div>
 
         <!-- Main Card -->
-        <div style="background-color: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
+        <div style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);">
           
-          <!-- Greeting -->
-          <h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #1e293b; text-align: center;">
-            How was your experience?
-          </h2>
-          
-          <p style="margin: 0 0 24px; font-size: 16px; color: #64748b; text-align: center; line-height: 1.6;">
-            Hi ${data.customerName},<br>
-            We hope you're enjoying your <strong>${data.productName}</strong>! 
-          </p>
-
-          <p style="margin: 0 0 24px; font-size: 16px; color: #64748b; text-align: center; line-height: 1.6;">
-            Your feedback helps other customers make informed decisions and helps us improve our service.
-          </p>
-
-          <!-- Review CTA -->
-          <div style="text-align: center; margin: 32px 0;">
-            <p style="margin: 0 0 16px; font-size: 14px; color: #64748b;">
-              If you purchased from Amazon, please leave us a review:
+          <!-- Gradient Header with Stars -->
+          <div style="background: linear-gradient(135deg, #1e293b, #334155); padding: 32px; text-align: center;">
+            <div style="font-size: 36px; margin-bottom: 12px;">⭐⭐⭐⭐⭐</div>
+            <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: white;">
+              How was your experience?
+            </h2>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">
+              Your feedback helps us improve
             </p>
-            <a href="https://www.amazon.in/review/create-review" 
-               style="display: inline-block; 
-                      background: linear-gradient(135deg, #FF9900, #FFB84D); 
-                      color: #1e293b; 
-                      padding: 16px 40px; 
-                      font-size: 16px; 
-                      font-weight: 700; 
-                      text-decoration: none; 
-                      border-radius: 8px;
-                      box-shadow: 0 4px 16px rgba(255, 153, 0, 0.3);">
-              Leave a Review on Amazon
-            </a>
           </div>
 
-          <!-- Divider -->
-          <div style="margin: 32px 0; border-top: 1px solid #e2e8f0;"></div>
+          <div style="padding: 32px;">
+            <!-- Order Info -->
+            <div style="background: #f8fafc; border-radius: 10px; padding: 16px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
+              <table style="width: 100%;">
+                <tr>
+                  <td style="padding: 0;">
+                    <p style="margin: 0; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Order ID</p>
+                    <p style="margin: 4px 0 0; font-size: 16px; color: #1e293b; font-weight: 700; font-family: monospace;">${data.orderId}</p>
+                  </td>
+                  <td style="padding: 0; text-align: right;">
+                    <p style="margin: 0; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Product</p>
+                    <p style="margin: 4px 0 0; font-size: 14px; color: #1e293b; font-weight: 600;">${data.productName}</p>
+                  </td>
+                </tr>
+              </table>
+            </div>
 
-          <!-- Support Section -->
-          <div style="text-align: center;">
-            <p style="margin: 0 0 12px; font-size: 14px; color: #64748b;">
-              Having any issues with your product?
+            <!-- Greeting -->
+            <p style="margin: 0 0 20px; font-size: 16px; color: #475569; line-height: 1.6;">
+              Hi <strong>${data.customerName}</strong>,<br>
+              We hope you're enjoying your purchase! Your honest feedback means the world to us.
             </p>
-            <a href="https://wa.me/918178848830" 
-               style="display: inline-block; background: #25D366; color: white; padding: 10px 24px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px;">
-              Contact Support on WhatsApp
-            </a>
+
+            <!-- Benefits Box -->
+            <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 1px solid #10b981; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <h3 style="margin: 0 0 12px; font-size: 16px; font-weight: 700; color: #047857;">
+                🎁 Why Leave a Review?
+              </h3>
+              <ul style="margin: 0; padding-left: 18px; color: #065f46; font-size: 14px; line-height: 1.8;">
+                <li><strong>Get Lifetime Warranty</strong> - Reviews help you qualify for our warranty program</li>
+                <li><strong>Help Others</strong> - Your experience guides future customers</li>
+                <li><strong>Support Quality</strong> - Feedback helps us serve you better</li>
+              </ul>
+            </div>
+
+            <!-- Amazon Review CTA -->
+            <div style="text-align: center; margin: 28px 0;">
+              <p style="margin: 0 0 16px; font-size: 15px; color: #64748b;">
+                If you purchased from Amazon, please leave a 5-star review:
+              </p>
+              <a href="https://www.amazon.in/review/create-review" 
+                 style="display: inline-block; 
+                        background: linear-gradient(135deg, #FF9900, #FFB84D); 
+                        color: #1e293b; 
+                        padding: 16px 48px; 
+                        font-size: 16px; 
+                        font-weight: 700; 
+                        text-decoration: none; 
+                        border-radius: 8px;
+                        box-shadow: 0 4px 16px rgba(255, 153, 0, 0.4);">
+                ⭐ Leave a Review on Amazon
+              </a>
+            </div>
+
+            <!-- Divider -->
+            <div style="margin: 28px 0; border-top: 2px solid #e2e8f0;"></div>
+
+            <!-- Warranty Registration CTA -->
+            <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 1px solid #f59e0b; border-radius: 12px; padding: 20px; text-align: center;">
+              <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 700; color: #92400e;">
+                🛡️ Register for Lifetime Warranty
+              </h3>
+              <p style="margin: 0 0 16px; font-size: 14px; color: #78350f;">
+                Complete your warranty registration to get lifetime support & free replacements
+              </p>
+              <a href="${warrantyUrl}" 
+                 style="display: inline-block; 
+                        background: linear-gradient(135deg, #DC3E15, #f97316); 
+                        color: #ffffff; 
+                        padding: 14px 32px; 
+                        font-size: 15px; 
+                        font-weight: 600; 
+                        text-decoration: none; 
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(220, 62, 21, 0.3);">
+                Register for Warranty →
+              </a>
+            </div>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div style="text-align: center; margin-top: 32px;">
-          <p style="margin: 0 0 8px; font-size: 13px; color: #94a3b8;">
-            Order ID: ${data.orderId}
+        <!-- Support Section -->
+        <div style="text-align: center; margin-top: 24px; padding: 20px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <p style="margin: 0 0 12px; font-size: 14px; color: #64748b;">
+            Having any issues with your product?
           </p>
+          <a href="https://wa.me/918178848830" 
+             style="display: inline-block; background: #25D366; color: white; padding: 10px 24px; border-radius: 100px; text-decoration: none; font-weight: 600; font-size: 14px;">
+            💬 Contact Support on WhatsApp
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 24px;">
           <p style="margin: 0; font-size: 13px; color: #94a3b8;">
             © ${new Date().getFullYear()} SimplySolutions. All rights reserved.
           </p>
@@ -915,7 +969,7 @@ export async function sendReviewRequestEmail(data: ReviewRequestEmailData) {
     const { data: result, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'SimplySolutions <noreply@auth.simplysolutions.co.in>',
       to: data.to,
-      subject: `How was your experience with ${data.productName}?`,
+      subject: `⭐ Share Your Feedback - Order ${data.orderId}`,
       html,
     });
 
@@ -944,7 +998,7 @@ export interface ReEngagementEmailData {
 export async function sendReEngagementEmail(data: ReEngagementEmailData) {
   const shopUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in';
   const discountText = data.couponCode && data.discountPercent
-    ? `Use code <strong>${data.couponCode}</strong> for ${data.discountPercent}% off!`
+    ? `Use code < strong > ${data.couponCode} </strong> for ${data.discountPercent}% off!`
     : '';
 
   const html = `
@@ -1072,50 +1126,44 @@ export async function sendWarrantyResubmissionReminder(data: WarrantyReminderEma
   if (data.missingSeller) missingItems.push('Seller Feedback Screenshot');
   if (data.missingReview) missingItems.push('Product Review Screenshot');
 
-  const missingList = missingItems.map(item => `<li style="margin: 4px 0;">${item}</li>`).join('');
-
   // Determine urgency level based on reminder number
   const reminderNumber = data.reminderNumber || 1;
   const maxReminders = data.maxReminders || 3;
-  const isLastReminder = reminderNumber >= maxReminders;
 
-  // Urgency banner and subject line based on reminder number
-  let urgencyBanner = '';
-  let subjectLine = `⏰ Action Required: Complete your warranty for order ${data.orderId}`;
+  // Urgency styling based on reminder number
+  let headerBg = '#1e293b';
+  let headerTitle = 'Complete Your Warranty Registration';
+  let headerSubtitle = 'Action required to activate your lifetime protection';
+  let subjectLine = `Action Required: Complete Your Warranty - Order ${data.orderId}`;
 
-  if (reminderNumber === 1) {
-    urgencyBanner = `
-      <div style="background: linear-gradient(135deg, #FEF3C7, #FDE68A); border: 1px solid #F59E0B; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-        <p style="margin: 0; font-weight: 600; color: #92400E;">
-          ⏰ Reminder: Complete Your Warranty Registration
-        </p>
-      </div>
-    `;
-  } else if (reminderNumber === 2) {
-    urgencyBanner = `
-      <div style="background: linear-gradient(135deg, #FED7AA, #FDBA74); border: 1px solid #EA580C; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-        <p style="margin: 0; font-weight: 600; color: #9A3412;">
-          ⚠️ Second Reminder: Don't Miss Your Lifetime Warranty!
-        </p>
-        <p style="margin: 8px 0 0; font-size: 13px; color: #C2410C;">
-          This is reminder ${reminderNumber} of ${maxReminders}
-        </p>
-      </div>
-    `;
-    subjectLine = `⚠️ Second Reminder: Complete warranty for order ${data.orderId}`;
-  } else {
-    urgencyBanner = `
-      <div style="background: linear-gradient(135deg, #FECACA, #FCA5A5); border: 2px solid #DC2626; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-        <p style="margin: 0; font-weight: 700; color: #991B1B;">
-          🚨 FINAL REMINDER: Last Chance for Your Lifetime Warranty!
-        </p>
-        <p style="margin: 8px 0 0; font-size: 13px; color: #B91C1C;">
-          This is your final reminder. No more reminders will be sent.
-        </p>
-      </div>
-    `;
-    subjectLine = `🚨 FINAL REMINDER: Complete warranty for order ${data.orderId}`;
+  if (reminderNumber === 2) {
+    headerBg = '#ea580c';
+    headerTitle = 'Second Reminder';
+    headerSubtitle = 'Your warranty registration is still pending';
+    subjectLine = `Second Reminder: Order ${data.orderId} Warranty Pending`;
+  } else if (reminderNumber >= 3) {
+    headerBg = '#dc2626';
+    headerTitle = 'Final Reminder';
+    headerSubtitle = 'Last opportunity to complete your warranty registration';
+    subjectLine = `Final Reminder: Order ${data.orderId} - Warranty Registration`;
   }
+
+  // Generate missing items HTML
+  const missingItemsHtml = missingItems.map((item, index) => `
+    <tr>
+      <td style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td width="32" style="vertical-align: middle;">
+              <div style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 8px;"></div>
+            </td>
+            <td style="font-size: 15px; color: #1e293b; font-weight: 500; padding-left: 12px;">${item}</td>
+            <td width="80" style="text-align: right; color: #ef4444; font-size: 12px; font-weight: 600;">PENDING</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `).join('');
 
   const html = `
     <!DOCTYPE html>
@@ -1123,67 +1171,189 @@ export async function sendWarrantyResubmissionReminder(data: WarrantyReminderEma
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="color-scheme" content="light">
+      <meta name="supported-color-schemes" content="light">
     </head>
-    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc;">
-      <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-        <!-- Header -->
-        <div style="text-align: center; margin-bottom: 32px;">
-          <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #DC3E15;">SimplySolutions</h1>
-        </div>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f1f5f9;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f1f5f9;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%;">
+              
+              <!-- Logo Header -->
+              <tr>
+                <td style="text-align: center; padding-bottom: 24px;">
+                  <span style="font-size: 28px; font-weight: 800; color: #DC3E15; letter-spacing: -0.5px;">SimplySolutions</span>
+                </td>
+              </tr>
 
-        <!-- Main Card -->
-        <div style="background-color: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
-          
-          <!-- Dynamic Alert Banner based on reminder number -->
-          ${urgencyBanner}
+              <!-- Main Card -->
+              <tr>
+                <td>
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);">
+                    
+                    <!-- Header Banner -->
+                    <tr>
+                      <td style="background: ${headerBg}; padding: 32px 40px; text-align: center;">
+                        <h1 style="margin: 0; font-size: 26px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">${headerTitle}</h1>
+                        <p style="margin: 12px 0 0; font-size: 15px; color: rgba(255,255,255,0.85);">${headerSubtitle}</p>
+                      </td>
+                    </tr>
 
-          <h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #1e293b;">
-            Hi ${data.customerName},
-          </h2>
-          
-          <p style="margin: 0 0 20px; font-size: 16px; color: #475569; line-height: 1.6;">
-            Your warranty registration for order <strong>${data.orderId}</strong>${data.productName ? ` (${data.productName})` : ''} is almost complete!
-          </p>
+                    <!-- Order Info Card -->
+                    <tr>
+                      <td style="padding: 32px 40px 24px;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                          <tr>
+                            <td style="padding: 20px;">
+                              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                  <td>
+                                    <p style="margin: 0; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Order ID</p>
+                                    <p style="margin: 4px 0 0; font-size: 18px; color: #1e293b; font-weight: 700; font-family: 'SF Mono', Monaco, 'Courier New', monospace;">${data.orderId}</p>
+                                  </td>
+                                  <td style="text-align: right;">
+                                    <p style="margin: 0; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Product</p>
+                                    <p style="margin: 4px 0 0; font-size: 14px; color: #1e293b; font-weight: 600;">${data.productName || 'Your Product'}</p>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
 
-          <p style="margin: 0 0 12px; font-size: 16px; color: #475569;">
-            We are missing the following:
-          </p>
+                    <!-- Greeting -->
+                    <tr>
+                      <td style="padding: 0 40px 24px;">
+                        <p style="margin: 0; font-size: 16px; color: #475569; line-height: 1.6;">
+                          Hi <strong style="color: #1e293b;">${data.customerName}</strong>,<br><br>
+                          Your warranty registration is almost complete! We just need the following to activate your <strong>lifetime warranty</strong>:
+                        </p>
+                      </td>
+                    </tr>
 
-          <ul style="margin: 0 0 24px; padding-left: 20px; color: #DC3E15; font-weight: 600;">
-            ${missingList}
-          </ul>
+                    <!-- Missing Items Table -->
+                    <tr>
+                      <td style="padding: 0 40px 24px;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #ffffff; border-radius: 12px; border: 2px solid #fecaca; overflow: hidden;">
+                          <tr>
+                            <td style="background: #fef2f2; padding: 12px 16px; border-bottom: 2px solid #fecaca;">
+                              <p style="margin: 0; font-size: 13px; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px;">Missing Documents</p>
+                            </td>
+                          </tr>
+                          ${missingItemsHtml}
+                        </table>
+                      </td>
+                    </tr>
 
-          <!-- CTA Button -->
-          <div style="text-align: center; margin: 32px 0;">
-            <a href="${warrantyUrl}" 
-               style="display: inline-block; 
-                      background: linear-gradient(135deg, #DC3E15, #f97316); 
-                      color: #ffffff; 
-                      padding: 16px 40px; 
-                      font-size: 16px; 
-                      font-weight: 700; 
-                      text-decoration: none; 
-                      border-radius: 8px;
-                      box-shadow: 0 4px 12px rgba(220, 62, 21, 0.3);">
-              Submit Missing Screenshots
-            </a>
-          </div>
+                    <!-- CTA Button -->
+                    <tr>
+                      <td style="padding: 8px 40px 32px; text-align: center;">
+                        <a href="${warrantyUrl}" style="display: inline-block; background: linear-gradient(135deg, #DC3E15, #f97316); color: #ffffff; padding: 18px 48px; font-size: 16px; font-weight: 700; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 16px rgba(220, 62, 21, 0.35);">
+                          Submit Missing Screenshots →
+                        </a>
+                      </td>
+                    </tr>
 
-          <p style="margin: 24px 0 0; font-size: 14px; color: #64748b; text-align: center;">
-            Complete your warranty registration to get lifetime support!
-          </p>
-        </div>
+                    <!-- Divider -->
+                    <tr>
+                      <td style="padding: 0 40px;">
+                        <div style="height: 1px; background: #e2e8f0;"></div>
+                      </td>
+                    </tr>
 
-        <!-- Footer -->
-        <div style="text-align: center; margin-top: 32px;">
-          <p style="margin: 0 0 8px; font-size: 14px; color: #64748b;">
-            Need help? WhatsApp us at <strong>+91 8178848830</strong>
-          </p>
-          <p style="margin: 0; font-size: 13px; color: #94a3b8;">
-            © ${new Date().getFullYear()} SimplySolutions. All rights reserved.
-          </p>
-        </div>
-      </div>
+                    <!-- Benefits Section -->
+                    <tr>
+                      <td style="padding: 32px 40px;">
+                        <p style="margin: 0 0 16px; font-size: 15px; font-weight: 700; color: #1e293b;">Warranty Benefits</p>
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                          <tr>
+                            <td style="padding: 6px 0;">
+                              <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                  <td width="20" style="vertical-align: top; padding-top: 6px;">
+                                    <div style="width: 6px; height: 6px; background: #DC3E15; border-radius: 50%;"></div>
+                                  </td>
+                                  <td style="font-size: 14px; color: #475569; padding-left: 8px;">
+                                    <strong style="color: #1e293b;">Lifetime Protection</strong> — Free replacements if anything goes wrong
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 6px 0;">
+                              <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                  <td width="20" style="vertical-align: top; padding-top: 6px;">
+                                    <div style="width: 6px; height: 6px; background: #DC3E15; border-radius: 50%;"></div>
+                                  </td>
+                                  <td style="font-size: 14px; color: #475569; padding-left: 8px;">
+                                    <strong style="color: #1e293b;">Priority Support</strong> — Dedicated assistance for registered customers
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 6px 0;">
+                              <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                  <td width="20" style="vertical-align: top; padding-top: 6px;">
+                                    <div style="width: 6px; height: 6px; background: #DC3E15; border-radius: 50%;"></div>
+                                  </td>
+                                  <td style="font-size: 14px; color: #475569; padding-left: 8px;">
+                                    <strong style="color: #1e293b;">No Additional Costs</strong> — Complete coverage at no extra charge
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Support Card -->
+              <tr>
+                <td style="padding-top: 24px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <tr>
+                      <td style="padding: 20px; text-align: center;">
+                        <p style="margin: 0 0 12px; font-size: 14px; color: #64748b;">Need assistance? We're here to help.</p>
+                        <a href="https://wa.me/918178848830" style="display: inline-block; background: #25D366; color: #ffffff; padding: 12px 24px; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 100px;">
+                          Contact Support
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td style="padding: 32px 0; text-align: center;">
+                  <p style="margin: 0 0 8px; font-size: 13px; color: #64748b;">
+                    This is reminder ${reminderNumber} of ${maxReminders}
+                  </p>
+                  <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+                    © ${new Date().getFullYear()} SimplySolutions. All rights reserved.
+                  </p>
+                  <p style="margin: 12px 0 0; font-size: 11px; color: #cbd5e1;">
+                    Daryaganj, New Delhi 110002, India
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
     </body>
     </html>
   `;

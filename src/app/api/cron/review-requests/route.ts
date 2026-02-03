@@ -25,19 +25,19 @@ export async function GET(request: NextRequest) {
         const endOfDay = new Date(threeDaysAgo);
         endOfDay.setHours(23, 59, 59, 999);
 
-        // Find orders activated exactly 3 days ago that haven't received review email
+        // Find orders from exactly 3 days ago that haven't received review email
+        // Using created_at since activated_at doesn't exist
         const { data: orders, error } = await adminClient
             .from('amazon_orders')
             .select('*')
-            .eq('status', 'activated')
-            .gte('activated_at', startOfDay.toISOString())
-            .lt('activated_at', endOfDay.toISOString())
+            .gte('created_at', startOfDay.toISOString())
+            .lt('created_at', endOfDay.toISOString())
             .is('review_email_sent_at', null)
             .not('contact_email', 'is', null);
 
         if (error) {
             console.error('Error fetching orders for review emails:', error);
-            return NextResponse.json({ error: 'Database error' }, { status: 500 });
+            return NextResponse.json({ error: 'Database error', details: error.message }, { status: 500 });
         }
 
         if (!orders || orders.length === 0) {
@@ -54,11 +54,6 @@ export async function GET(request: NextRequest) {
         for (const order of orders) {
             // Skip Amazon marketplace relay emails - cannot send to these
             if (order.contact_email?.includes('@marketplace.amazon')) {
-                continue;
-            }
-
-            // Skip warranty-registered orders - already captured review during warranty process
-            if (order.warranty_status && order.warranty_status !== 'none') {
                 continue;
             }
 

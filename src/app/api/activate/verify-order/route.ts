@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { checkFBARedemption } from '@/lib/amazon/fba-redemption-check';
 
 export async function POST(request: NextRequest) {
     try {
@@ -32,6 +33,20 @@ export async function POST(request: NextRequest) {
                 error: 'This order has been blocked. Please contact support for assistance.'
             }, { status: 403 });
         }
+
+        // Check FBA redemption eligibility (pending orders, delivery delay, etc.)
+        const redemptionCheck = await checkFBARedemption(order);
+        if (!redemptionCheck.canRedeem) {
+            return NextResponse.json({
+                valid: false,
+                error: redemptionCheck.reason,
+                redeemableAt: redemptionCheck.redeemableAt?.toISOString(),
+                daysRemaining: redemptionCheck.daysRemaining,
+                canAppeal: redemptionCheck.canAppeal,
+                appealStatus: redemptionCheck.appealStatus
+            }, { status: 403 });
+        }
+
 
         // Check if already redeemed (has license key assigned)
         const { data: licenseData } = await supabase
