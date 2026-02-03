@@ -19,7 +19,8 @@ import {
 
 export const maxDuration = 300; // 5 minutes
 
-const SP_API_ENDPOINT = 'https://sellingpartnerapi-fe.amazon.com';
+// India marketplace (A21TJRUUN4KGV) uses the EU region endpoint
+const SP_API_ENDPOINT = 'https://sellingpartnerapi-eu.amazon.com';
 
 async function getAccessToken(account: SellerAccountWithCredentials): Promise<string> {
     const response = await fetch('https://api.amazon.com/auth/o2/token', {

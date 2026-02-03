@@ -21,7 +21,8 @@ import {
 // Coolify hosting - can use longer timeouts
 export const maxDuration = 900; // 15 minutes
 
-const SP_API_ENDPOINT = 'https://sellingpartnerapi-fe.amazon.com';
+// India marketplace (A21TJRUUN4KGV) uses the EU region endpoint
+const SP_API_ENDPOINT = 'https://sellingpartnerapi-eu.amazon.com';
 
 interface RefundTransaction {
     orderId: string;
