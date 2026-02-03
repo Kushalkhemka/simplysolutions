@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkFBARedemption } from '@/lib/amazon/fba-redemption-check';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
         // Try exact match first
         const { data: exactMatch } = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id, fulfillment_type, warranty_status')
+            .select('id, order_id, fsn, license_key_id, fulfillment_type, warranty_status, is_refunded, fulfillment_status, order_date, created_at, state, early_appeal_status')
             .eq('order_id', cleanCode)
             .single();
 
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
             // Fallback: try case-insensitive search
             const { data: ilikeMatch } = await supabase
                 .from('amazon_orders')
-                .select('id, order_id, fsn, license_key_id, fulfillment_type, warranty_status')
+                .select('id, order_id, fsn, license_key_id, fulfillment_type, warranty_status, is_refunded, fulfillment_status, order_date, created_at, state, early_appeal_status')
                 .ilike('order_id', cleanCode)
                 .single();
 
@@ -68,6 +69,27 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 valid: false,
                 error: 'This order has been blocked. Please contact support for assistance.'
+            }, { status: 403 });
+        }
+
+        // CRITICAL: Check if order has been refunded
+        if (order.is_refunded === true) {
+            return NextResponse.json({
+                valid: false,
+                error: 'This order has been refunded. Activation is not available for refunded orders.'
+            }, { status: 403 });
+        }
+
+        // Check FBA redemption eligibility (state delays, shipment status, etc.)
+        const redemptionCheck = await checkFBARedemption(order);
+        if (!redemptionCheck.canRedeem) {
+            return NextResponse.json({
+                valid: false,
+                error: redemptionCheck.reason,
+                redeemableAt: redemptionCheck.redeemableAt?.toISOString(),
+                daysRemaining: redemptionCheck.daysRemaining,
+                canAppeal: redemptionCheck.canAppeal,
+                appealStatus: redemptionCheck.appealStatus
             }, { status: 403 });
         }
 

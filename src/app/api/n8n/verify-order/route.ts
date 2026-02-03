@@ -332,9 +332,11 @@ export async function POST(request: NextRequest) {
             status: {
                 isRedeemed: !!licenseInfo,
                 isPreactivated: order.fsn?.toUpperCase() === 'OFFICE2024-MAC',
+                isRefunded: order.is_refunded || false,
                 hasFraudFlag: order.is_fraud || false,
                 fraudReason: order.fraud_reason || null,
                 isReturned: order.is_returned || false,
+                isBlocked: order.warranty_status === 'BLOCKED',
                 hasActivationIssue: order.has_activation_issue || false,
                 issueStatus: order.issue_status || null,
                 warrantyStatus: order.warranty_status
@@ -416,6 +418,11 @@ export async function POST(request: NextRequest) {
 // Helper function to suggest actions based on order state
 function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any, subscriptionInfo: any): string[] {
     const actions: string[] = [];
+
+    if (order.is_refunded) {
+        actions.push('[REFUNDED] This order has been REFUNDED. NO LICENSE KEY should be provided.');
+        actions.push('[ACTION] Inform customer that activation is not available for refunded orders.');
+    }
 
     if (order.is_fraud) {
         actions.push('[WARNING] Order flagged for fraud. Escalate to admin.');

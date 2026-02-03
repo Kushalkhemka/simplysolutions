@@ -26,6 +26,14 @@ export async function POST(request: NextRequest) {
             }, { status: 404 });
         }
 
+        // CRITICAL: Check if order has been refunded (explicit check for safety)
+        if (order.is_refunded === true) {
+            return NextResponse.json({
+                valid: false,
+                error: 'This order has been refunded. Activation is not available for refunded orders.'
+            }, { status: 403 });
+        }
+
         // Check if order is BLOCKED
         if (order.warranty_status === 'BLOCKED') {
             return NextResponse.json({

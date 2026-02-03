@@ -366,7 +366,7 @@ export default function FeedbackAppealPage({ params }: PageProps) {
                                                         value={partialAmount}
                                                         onChange={(e) => setPartialAmount(e.target.value)}
                                                         placeholder="Enter amount"
-                                                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+                                                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none bg-white text-gray-900"
                                                         min="1"
                                                     />
                                                 </div>

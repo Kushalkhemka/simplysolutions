@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { isComboProduct, getComponentFSNs } from '@/lib/amazon/combo-products';
 import { checkAndAlertLowInventory } from '@/lib/push/admin-notifications';
+import { checkFBARedemption } from '@/lib/amazon/fba-redemption-check';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
         // Search in amazon_orders by order_id (works for both secret codes and amazon order IDs)
         const result = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status, contact_email')
+            .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status, contact_email, is_refunded, fulfillment_status, order_date, created_at, state, early_appeal_status')
             .eq('order_id', cleanCode)
             .maybeSingle();
 
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
         if (!order) {
             const fallbackResult = await supabase
                 .from('amazon_orders')
-                .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status, contact_email')
+                .select('id, order_id, fsn, license_key_id, fulfillment_type, quantity, warranty_status, contact_email, is_refunded, fulfillment_status, order_date, created_at, state, early_appeal_status')
                 .ilike('order_id', cleanCode)
                 .maybeSingle();
             order = fallbackResult.data;
@@ -70,6 +71,27 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 success: false,
                 error: 'This order has been blocked. Please contact support for assistance.'
+            }, { status: 403 });
+        }
+
+        // CRITICAL: Check if order has been refunded
+        if (order.is_refunded === true) {
+            return NextResponse.json({
+                success: false,
+                error: 'This order has been refunded. Activation is not available for refunded orders.'
+            }, { status: 403 });
+        }
+
+        // Check FBA redemption eligibility (state delays, shipment status, etc.)
+        const redemptionCheck = await checkFBARedemption(order);
+        if (!redemptionCheck.canRedeem) {
+            return NextResponse.json({
+                success: false,
+                error: redemptionCheck.reason,
+                redeemableAt: redemptionCheck.redeemableAt?.toISOString(),
+                daysRemaining: redemptionCheck.daysRemaining,
+                canAppeal: redemptionCheck.canAppeal,
+                appealStatus: redemptionCheck.appealStatus
             }, { status: 403 });
         }
 

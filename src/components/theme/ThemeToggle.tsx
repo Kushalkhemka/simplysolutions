@@ -19,16 +19,22 @@ export function ThemeToggle() {
         setMounted(true);
     }, []);
 
+    // Prevent hydration mismatch by not rendering until client-side mount
+    if (!mounted) {
+        return (
+            <Button variant="ghost" size="icon" aria-label="Toggle theme">
+                <Sun className="h-5 w-5" />
+                <span className="sr-only">Toggle theme</span>
+            </Button>
+        );
+    }
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    {mounted ? (
-                        resolvedTheme === 'dark' ? (
-                            <Moon className="h-5 w-5" />
-                        ) : (
-                            <Sun className="h-5 w-5" />
-                        )
+                <Button variant="ghost" size="icon" aria-label="Toggle theme">
+                    {resolvedTheme === 'dark' ? (
+                        <Moon className="h-5 w-5" />
                     ) : (
                         <Sun className="h-5 w-5" />
                     )}

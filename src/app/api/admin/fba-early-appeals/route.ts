@@ -123,20 +123,24 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to update appeal' }, { status: 500 });
         }
 
-        // Update order status
-        const orderUpdate: { early_appeal_status: string; redeemable_at?: string } = {
+        // Update order status - only set early_appeal_status (redeemable_at doesn't exist)
+        const orderUpdate = {
             early_appeal_status: newStatus
         };
 
-        // If approved, make order immediately redeemable
-        if (action === 'APPROVE') {
-            orderUpdate.redeemable_at = new Date().toISOString();
-        }
+        console.log('Updating amazon_orders for order_id:', appeal.order_id, 'with:', orderUpdate);
 
-        await supabase
+        const { error: orderUpdateError } = await supabase
             .from('amazon_orders')
             .update(orderUpdate)
             .eq('order_id', appeal.order_id);
+
+        if (orderUpdateError) {
+            console.error('Error updating order status:', orderUpdateError);
+            // Don't fail the request, but log for debugging
+        } else {
+            console.log('Successfully updated amazon_orders for order:', appeal.order_id);
+        }
 
         // Send notification to customer
         try {
@@ -174,66 +178,25 @@ async function sendAppealNotification(params: {
 }) {
     const { email, orderId, status, rejectionReason } = params;
 
-    // Import Resend for email
-    const { Resend } = await import('resend');
-    const resend = new Resend(process.env.RESEND_API_KEY);
-
-    if (status === 'APPROVED') {
-        // Send approval email
-        await resend.emails.send({
-            from: 'Simply Solutions <notifications@simplysolutions.in>',
-            to: email,
-            subject: `✅ Early Delivery Appeal Approved - Order ${orderId}`,
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #10B981;">🎉 Great News!</h2>
-                    <p>Your early delivery appeal for Order <strong>${orderId}</strong> has been approved!</p>
-                    <p>You can now activate your product immediately.</p>
-                    
-                    <div style="background-color: #F0FDF4; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                        <p style="margin: 0;"><strong>Next Step:</strong> Visit our activation page to redeem your product.</p>
-                    </div>
-
-                    <p style="color: #6B7280; font-size: 14px;">
-                        Thank you for your patience. We apologize for any inconvenience caused by our security measures. 
-                        These restrictions are in place to protect your purchase from unauthorized access and fraud.
-                    </p>
-
-                    <p>Best regards,<br/>Simply Solutions Team</p>
-                </div>
-            `
-        });
-    } else {
-        // Send rejection email
-        await resend.emails.send({
-            from: 'Simply Solutions <notifications@simplysolutions.in>',
-            to: email,
-            subject: `Early Delivery Appeal Update - Order ${orderId}`,
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #EF4444;">Appeal Update</h2>
-                    <p>We reviewed your early delivery appeal for Order <strong>${orderId}</strong>.</p>
-                    
-                    <p>Unfortunately, we were unable to verify your proof of delivery at this time.</p>
-                    
-                    ${rejectionReason ? `
-                        <div style="background-color: #FEF2F2; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                            <p style="margin: 0;"><strong>Reason:</strong> ${rejectionReason}</p>
-                        </div>
-                    ` : ''}
-
-                    <p>You can still activate your product once the estimated delivery date has passed.</p>
-                    
-                    <p style="color: #6B7280; font-size: 14px;">
-                        We sincerely apologize for any inconvenience. These security measures are in place to protect 
-                        your purchase from unauthorized access and fraud. Your order safety is our priority.
-                    </p>
-
-                    <p>If you believe this was an error, please contact our support team with additional proof.</p>
-
-                    <p>Best regards,<br/>Simply Solutions Team</p>
-                </div>
-            `
-        });
+    try {
+        if (status === 'APPROVED') {
+            const { sendEarlyAppealApprovalEmail } = await import('@/lib/emails/early-appeal-emails');
+            await sendEarlyAppealApprovalEmail({
+                customerEmail: email,
+                orderId: orderId
+            });
+            console.log('Approval email sent to:', email);
+        } else {
+            const { sendEarlyAppealRejectionEmail } = await import('@/lib/emails/early-appeal-emails');
+            await sendEarlyAppealRejectionEmail({
+                customerEmail: email,
+                orderId: orderId,
+                reason: rejectionReason
+            });
+            console.log('Rejection email sent to:', email);
+        }
+    } catch (error) {
+        console.error('Failed to send appeal notification email:', error);
+        throw error;
     }
 }

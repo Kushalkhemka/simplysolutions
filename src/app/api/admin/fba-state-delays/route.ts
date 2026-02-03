@@ -5,6 +5,8 @@
  * POST: Add new state
  * PUT: Update delay for a state
  * DELETE: Remove a state
+ * 
+ * Note: Delays are stored in HOURS for flexibility (e.g., 6 hours for Delhi, 72 for 3 days)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -39,18 +41,18 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { state_name, delay_days } = body;
+        const { state_name, delay_hours } = body;
 
-        if (!state_name || typeof delay_days !== 'number') {
+        if (!state_name || typeof delay_hours !== 'number') {
             return NextResponse.json(
-                { error: 'State name and delay days are required' },
+                { error: 'State name and delay hours are required' },
                 { status: 400 }
             );
         }
 
-        if (delay_days < 1 || delay_days > 14) {
+        if (delay_hours < 1 || delay_hours > 336) { // Max 14 days = 336 hours
             return NextResponse.json(
-                { error: 'Delay days must be between 1 and 14' },
+                { error: 'Delay must be between 1 and 336 hours (14 days)' },
                 { status: 400 }
             );
         }
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
             .from('fba_state_delays')
             .insert({
                 state_name: state_name.toUpperCase().trim(),
-                delay_days
+                delay_hours
             })
             .select()
             .single();
@@ -89,21 +91,21 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     try {
         const body = await request.json();
-        const { id, delay_days, state_name } = body;
+        const { id, delay_hours, state_name } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'State ID is required' }, { status: 400 });
         }
 
-        if (typeof delay_days !== 'number' || delay_days < 1 || delay_days > 14) {
+        if (typeof delay_hours !== 'number' || delay_hours < 1 || delay_hours > 336) {
             return NextResponse.json(
-                { error: 'Delay days must be between 1 and 14' },
+                { error: 'Delay must be between 1 and 336 hours (14 days)' },
                 { status: 400 }
             );
         }
 
-        const updateData: { delay_days: number; state_name?: string; updated_at: string } = {
-            delay_days,
+        const updateData: { delay_hours: number; state_name?: string; updated_at: string } = {
+            delay_hours,
             updated_at: new Date().toISOString()
         };
 

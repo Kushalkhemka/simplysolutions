@@ -87,6 +87,7 @@ export default function AmazonOrdersClient() {
     const [filterGetcid, setFilterGetcid] = useState<string>('all');
     const [filterWarranty, setFilterWarranty] = useState<string>('all');
     const [filterRedeemed, setFilterRedeemed] = useState<string>('all');
+    const [filterRefunded, setFilterRefunded] = useState<string>('all');
     const [showFilters, setShowFilters] = useState(false);
     const [uniqueFsns, setUniqueFsns] = useState<string[]>([]);
 
@@ -127,6 +128,9 @@ export default function AmazonOrdersClient() {
                 query = query.is('license_key_id', null);
             }
         }
+        if (filterRefunded !== 'all') {
+            query = query.eq('is_refunded', filterRefunded === 'yes');
+        }
 
         const { data, count, error } = await query.range(from, to);
 
@@ -137,7 +141,7 @@ export default function AmazonOrdersClient() {
             setTotalCount(count || 0);
         }
         setIsLoading(false);
-    }, [currentPage, searchQuery, filterFsn, filterType, filterGetcid, filterWarranty, filterRedeemed, supabase]);
+    }, [currentPage, searchQuery, filterFsn, filterType, filterGetcid, filterWarranty, filterRedeemed, filterRefunded, supabase]);
 
     // Fetch unique FSNs for filter dropdown
     const fetchUniqueFsns = useCallback(async () => {
@@ -362,13 +366,13 @@ export default function AmazonOrdersClient() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'APPROVED':
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="h-3 w-3" /> Approved</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"><CheckCircle className="h-3 w-3" /> Approved</span>;
             case 'REJECTED':
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="h-3 w-3" /> Rejected</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"><XCircle className="h-3 w-3" /> Rejected</span>;
             case 'BLOCKED':
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-900 text-white"><Ban className="h-3 w-3" /> Blocked</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-100 dark:bg-gray-700 dark:text-gray-200"><Ban className="h-3 w-3" /> Blocked</span>;
             default:
-                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3" /> Pending</span>;
+                return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"><Clock className="h-3 w-3" /> Pending</span>;
         }
     };
 
@@ -483,7 +487,7 @@ export default function AmazonOrdersClient() {
                     <Filter className="h-4 w-4" />
                     Filter
                 </button>
-                {(filterFsn !== 'all' || filterType !== 'all' || filterGetcid !== 'all' || filterWarranty !== 'all' || filterRedeemed !== 'all') && (
+                {(filterFsn !== 'all' || filterType !== 'all' || filterGetcid !== 'all' || filterWarranty !== 'all' || filterRedeemed !== 'all' || filterRefunded !== 'all') && (
                     <button
                         type="button"
                         onClick={() => {
@@ -492,6 +496,7 @@ export default function AmazonOrdersClient() {
                             setFilterGetcid('all');
                             setFilterWarranty('all');
                             setFilterRedeemed('all');
+                            setFilterRefunded('all');
                             setCurrentPage(1);
                         }}
                         className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
@@ -566,6 +571,18 @@ export default function AmazonOrdersClient() {
                             <option value="no">Not Redeemed</option>
                         </select>
                     </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Refunded</label>
+                        <select
+                            value={filterRefunded}
+                            onChange={(e) => { setFilterRefunded(e.target.value); setCurrentPage(1); }}
+                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                        >
+                            <option value="all">All Orders</option>
+                            <option value="yes">Refunded Only</option>
+                            <option value="no">Not Refunded</option>
+                        </select>
+                    </div>
                 </div>
             )}
 
@@ -586,16 +603,21 @@ export default function AmazonOrdersClient() {
                                         <p className="text-sm text-muted-foreground mt-1">{order.fsn || 'No FSN'}</p>
                                         <div className="flex items-center flex-wrap gap-2 mt-2">
                                             {getStatusBadge(order.warranty_status)}
-                                            <span className={`px-2 py-0.5 rounded text-xs ${order.fulfillment_type === 'amazon_fba' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'}`}>
+                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${order.fulfillment_type === 'amazon_fba' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300' : 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300'}`}>
                                                 {order.fulfillment_type === 'amazon_fba' ? 'FBA' : 'Digital'}
                                             </span>
                                             {order.license_key_id ? (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
                                                     ✓ Redeemed
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                                                     ✗ Not Redeemed
+                                                </span>
+                                            )}
+                                            {order.is_refunded && (
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">
+                                                    💰 Refunded
                                                 </span>
                                             )}
                                         </div>
@@ -639,6 +661,7 @@ export default function AmazonOrdersClient() {
                                     <th className="px-4 py-3 text-left text-sm font-medium">FSN</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Contact</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Redeemed</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium">Refunded</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Warranty</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">GetCID</th>
@@ -654,20 +677,31 @@ export default function AmazonOrdersClient() {
                                         <td className="px-4 py-3">
                                             {order.license_key_id ? (
                                                 <span
-                                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-help"
+                                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 cursor-help"
                                                     title="Click view to see license key"
                                                 >
                                                     ✓ Yes
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                                                     ✗ No
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {order.is_refunded ? (
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">
+                                                    💰 Refunded
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                                    -
                                                 </span>
                                             )}
                                         </td>
                                         <td className="px-4 py-3">{getStatusBadge(order.warranty_status)}</td>
                                         <td className="px-4 py-3 text-sm">
-                                            <span className={`px-2 py-1 rounded text-xs ${order.fulfillment_type === 'amazon_fba' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
+                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${order.fulfillment_type === 'amazon_fba' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300' : 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300'}`}>
                                                 {order.fulfillment_type === 'amazon_fba' ? 'FBA' : 'Digital'}
                                             </span>
                                         </td>
@@ -822,6 +856,36 @@ export default function AmazonOrdersClient() {
                                     </div>
                                 </div>
 
+                                {/* Customer Contact Details - Show if email or phone exists */}
+                                {(selectedOrder.contact_email || selectedOrder.contact_phone) && (
+                                    <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-lg border border-cyan-500/30">
+                                        <div className="p-2 bg-cyan-100 rounded-lg">
+                                            <Phone className="h-5 w-5 text-cyan-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Customer Contact</p>
+                                            <div className="space-y-1.5">
+                                                {selectedOrder.contact_email && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-muted-foreground">Email:</span>
+                                                        <a href={`mailto:${selectedOrder.contact_email}`} className="font-medium text-cyan-600 hover:underline">
+                                                            {selectedOrder.contact_email}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                                {selectedOrder.contact_phone && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-muted-foreground">WhatsApp:</span>
+                                                        <a href={`https://wa.me/${selectedOrder.contact_phone.replace(/\+/g, '')}`} target="_blank" rel="noopener noreferrer" className="font-medium text-green-600 hover:underline">
+                                                            {selectedOrder.contact_phone}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* License Key(s) */}
                                 <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
                                     <div className="p-2 bg-green-100 rounded-lg">
@@ -974,28 +1038,30 @@ export default function AmazonOrdersClient() {
                                     </div>
                                 </div>
 
-                                {/* Confirmation ID */}
-                                <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
-                                    <div className="p-2 bg-teal-100 rounded-lg">
-                                        <ShieldCheck className="h-5 w-5 text-teal-600" />
+                                {/* Confirmation ID - Only show if Installation ID exists or in edit mode */}
+                                {(selectedOrder.installation_id || (isEditingOrder && editedOrder)) && (
+                                    <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg">
+                                        <div className="p-2 bg-teal-100 rounded-lg">
+                                            <ShieldCheck className="h-5 w-5 text-teal-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Confirmation ID</p>
+                                            {isEditingOrder && editedOrder ? (
+                                                <input
+                                                    type="text"
+                                                    value={editedOrder.confirmation_id}
+                                                    onChange={(e) => setEditedOrder({ ...editedOrder, confirmation_id: e.target.value })}
+                                                    className="w-full font-mono p-2 border rounded-lg bg-background focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Enter confirmation ID..."
+                                                />
+                                            ) : (
+                                                <p className="font-mono font-medium break-all">
+                                                    {selectedOrder.confirmation_id || <span className="text-muted-foreground italic">Not Available</span>}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Confirmation ID</p>
-                                        {isEditingOrder && editedOrder ? (
-                                            <input
-                                                type="text"
-                                                value={editedOrder.confirmation_id}
-                                                onChange={(e) => setEditedOrder({ ...editedOrder, confirmation_id: e.target.value })}
-                                                className="w-full font-mono p-2 border rounded-lg bg-background focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter confirmation ID..."
-                                            />
-                                        ) : (
-                                            <p className="font-mono font-medium break-all">
-                                                {selectedOrder.confirmation_id || <span className="text-muted-foreground italic">Not Available</span>}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
+                                )}
 
                                 {/* Timestamps */}
                                 <div className="grid grid-cols-2 gap-4">
@@ -1102,8 +1168,8 @@ export default function AmazonOrdersClient() {
                                             onClick={() => toggleRefundStatus(selectedOrder.order_id, selectedOrder.is_refunded || false)}
                                             disabled={isTogglingRefund}
                                             className={`px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${selectedOrder.is_refunded
-                                                    ? 'bg-green-600 text-white hover:bg-green-700'
-                                                    : 'bg-red-600 text-white hover:bg-red-700'
+                                                ? 'bg-green-600 text-white hover:bg-green-700'
+                                                : 'bg-red-600 text-white hover:bg-red-700'
                                                 } disabled:opacity-50`}
                                         >
                                             {isTogglingRefund ? (

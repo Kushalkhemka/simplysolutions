@@ -4,10 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// POST /api/activate/save-email - Save customer email for review requests
+// POST /api/activate/save-email - Save customer email and optional WhatsApp for future communication
 export async function POST(request: NextRequest) {
     try {
-        const { orderId, email } = await request.json();
+        const { orderId, email, whatsapp } = await request.json();
 
         if (!orderId || !email) {
             return NextResponse.json(
@@ -25,27 +25,43 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Validate WhatsApp format if provided
+        if (whatsapp && !/^\+91\d{10}$/.test(whatsapp)) {
+            return NextResponse.json(
+                { success: false, error: 'Invalid WhatsApp number format' },
+                { status: 400 }
+            );
+        }
+
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // Update the order with customer email
+        // Build update object
+        const updateData: { contact_email: string; contact_phone?: string } = {
+            contact_email: email.toLowerCase().trim(),
+        };
+
+        // Add WhatsApp if provided
+        if (whatsapp) {
+            updateData.contact_phone = whatsapp;
+        }
+
+        // Update the order with customer contact details
         const { error } = await supabase
             .from('amazon_orders')
-            .update({
-                contact_email: email.toLowerCase().trim(),
-            })
+            .update(updateData)
             .eq('order_id', orderId.trim());
 
         if (error) {
-            console.error('Error saving customer email:', error);
+            console.error('Error saving customer contact:', error);
             return NextResponse.json(
-                { success: false, error: 'Failed to save email' },
+                { success: false, error: 'Failed to save contact details' },
                 { status: 500 }
             );
         }
 
         return NextResponse.json({
             success: true,
-            message: 'Email saved successfully'
+            message: 'Contact details saved successfully'
         });
 
     } catch (error) {

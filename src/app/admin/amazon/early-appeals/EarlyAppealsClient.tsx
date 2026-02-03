@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { FileCheck, Mail, Phone, MapPin, Clock, Check, X, Eye, AlertTriangle } from 'lucide-react';
 
 interface Appeal {
     id: string;
@@ -120,114 +121,199 @@ export default function EarlyAppealsClient() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'PENDING':
-                return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Pending</span>;
+                return <span className="px-2.5 py-1 bg-amber-500/10 text-amber-500 rounded-full text-xs font-medium">Pending</span>;
             case 'APPROVED':
-                return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">Approved</span>;
+                return <span className="px-2.5 py-1 bg-green-500/10 text-green-500 rounded-full text-xs font-medium">Approved</span>;
             case 'REJECTED':
-                return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-sm">Rejected</span>;
+                return <span className="px-2.5 py-1 bg-red-500/10 text-red-500 rounded-full text-xs font-medium">Rejected</span>;
             default:
                 return null;
         }
     };
 
+    const filterOptions = [
+        { value: 'PENDING', label: 'Pending', color: 'bg-amber-500' },
+        { value: 'APPROVED', label: 'Approved', color: 'bg-green-500' },
+        { value: 'REJECTED', label: 'Rejected', color: 'bg-red-500' },
+        { value: '', label: 'All', color: 'bg-muted' }
+    ];
+
     return (
-        <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Early Delivery Appeals</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
+        <div className="p-4 md:p-6">
+            {/* Header */}
+            <div className="mb-8">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <FileCheck className="h-6 w-6 text-primary" />
+                    </div>
+                    <h1 className="text-2xl font-bold">Early Delivery Appeals</h1>
+                </div>
+                <p className="text-muted-foreground">
                     Review customer requests to activate products before the standard delivery waiting period.
                 </p>
             </div>
 
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
+                <div className="bg-destructive/10 border border-destructive/30 text-destructive p-4 rounded-lg mb-6 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
                     {error}
                 </div>
             )}
 
-            {/* Filters */}
-            <div className="flex gap-2 mb-6">
-                {['PENDING', 'APPROVED', 'REJECTED', ''].map((status) => (
+            {/* Filter Tabs */}
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                {filterOptions.map((option) => (
                     <button
-                        key={status || 'all'}
-                        onClick={() => setFilter(status)}
-                        className={`px-4 py-2 rounded-lg transition-colors ${filter === status
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300'
+                        key={option.value || 'all'}
+                        onClick={() => setFilter(option.value)}
+                        className={`px-4 py-2 rounded-lg transition-all font-medium text-sm ${filter === option.value
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'bg-card border text-muted-foreground hover:bg-muted/50'
                             }`}
                     >
-                        {status || 'All'} {status === 'PENDING' && appeals.length > 0 && `(${appeals.length})`}
+                        {option.label}
                     </button>
                 ))}
             </div>
 
             {/* Appeals List */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center">
-                        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-                        <p className="text-gray-500 mt-4">Loading appeals...</p>
+                    <div className="p-12 text-center">
+                        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+                        <p className="text-muted-foreground mt-4">Loading appeals...</p>
                     </div>
                 ) : appeals.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                        No {filter.toLowerCase() || ''} appeals found.
+                    <div className="p-12 text-center">
+                        <div className="w-12 h-12 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+                            <FileCheck className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="text-muted-foreground">No {filter.toLowerCase() || ''} appeals found.</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                    <div className="grid gap-4 p-4">
                         {appeals.map((appeal) => (
-                            <div key={appeal.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                <div className="flex items-start gap-4">
-                                    {/* Proof Image Thumbnail */}
-                                    <div
-                                        className="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700"
-                                        onClick={() => setViewingImage(appeal.proof_image_url)}
-                                    >
-                                        <Image
-                                            src={appeal.proof_image_url}
-                                            alt="Proof of delivery"
-                                            width={80}
-                                            height={80}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
+                            <div
+                                key={appeal.id}
+                                className={`relative rounded-xl border overflow-hidden transition-all hover:shadow-lg ${appeal.status === 'PENDING'
+                                        ? 'bg-gradient-to-r from-amber-500/5 to-orange-500/5 border-amber-500/30 hover:border-amber-500/50'
+                                        : appeal.status === 'APPROVED'
+                                            ? 'bg-gradient-to-r from-green-500/5 to-emerald-500/5 border-green-500/30'
+                                            : 'bg-gradient-to-r from-red-500/5 to-rose-500/5 border-red-500/30'
+                                    }`}
+                            >
+                                {/* Status indicator bar */}
+                                <div className={`absolute top-0 left-0 right-0 h-1 ${appeal.status === 'PENDING'
+                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                                        : appeal.status === 'APPROVED'
+                                            ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                            : 'bg-gradient-to-r from-red-500 to-rose-500'
+                                    }`} />
 
-                                    {/* Appeal Details */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="font-mono font-medium text-gray-900 dark:text-white">
-                                                {appeal.order_id}
-                                            </span>
-                                            {getStatusBadge(appeal.status)}
+                                <div className="p-4 pt-5">
+                                    <div className="flex flex-col lg:flex-row gap-4">
+                                        {/* Proof Image Thumbnail - Larger */}
+                                        <div
+                                            className="w-full lg:w-32 h-32 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden bg-muted/50 border-2 border-transparent hover:border-primary transition-all relative group shadow-md"
+                                            onClick={() => setViewingImage(appeal.proof_image_url)}
+                                        >
+                                            <Image
+                                                src={appeal.proof_image_url}
+                                                alt="Proof of delivery"
+                                                width={128}
+                                                height={128}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <div className="text-center text-white">
+                                                    <Eye className="h-6 w-6 mx-auto mb-1" />
+                                                    <span className="text-xs font-medium">View Full</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                            <p>📧 {appeal.customer_email}</p>
-                                            <p>📱 {appeal.customer_whatsapp}</p>
-                                            {appeal.order && (
-                                                <p>📍 {appeal.order.city}, {appeal.order.state}</p>
-                                            )}
-                                            <p>🕐 Submitted: {formatDate(appeal.created_at)}</p>
+
+                                        {/* Appeal Details */}
+                                        <div className="flex-1 min-w-0">
+                                            {/* Header Row */}
+                                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                <span className="font-mono font-bold text-base bg-card px-3 py-1 rounded-lg border shadow-sm">
+                                                    {appeal.order_id}
+                                                </span>
+                                                {getStatusBadge(appeal.status)}
+                                            </div>
+
+                                            {/* Info Grid */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                                <div className="flex items-center gap-2.5 bg-card/50 rounded-lg px-3 py-2 border border-border/50">
+                                                    <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                                        <Mail className="h-4 w-4 text-blue-500" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs text-muted-foreground">Email</p>
+                                                        <p className="font-medium truncate">{appeal.customer_email}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2.5 bg-card/50 rounded-lg px-3 py-2 border border-border/50">
+                                                    <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
+                                                        <Phone className="h-4 w-4 text-green-500" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">WhatsApp</p>
+                                                        <p className="font-medium">{appeal.customer_whatsapp}</p>
+                                                    </div>
+                                                </div>
+                                                {appeal.order && appeal.order.state && (
+                                                    <div className="flex items-center gap-2.5 bg-card/50 rounded-lg px-3 py-2 border border-border/50">
+                                                        <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center">
+                                                            <MapPin className="h-4 w-4 text-purple-500" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-muted-foreground">Location</p>
+                                                            <p className="font-medium">{appeal.order.city ? `${appeal.order.city}, ` : ''}{appeal.order.state}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-2.5 bg-card/50 rounded-lg px-3 py-2 border border-border/50">
+                                                    <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                                        <Clock className="h-4 w-4 text-amber-500" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">Submitted</p>
+                                                        <p className="font-medium">{formatDate(appeal.created_at)}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Review info */}
                                             {appeal.reviewed_at && (
-                                                <p className="text-xs">
+                                                <div className="mt-3 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2 inline-flex items-center gap-2">
+                                                    <Check className="h-3.5 w-3.5 text-green-500" />
                                                     Reviewed: {formatDate(appeal.reviewed_at)} by {appeal.reviewed_by}
-                                                </p>
+                                                </div>
                                             )}
-                                            {appeal.rejection_reason && (
-                                                <p className="text-red-600">Reason: {appeal.rejection_reason}</p>
-                                            )}
-                                        </div>
-                                    </div>
 
-                                    {/* Actions */}
-                                    {appeal.status === 'PENDING' && (
-                                        <div className="flex-shrink-0">
-                                            <button
-                                                onClick={() => openReviewModal(appeal)}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                            >
-                                                Review
-                                            </button>
+                                            {/* Rejection reason */}
+                                            {appeal.rejection_reason && (
+                                                <div className="mt-3 text-sm text-red-500 bg-red-500/10 rounded-lg px-3 py-2 flex items-start gap-2">
+                                                    <X className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                                    <span>{appeal.rejection_reason}</span>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+
+                                        {/* Actions */}
+                                        {appeal.status === 'PENDING' && (
+                                            <div className="flex-shrink-0 flex lg:flex-col gap-2">
+                                                <button
+                                                    onClick={() => openReviewModal(appeal)}
+                                                    className="flex-1 lg:flex-none px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 font-medium shadow-lg shadow-primary/20"
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                    Review
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -237,18 +323,31 @@ export default function EarlyAppealsClient() {
 
             {/* Review Modal */}
             {showModal && selectedAppeal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl border shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
-                            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-                                Review Appeal for {selectedAppeal.order_id}
-                            </h2>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold">Review Appeal</h2>
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    className="p-2 hover:bg-muted rounded-lg transition-colors"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            {/* Order ID Badge */}
+                            <div className="mb-4">
+                                <span className="font-mono font-semibold bg-muted px-3 py-1 rounded text-sm">
+                                    {selectedAppeal.order_id}
+                                </span>
+                            </div>
 
                             {/* Proof Image */}
-                            <div className="mb-4">
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Proof of Delivery:</p>
+                            <div className="mb-6">
+                                <p className="text-sm text-muted-foreground mb-2 font-medium">Proof of Delivery</p>
                                 <div
-                                    className="cursor-pointer rounded-lg overflow-hidden max-h-64"
+                                    className="cursor-pointer rounded-lg overflow-hidden border hover:border-primary transition-colors"
                                     onClick={() => setViewingImage(selectedAppeal.proof_image_url)}
                                 >
                                     <Image
@@ -256,27 +355,38 @@ export default function EarlyAppealsClient() {
                                         alt="Proof of delivery"
                                         width={400}
                                         height={300}
-                                        className="w-full object-contain"
+                                        className="w-full object-contain max-h-64"
                                     />
                                 </div>
                             </div>
 
                             {/* Customer Info */}
-                            <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                                <p><strong>Email:</strong> {selectedAppeal.customer_email}</p>
-                                <p><strong>WhatsApp:</strong> {selectedAppeal.customer_whatsapp}</p>
-                                <p><strong>Submitted:</strong> {formatDate(selectedAppeal.created_at)}</p>
+                            <div className="mb-6 p-4 bg-muted/50 rounded-lg">
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <p className="text-muted-foreground text-xs mb-1">Email</p>
+                                        <p className="font-medium">{selectedAppeal.customer_email}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground text-xs mb-1">WhatsApp</p>
+                                        <p className="font-medium">{selectedAppeal.customer_whatsapp}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <p className="text-muted-foreground text-xs mb-1">Submitted</p>
+                                        <p className="font-medium">{formatDate(selectedAppeal.created_at)}</p>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Admin Notes */}
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Admin Notes (optional)
+                                <label className="block text-sm font-medium mb-1.5">
+                                    Admin Notes <span className="text-muted-foreground">(optional)</span>
                                 </label>
                                 <textarea
                                     value={adminNotes}
                                     onChange={(e) => setAdminNotes(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    className="w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none"
                                     rows={2}
                                     placeholder="Internal notes..."
                                 />
@@ -284,13 +394,13 @@ export default function EarlyAppealsClient() {
 
                             {/* Rejection Reason */}
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Rejection Reason (required if rejecting)
+                                <label className="block text-sm font-medium mb-1.5">
+                                    Rejection Reason <span className="text-muted-foreground">(required if rejecting)</span>
                                 </label>
                                 <textarea
                                     value={rejectionReason}
                                     onChange={(e) => setRejectionReason(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    className="w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none"
                                     rows={2}
                                     placeholder="e.g., Image is unclear, cannot verify package..."
                                 />
@@ -301,21 +411,23 @@ export default function EarlyAppealsClient() {
                                 <button
                                     onClick={() => handleAction('APPROVE')}
                                     disabled={processing}
-                                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                                    className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 font-medium"
                                 >
-                                    {processing ? 'Processing...' : '✓ Approve'}
+                                    <Check className="h-4 w-4" />
+                                    {processing ? 'Processing...' : 'Approve'}
                                 </button>
                                 <button
                                     onClick={() => handleAction('REJECT')}
                                     disabled={processing}
-                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                                    className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 font-medium"
                                 >
-                                    {processing ? 'Processing...' : '✕ Reject'}
+                                    <X className="h-4 w-4" />
+                                    {processing ? 'Processing...' : 'Reject'}
                                 </button>
                                 <button
                                     onClick={() => setShowModal(false)}
                                     disabled={processing}
-                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+                                    className="px-4 py-2.5 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 disabled:opacity-50 transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -328,7 +440,7 @@ export default function EarlyAppealsClient() {
             {/* Image Viewer Modal */}
             {viewingImage && (
                 <div
-                    className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
+                    className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4"
                     onClick={() => setViewingImage(null)}
                 >
                     <div className="max-w-4xl max-h-[90vh]">
@@ -337,14 +449,14 @@ export default function EarlyAppealsClient() {
                             alt="Proof of delivery - Full size"
                             width={800}
                             height={600}
-                            className="max-w-full max-h-[90vh] object-contain"
+                            className="max-w-full max-h-[90vh] object-contain rounded-lg"
                         />
                     </div>
                     <button
                         onClick={() => setViewingImage(null)}
-                        className="absolute top-4 right-4 text-white text-4xl hover:opacity-70"
+                        className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                     >
-                        ×
+                        <X className="h-6 w-6 text-white" />
                     </button>
                 </div>
             )}

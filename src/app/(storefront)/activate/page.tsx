@@ -120,12 +120,22 @@ function ActivatePageContent() {
 
     // Email capture ref and state
     const captureEmailRef = useRef<HTMLInputElement>(null);
+    const captureWhatsappRef = useRef<HTMLInputElement>(null);
     const [emailSaved, setEmailSaved] = useState(false);
 
     // Preactivated product countdown state
     const [showPreactivatedCountdown, setShowPreactivatedCountdown] = useState(false);
     const [countdownSeconds, setCountdownSeconds] = useState(5);
     const [preactivatedFsn, setPreactivatedFsn] = useState<string | null>(null);
+
+    // Early delivery appeal state
+    const [canAppeal, setCanAppeal] = useState(false);
+    const [showAppealModal, setShowAppealModal] = useState(false);
+    const [appealScreenshot, setAppealScreenshot] = useState<File | null>(null);
+    const [appealScreenshotPreview, setAppealScreenshotPreview] = useState<string | null>(null);
+    const [appealLoading, setAppealLoading] = useState(false);
+    const [appealEmail, setAppealEmail] = useState('');
+    const [appealWhatsApp, setAppealWhatsApp] = useState('');
 
     // Check for existing replacement request when order is verified
     const checkReplacementStatus = async (orderId: string) => {
@@ -213,9 +223,11 @@ function ActivatePageContent() {
 
             if (!response.ok || !data.valid) {
                 setError(data.error || 'Invalid secret code');
+                setCanAppeal(data.canAppeal === true);
                 setIsLoading(false);
                 return;
             }
+            setCanAppeal(false); // Reset on success
 
             // Check if this is a subscription product that needs to be redirected to its specific page
             if (data.fsn) {
@@ -548,6 +560,63 @@ function ActivatePageContent() {
         }
     };
 
+    // Handle early delivery appeal submission
+    const handleAppealScreenshotChange = (file: File | null) => {
+        if (file) {
+            setAppealScreenshot(file);
+            setAppealScreenshotPreview(URL.createObjectURL(file));
+        } else {
+            setAppealScreenshot(null);
+            setAppealScreenshotPreview(null);
+        }
+    };
+
+    const handleSubmitAppeal = async () => {
+        if (!appealScreenshot) {
+            toast.error('Please upload a screenshot as proof of delivery');
+            return;
+        }
+        if (!appealEmail.trim()) {
+            toast.error('Please enter your email address');
+            return;
+        }
+        if (!appealWhatsApp.trim()) {
+            toast.error('Please enter your WhatsApp number');
+            return;
+        }
+
+        setAppealLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append('orderId', secretCode.trim());
+            formData.append('screenshot', appealScreenshot);
+            formData.append('email', appealEmail.trim());
+            formData.append('whatsapp', appealWhatsApp.trim());
+
+            const res = await fetch('/api/early-appeal', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                toast.success('Appeal submitted successfully! We will review and notify you within 24 hours.');
+                setShowAppealModal(false);
+                setAppealScreenshot(null);
+                setAppealScreenshotPreview(null);
+                setError('Your early delivery appeal is being reviewed by our team. We will notify you once it is processed.');
+                setCanAppeal(false);
+            } else {
+                toast.error(data.error || 'Failed to submit appeal');
+            }
+        } catch (error) {
+            console.error('Appeal submission error:', error);
+            toast.error('Network error. Please try again.');
+        } finally {
+            setAppealLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#EAEDED]">
             {/* Success Banner - Amazon Green */}
@@ -628,6 +697,133 @@ function ActivatePageContent() {
                 </div>
             )}
 
+            {/* Early Delivery Appeal Modal */}
+            {showAppealModal && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-[#0078D4] to-[#00BCF2] text-white px-6 py-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                        <Upload className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-bold">Proof of Delivery</h2>
+                                        <p className="text-sm opacity-90">Submit to activate early</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowAppealModal(false);
+                                        setAppealScreenshot(null);
+                                        setAppealScreenshotPreview(null);
+                                    }}
+                                    className="hover:bg-white/20 p-1 rounded"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-4">
+                            <p className="text-sm text-[#565959]">
+                                Upload a screenshot showing proof that your order has been delivered.
+                                This can be a screenshot from Amazon showing delivery status,
+                                a photo of the package, or tracking information.
+                            </p>
+
+                            {/* Screenshot Upload */}
+                            <div className="border-2 border-dashed border-[#DDD] rounded-lg p-4">
+                                {appealScreenshotPreview ? (
+                                    <div className="space-y-3">
+                                        <img
+                                            src={appealScreenshotPreview}
+                                            alt="Proof of delivery"
+                                            className="max-h-48 mx-auto rounded-lg"
+                                        />
+                                        <button
+                                            onClick={() => handleAppealScreenshotChange(null)}
+                                            className="text-sm text-red-600 hover:text-red-800"
+                                        >
+                                            Remove & Upload Different Image
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="flex flex-col items-center justify-center cursor-pointer py-4">
+                                        <Upload className="w-10 h-10 text-[#888] mb-2" />
+                                        <span className="text-sm font-medium text-[#0F1111]">
+                                            Click to upload screenshot
+                                        </span>
+                                        <span className="text-xs text-[#565959] mt-1">
+                                            PNG, JPG up to 5MB
+                                        </span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) handleAppealScreenshotChange(file);
+                                            }}
+                                        />
+                                    </label>
+                                )}
+                            </div>
+
+                            {/* Contact Info */}
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-sm font-medium text-[#0F1111] mb-1">
+                                        Email Address <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={appealEmail}
+                                        onChange={(e) => setAppealEmail(e.target.value)}
+                                        placeholder="your.email@example.com"
+                                        className="w-full px-3 py-2 border border-[#DDD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0078D4] focus:border-transparent bg-white text-[#0F1111]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-[#0F1111] mb-1">
+                                        WhatsApp Number <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={appealWhatsApp}
+                                        onChange={(e) => setAppealWhatsApp(e.target.value)}
+                                        placeholder="+91 98765 43210"
+                                        className="w-full px-3 py-2 border border-[#DDD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0078D4] focus:border-transparent bg-white text-[#0F1111]"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Submit Button */}
+                            <button
+                                onClick={handleSubmitAppeal}
+                                disabled={!appealScreenshot || !appealEmail.trim() || !appealWhatsApp.trim() || appealLoading}
+                                className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {appealLoading ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    'Submit Appeal'
+                                )}
+                            </button>
+
+                            <p className="text-xs text-[#565959] text-center">
+                                Our team will review your submission within 24 hours.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Main Content */}
             <div className="container-dense py-8 md:py-12">
                 <div className="max-w-2xl mx-auto">
@@ -674,9 +870,24 @@ function ActivatePageContent() {
 
                             {/* Error Message */}
                             {error && (
-                                <div className="mb-6 p-3 bg-[#FCF4F4] border border-[#CC0C39] rounded flex items-center gap-2">
-                                    <AlertTriangle className="w-4 h-4 text-[#CC0C39] flex-shrink-0" />
-                                    <span className="text-[#CC0C39] text-sm">{error}</span>
+                                <div className="mb-6">
+                                    <div className="p-4 bg-[#FCF4F4] border border-[#CC0C39] rounded-lg">
+                                        <div className="flex items-start gap-3">
+                                            <AlertTriangle className="w-5 h-5 text-[#CC0C39] flex-shrink-0 mt-0.5" />
+                                            <div className="flex-1">
+                                                <span className="text-[#CC0C39] text-sm whitespace-pre-line">{error}</span>
+                                                {canAppeal && (
+                                                    <button
+                                                        onClick={() => setShowAppealModal(true)}
+                                                        className="mt-3 w-full py-2 px-4 bg-[#0078D4] hover:bg-[#106EBE] text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                    >
+                                                        <Upload className="w-4 h-4" />
+                                                        Submit Proof of Delivery
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -1028,44 +1239,73 @@ function ActivatePageContent() {
                                                                 Received a faulty license key? Request Replacement
                                                             </button>
 
-                                                            {/* Email Capture for Updates - hide if email already saved */}
+                                                            {/* Contact Capture for Updates - hide if already saved */}
                                                             {!emailSaved && !activationResult.hasValidEmail && (
-                                                                <div className="mt-3 p-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-lg">
-                                                                    <label className="block text-sm font-medium text-[#0369A1] mb-2">
-                                                                        Enter your Email for future communication*
-                                                                    </label>
-                                                                    <div className="flex gap-2">
-                                                                        <input
-                                                                            type="email"
-                                                                            ref={captureEmailRef}
-                                                                            placeholder="your.email@example.com"
-                                                                            className="flex-1 px-3 py-2 border border-[#888C8C] rounded text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
-                                                                        />
+                                                                <div className="mt-3 p-4 bg-[#F0F9FF] border border-[#BAE6FD] rounded-lg">
+                                                                    <p className="text-sm font-medium text-[#0369A1] mb-3">
+                                                                        Enter your contact details for future communication*
+                                                                    </p>
+                                                                    <div className="space-y-3">
+                                                                        <div>
+                                                                            <label className="block text-xs text-[#0369A1]/70 mb-1">Email Address</label>
+                                                                            <input
+                                                                                type="email"
+                                                                                ref={captureEmailRef}
+                                                                                placeholder="your.email@example.com"
+                                                                                className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-xs text-[#0369A1]/70 mb-1">WhatsApp Number (optional)</label>
+                                                                            <div className="flex">
+                                                                                <span className="inline-flex items-center px-3 py-2 text-sm text-gray-600 bg-gray-100 border border-r-0 border-[#888C8C] rounded-l">
+                                                                                    +91
+                                                                                </span>
+                                                                                <input
+                                                                                    type="tel"
+                                                                                    ref={captureWhatsappRef}
+                                                                                    placeholder="9876543210"
+                                                                                    maxLength={10}
+                                                                                    className="flex-1 px-3 py-2 border border-[#888C8C] rounded-r text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0369A1]"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
                                                                         <button
                                                                             type="button"
                                                                             onClick={async () => {
                                                                                 const email = captureEmailRef.current?.value?.trim() || '';
+                                                                                const whatsapp = captureWhatsappRef.current?.value?.trim() || '';
                                                                                 if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                                                                                    // Validate WhatsApp if provided
+                                                                                    if (whatsapp && !/^\d{10}$/.test(whatsapp)) {
+                                                                                        toast.error('Please enter a valid 10-digit WhatsApp number');
+                                                                                        return;
+                                                                                    }
                                                                                     try {
                                                                                         await fetch('/api/activate/save-email', {
                                                                                             method: 'POST',
                                                                                             headers: { 'Content-Type': 'application/json' },
-                                                                                            body: JSON.stringify({ orderId: secretCode.trim(), email }),
+                                                                                            body: JSON.stringify({
+                                                                                                orderId: secretCode.trim(),
+                                                                                                email,
+                                                                                                whatsapp: whatsapp ? `+91${whatsapp}` : undefined
+                                                                                            }),
                                                                                         });
-                                                                                        toast.success('Email saved!');
+                                                                                        toast.success('Contact details saved!');
                                                                                         setEmailSaved(true);
                                                                                         if (captureEmailRef.current) captureEmailRef.current.value = '';
+                                                                                        if (captureWhatsappRef.current) captureWhatsappRef.current.value = '';
                                                                                     } catch (err) {
-                                                                                        console.error('Error saving email:', err);
-                                                                                        toast.error('Failed to save email');
+                                                                                        console.error('Error saving contact:', err);
+                                                                                        toast.error('Failed to save contact details');
                                                                                     }
                                                                                 } else {
-                                                                                    toast.error('Please enter a valid email');
+                                                                                    toast.error('Please enter a valid email address');
                                                                                 }
                                                                             }}
-                                                                            className="px-4 py-2 bg-[#0369A1] hover:bg-[#0284C7] text-white font-medium rounded text-sm transition-colors"
+                                                                            className="w-full px-4 py-2.5 bg-[#0369A1] hover:bg-[#0284C7] text-white font-medium rounded text-sm transition-colors"
                                                                         >
-                                                                            Submit
+                                                                            Save Contact Details
                                                                         </button>
                                                                     </div>
                                                                 </div>

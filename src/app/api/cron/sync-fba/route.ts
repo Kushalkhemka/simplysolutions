@@ -4,6 +4,7 @@
  * 
  * Features:
  * - Syncs new FBA orders from Amazon SP-API
+ * - Supports multiple seller accounts (stored in database)
  * - Updates existing orders when fulfillment status changes
  * - Stores synced_at timestamp for activation delay calculation
  * - Uses ASIN mapping to get FSN for product identification
@@ -14,14 +15,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import {
+    getActiveSellerAccounts,
+    updateSyncStatus,
+    SellerAccountWithCredentials
+} from '@/lib/amazon/seller-accounts';
 
-const SP_API_CONFIG = {
-    clientId: process.env.AMAZON_SP_CLIENT_ID!,
-    clientSecret: process.env.AMAZON_SP_CLIENT_SECRET!,
-    refreshToken: process.env.AMAZON_SP_REFRESH_TOKEN!,
-    marketplaceId: process.env.AMAZON_SP_MARKETPLACE_ID || 'A21TJRUUN4KGV',
-    endpoint: 'https://sellingpartnerapi-eu.amazon.com'
-};
+const SP_API_ENDPOINT = 'https://sellingpartnerapi-fe.amazon.com';
 
 // Verify cron secret
 function verifyCronAuth(request: NextRequest): boolean {
@@ -31,15 +31,15 @@ function verifyCronAuth(request: NextRequest): boolean {
     return authHeader === `Bearer ${cronSecret}`;
 }
 
-async function getAccessToken(): Promise<string> {
+async function getAccessToken(account: SellerAccountWithCredentials): Promise<string> {
     const response = await fetch('https://api.amazon.com/auth/o2/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             grant_type: 'refresh_token',
-            refresh_token: SP_API_CONFIG.refreshToken,
-            client_id: SP_API_CONFIG.clientId,
-            client_secret: SP_API_CONFIG.clientSecret
+            refresh_token: account.refreshToken,
+            client_id: account.clientId,
+            client_secret: account.clientSecret
         })
     });
 
@@ -51,13 +51,13 @@ async function getAccessToken(): Promise<string> {
     return data.access_token;
 }
 
-async function fetchFBAOrders(accessToken: string, createdAfter: string): Promise<any[]> {
+async function fetchFBAOrders(accessToken: string, marketplaceId: string, createdAfter: string): Promise<any[]> {
     const allOrders: any[] = [];
     let nextToken: string | null = null;
 
     do {
-        const url = new URL(`${SP_API_CONFIG.endpoint}/orders/v0/orders`);
-        url.searchParams.set('MarketplaceIds', SP_API_CONFIG.marketplaceId);
+        const url = new URL(`${SP_API_ENDPOINT}/orders/v0/orders`);
+        url.searchParams.set('MarketplaceIds', marketplaceId);
         url.searchParams.set('CreatedAfter', createdAfter);
         url.searchParams.set('FulfillmentChannels', 'AFN');
         url.searchParams.set('MaxResultsPerPage', '100');
@@ -90,7 +90,7 @@ async function fetchFBAOrders(accessToken: string, createdAfter: string): Promis
 }
 
 async function fetchOrderItems(accessToken: string, orderId: string): Promise<any[]> {
-    const url = `${SP_API_CONFIG.endpoint}/orders/v0/orders/${orderId}/orderItems`;
+    const url = `${SP_API_ENDPOINT}/orders/v0/orders/${orderId}/orderItems`;
     const response = await fetch(url, {
         headers: { 'x-amz-access-token': accessToken }
     });
@@ -99,40 +99,23 @@ async function fetchOrderItems(accessToken: string, orderId: string): Promise<an
     return data.payload?.OrderItems || [];
 }
 
-export async function GET(request: NextRequest) {
-    if (!verifyCronAuth(request)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const startTime = Date.now();
-
+async function syncOrdersForAccount(
+    account: SellerAccountWithCredentials,
+    supabase: any,
+    asinToFSN: Map<string, string>
+): Promise<{ inserted: number; updated: number; error?: string }> {
     try {
-        if (!SP_API_CONFIG.clientId || !SP_API_CONFIG.refreshToken) {
-            return NextResponse.json({ error: 'Missing SP-API credentials' }, { status: 500 });
-        }
-
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
-
-        const accessToken = await getAccessToken();
+        const accessToken = await getAccessToken(account);
 
         // Fetch FBA orders from last 30 days
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const orders = await fetchFBAOrders(accessToken, thirtyDaysAgo.toISOString());
+        const orders = await fetchFBAOrders(accessToken, account.marketplaceId, thirtyDaysAgo.toISOString());
 
         if (orders.length === 0) {
-            return NextResponse.json({
-                success: true,
-                message: 'No FBA orders found',
-                ordersFound: 0,
-                ordersInserted: 0,
-                ordersUpdated: 0,
-                duration: `${Date.now() - startTime}ms`
-            });
+            await updateSyncStatus(account.id, 'success', 0);
+            return { inserted: 0, updated: 0 };
         }
 
         // Check existing orders with their current fulfillment status
@@ -153,26 +136,12 @@ export async function GET(request: NextRequest) {
             const existing = existingMap.get(o.AmazonOrderId);
             if (!existing) return false;
 
-            // Update if:
-            // 1. Status changed from Pending to something else (Shipped, Canceled, etc.)
-            // 2. Order is Shipped but shipped_at is null (backfill)
-            // 3. Order is missing state info but now available (backfill)
             const statusChanged = (existing.fulfillment_status === 'Pending' || existing.fulfillment_status === null)
                 && o.OrderStatus !== 'Pending';
             const needsShippedAt = o.OrderStatus === 'Shipped' && !existing.shipped_at;
             const needsState = !existing.state && o.ShippingAddress?.StateOrRegion;
 
             return statusChanged || needsShippedAt || needsState;
-        });
-
-        // Fetch ASIN mapping for FSN lookup
-        const { data: asinMappings } = await supabase
-            .from('amazon_asin_mapping')
-            .select('asin, fsn');
-
-        const asinToFSN = new Map<string, string>();
-        (asinMappings || []).forEach((m: any) => {
-            asinToFSN.set(m.asin, m.fsn);
         });
 
         // Prepare new orders for insert
@@ -222,10 +191,6 @@ export async function GET(request: NextRequest) {
                 shippedAt = order.LastUpdateDate || new Date().toISOString();
             }
 
-            // Note: redeemable_at is calculated dynamically at activation time
-            // using synced_at + current state delay from fba_state_delays table
-            // This ensures admin changes to delays take effect immediately
-
             ordersToInsert.push({
                 order_id: order.AmazonOrderId,
                 fulfillment_type: 'amazon_fba',
@@ -243,7 +208,8 @@ export async function GET(request: NextRequest) {
                 country: order.ShippingAddress?.CountryCode || 'IN',
                 warranty_status: 'PENDING',
                 shipped_at: shippedAt,
-                synced_at: new Date().toISOString()
+                synced_at: new Date().toISOString(),
+                seller_account_id: account.id  // Link to seller account
             });
         }
 
@@ -266,18 +232,16 @@ export async function GET(request: NextRequest) {
             const postalCode = order.ShippingAddress?.PostalCode || null;
             const state = order.ShippingAddress?.StateOrRegion || null;
 
-            // Calculate shipped_at for shipped orders
             let shippedAt = null;
             if (amazonOrderStatus === 'Shipped') {
                 shippedAt = order.LastUpdateDate || new Date().toISOString();
             }
 
-            const updateData: any = {
+            const updateData: Record<string, unknown> = {
                 fulfillment_status: amazonOrderStatus,
                 updated_at: new Date().toISOString()
             };
 
-            // Update address info when available (becomes available after shipping)
             if (order.ShippingAddress) {
                 updateData.city = order.ShippingAddress.City || null;
                 updateData.state = state;
@@ -287,16 +251,13 @@ export async function GET(request: NextRequest) {
 
             if (shippedAt) {
                 updateData.shipped_at = shippedAt;
-                // Note: redeemable_at is calculated from synced_at on insert, not updated here
             }
 
-            // Update buyer email if now available
             if (order.BuyerInfo?.BuyerEmail) {
                 updateData.buyer_email = order.BuyerInfo.BuyerEmail;
                 updateData.contact_email = order.BuyerInfo.BuyerEmail;
             }
 
-            // Update order total if now available
             if (order.OrderTotal?.Amount) {
                 updateData.order_total = parseFloat(order.OrderTotal.Amount);
                 updateData.currency = order.OrderTotal.CurrencyCode || 'INR';
@@ -313,26 +274,98 @@ export async function GET(request: NextRequest) {
         }
 
         if (insertError) {
+            await updateSyncStatus(account.id, `Error: ${insertError.message}`);
+            return { inserted: 0, updated: 0, error: insertError.message };
+        }
+
+        await updateSyncStatus(account.id, 'success', ordersToInsert.length);
+        return { inserted: ordersToInsert.length, updated: ordersUpdated };
+
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await updateSyncStatus(account.id, `Error: ${errorMessage}`);
+        return { inserted: 0, updated: 0, error: errorMessage };
+    }
+}
+
+export async function GET(request: NextRequest) {
+    if (!verifyCronAuth(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const startTime = Date.now();
+
+    try {
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        // Get all active seller accounts
+        const accounts = await getActiveSellerAccounts();
+
+        if (accounts.length === 0) {
             return NextResponse.json({
-                success: false,
-                error: insertError.message,
+                success: true,
+                message: 'No active seller accounts configured',
+                accountsProcessed: 0,
+                totalOrdersInserted: 0,
+                totalOrdersUpdated: 0,
                 duration: `${Date.now() - startTime}ms`
-            }, { status: 500 });
+            });
+        }
+
+        // Fetch ASIN mapping for FSN lookup (shared across all accounts)
+        const { data: asinMappings } = await supabase
+            .from('amazon_asin_mapping')
+            .select('asin, fsn');
+
+        const asinToFSN = new Map<string, string>();
+        (asinMappings || []).forEach((m: any) => {
+            asinToFSN.set(m.asin, m.fsn);
+        });
+
+        // Process each seller account
+        const results: { accountName: string; inserted: number; updated: number; error?: string }[] = [];
+        let totalInserted = 0;
+        let totalUpdated = 0;
+
+        for (const account of accounts) {
+            console.log(`[sync-fba] Processing account: ${account.name} (${account.merchantToken})`);
+
+            const result = await syncOrdersForAccount(account, supabase, asinToFSN);
+
+            results.push({
+                accountName: account.name,
+                inserted: result.inserted,
+                updated: result.updated,
+                error: result.error
+            });
+
+            totalInserted += result.inserted;
+            totalUpdated += result.updated;
+
+            // Small delay between accounts to avoid rate limiting
+            if (accounts.length > 1) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
         }
 
         return NextResponse.json({
             success: true,
             message: 'FBA orders synced successfully',
-            ordersFound: orders.length,
-            ordersInserted: ordersToInsert.length,
-            ordersUpdated,
+            accountsProcessed: accounts.length,
+            totalOrdersInserted: totalInserted,
+            totalOrdersUpdated: totalUpdated,
+            results,
             duration: `${Date.now() - startTime}ms`
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json({
             success: false,
-            error: error.message,
+            error: errorMessage,
             duration: `${Date.now() - startTime}ms`
         }, { status: 500 });
     }

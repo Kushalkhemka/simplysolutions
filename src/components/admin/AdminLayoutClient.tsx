@@ -6,7 +6,8 @@ import { usePathname } from 'next/navigation';
 import {
     Menu, X, LogOut, LayoutDashboard, Package, ShoppingCart, Key,
     Users, Tag, BarChart3, Settings, ShoppingBag, Shield, Mail,
-    Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database, Sparkles, Bell, MessageSquareWarning
+    Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database, Sparkles, Bell, MessageSquareWarning,
+    Clock, FileCheck, Store
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -22,6 +23,7 @@ const sidebarLinks = [
 ];
 
 const amazonLinks = [
+    { name: 'Seller Accounts', href: '/admin/amazon/seller-accounts', icon: Store },
     { name: 'Analytics', href: '/admin/amazon/analytics', icon: BarChart3 },
     { name: 'Amazon Orders', href: '/admin/amazon/orders', icon: ShoppingBag },
     { name: 'License Keys', href: '/admin/amazon/keys', icon: Key },
@@ -32,6 +34,8 @@ const amazonLinks = [
     { name: 'Fraud Orders', href: '/admin/amazon/fraud', icon: ShieldX },
     { name: 'Warranty Claims', href: '/admin/amazon/warranty', icon: Shield },
     { name: 'Feedback Appeals', href: '/admin/amazon/feedback-appeals', icon: MessageSquareWarning },
+    { name: 'Early Appeals', href: '/admin/amazon/early-appeals', icon: FileCheck },
+    { name: 'FBA Settings', href: '/admin/amazon/fba-settings', icon: Clock },
     { name: 'Product Requests', href: '/admin/amazon/requests', icon: Mail },
     { name: 'GetCID Test', href: '/admin/amazon/getcid', icon: Terminal },
     { name: 'GetCID Tokens', href: '/admin/amazon/getcid-tokens', icon: Database },

@@ -1,6 +1,8 @@
 /**
  * Cron endpoint to request reviews for Amazon orders via Solicitations API
  * 
+ * Features:
+ * - Supports multiple seller accounts (stored in database)
  * - Sends review requests for orders 5+ days old (up to 30 days)
  * - Amazon uses their own email template
  * - Tracks which orders have already been solicited
@@ -10,31 +12,24 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import {
+    getActiveSellerAccounts,
+    SellerAccountWithCredentials
+} from '@/lib/amazon/seller-accounts';
 
 export const maxDuration = 300; // 5 minutes
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const SP_API_ENDPOINT = 'https://sellingpartnerapi-fe.amazon.com';
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-const SP_API_CONFIG = {
-    clientId: process.env.AMAZON_SP_CLIENT_ID!,
-    clientSecret: process.env.AMAZON_SP_CLIENT_SECRET!,
-    refreshToken: process.env.AMAZON_SP_REFRESH_TOKEN!,
-    marketplaceId: process.env.AMAZON_SP_MARKETPLACE_ID!,
-    endpoint: 'https://sellingpartnerapi-eu.amazon.com'
-};
-
-async function getAccessToken(): Promise<string> {
+async function getAccessToken(account: SellerAccountWithCredentials): Promise<string> {
     const response = await fetch('https://api.amazon.com/auth/o2/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             grant_type: 'refresh_token',
-            refresh_token: SP_API_CONFIG.refreshToken,
-            client_id: SP_API_CONFIG.clientId,
-            client_secret: SP_API_CONFIG.clientSecret,
+            refresh_token: account.refreshToken,
+            client_id: account.clientId,
+            client_secret: account.clientSecret,
         }),
     });
     const data = await response.json();
@@ -45,35 +40,15 @@ async function getAccessToken(): Promise<string> {
 }
 
 /**
- * Check if solicitation is available for an order
- */
-async function checkSolicitationAvailable(accessToken: string, orderId: string): Promise<boolean> {
-    try {
-        const url = `${SP_API_CONFIG.endpoint}/solicitations/v1/orders/${orderId}?marketplaceIds=${SP_API_CONFIG.marketplaceId}`;
-
-        const response = await fetch(url, {
-            headers: { 'x-amz-access-token': accessToken },
-        });
-
-        if (!response.ok) {
-            return false;
-        }
-
-        const data = await response.json();
-        // Check if productReviewAndSellerFeedback action is available
-        const actions = data._links?.actions || [];
-        return actions.some((a: any) => a.name === 'productReviewAndSellerFeedback');
-    } catch {
-        return false;
-    }
-}
-
-/**
  * Send review request for an order
  */
-async function sendReviewRequest(accessToken: string, orderId: string): Promise<{ success: boolean; error?: string }> {
+async function sendReviewRequest(
+    accessToken: string,
+    marketplaceId: string,
+    orderId: string
+): Promise<{ success: boolean; error?: string }> {
     try {
-        const url = `${SP_API_CONFIG.endpoint}/solicitations/v1/orders/${orderId}/solicitations/productReviewAndSellerFeedback?marketplaceIds=${SP_API_CONFIG.marketplaceId}`;
+        const url = `${SP_API_ENDPOINT}/solicitations/v1/orders/${orderId}/solicitations/productReviewAndSellerFeedback?marketplaceIds=${marketplaceId}`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -100,14 +75,85 @@ async function sendReviewRequest(accessToken: string, orderId: string): Promise<
             success: false,
             error: `API Error ${response.status}: ${errorData.errors?.[0]?.message || 'Unknown'}`
         };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
 }
 
 // Add delay between API calls
 function delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function requestReviewsForAccount(
+    account: SellerAccountWithCredentials,
+    supabase: any
+): Promise<{ processed: number; success: number; failed: number }> {
+    try {
+        const accessToken = await getAccessToken(account);
+
+        // Calculate date range: 5 to 30 days ago
+        const now = new Date();
+        const fiveDaysAgo = new Date(now);
+        fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // Get orders for this seller account that:
+        // - Are 5-30 days old
+        // - Have not been solicited yet
+        // - Are not refunded
+        let query = supabase
+            .from('amazon_orders')
+            .select('order_id, created_at, review_email_sent_at')
+            .gte('created_at', thirtyDaysAgo.toISOString())
+            .lte('created_at', fiveDaysAgo.toISOString())
+            .is('review_email_sent_at', null)
+            .or('is_refunded.is.null,is_refunded.eq.false')
+            .limit(30); // Process max 30 per account per run to avoid rate limits
+
+        // Filter by seller account if available
+        if (account.id) {
+            query = query.eq('seller_account_id', account.id);
+        }
+
+        const { data: orders, error: fetchError } = await query;
+
+        if (fetchError || !orders || orders.length === 0) {
+            return { processed: 0, success: 0, failed: 0 };
+        }
+
+        const results = { processed: 0, success: 0, failed: 0 };
+
+        // Process each order
+        for (const order of orders) {
+            results.processed++;
+
+            // Send review request
+            const result = await sendReviewRequest(accessToken, account.marketplaceId, order.order_id);
+
+            if (result.success) {
+                results.success++;
+            } else {
+                results.failed++;
+            }
+
+            // Mark order as solicited (whether successful or not to avoid retrying)
+            await supabase
+                .from('amazon_orders')
+                .update({ review_email_sent_at: new Date().toISOString() })
+                .eq('order_id', order.order_id);
+
+            // Rate limiting delay (1 request per second)
+            await delay(1000);
+        }
+
+        return results;
+
+    } catch (error) {
+        console.error(`[request-reviews] Error for account ${account.name}:`, error);
+        return { processed: 0, success: 0, failed: 0 };
+    }
 }
 
 export async function GET(request: NextRequest) {
@@ -120,103 +166,71 @@ export async function GET(request: NextRequest) {
 
         console.log('[request-reviews] Starting review request job...');
 
-        // Calculate date range: 5 to 30 days ago
-        const now = new Date();
-        const fiveDaysAgo = new Date(now);
-        fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
-        const thirtyDaysAgo = new Date(now);
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
 
-        // Get orders that:
-        // - Are 5-30 days old
-        // - Have not been solicited yet
-        // - Are not refunded
-        // - Are FBA or MFN (shipped)
-        const { data: orders, error: fetchError } = await supabase
-            .from('amazon_orders')
-            .select('order_id, created_at, review_email_sent_at')
-            .gte('created_at', thirtyDaysAgo.toISOString())
-            .lte('created_at', fiveDaysAgo.toISOString())
-            .is('review_email_sent_at', null)
-            .or('is_refunded.is.null,is_refunded.eq.false')
-            .limit(50); // Process max 50 per run to avoid rate limits
+        // Get all active seller accounts (ordered by priority)
+        const accounts = await getActiveSellerAccounts();
 
-        if (fetchError) {
-            console.error('[request-reviews] Failed to fetch orders:', fetchError);
-            return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
-        }
-
-        if (!orders || orders.length === 0) {
-            console.log('[request-reviews] No eligible orders found');
+        if (accounts.length === 0) {
             return NextResponse.json({
                 success: true,
-                message: 'No eligible orders found',
-                processed: 0
+                message: 'No active seller accounts configured',
+                accountsProcessed: 0,
+                totalProcessed: 0,
+                totalSuccess: 0,
+                totalFailed: 0
             });
         }
 
-        console.log(`[request-reviews] Found ${orders.length} orders to process`);
+        // Process each seller account
+        const results: { accountName: string; processed: number; success: number; failed: number }[] = [];
+        let totalProcessed = 0;
+        let totalSuccess = 0;
+        let totalFailed = 0;
 
-        // Get access token
-        const accessToken = await getAccessToken();
+        for (const account of accounts) {
+            console.log(`[request-reviews] Processing account: ${account.name}`);
 
-        const results = {
-            processed: 0,
-            success: 0,
-            failed: 0,
-            errors: [] as { orderId: string; error: string }[]
-        };
+            const result = await requestReviewsForAccount(account, supabase);
 
-        // Process each order
-        for (const order of orders) {
-            results.processed++;
+            results.push({
+                accountName: account.name,
+                processed: result.processed,
+                success: result.success,
+                failed: result.failed
+            });
 
-            // Send review request
-            const result = await sendReviewRequest(accessToken, order.order_id);
+            totalProcessed += result.processed;
+            totalSuccess += result.success;
+            totalFailed += result.failed;
 
-            if (result.success) {
-                results.success++;
-
-                // Mark order as solicited
-                await supabase
-                    .from('amazon_orders')
-                    .update({ review_email_sent_at: new Date().toISOString() })
-                    .eq('order_id', order.order_id);
-
-                console.log(`[request-reviews] ✓ Sent for ${order.order_id}`);
-            } else {
-                results.failed++;
-                results.errors.push({ orderId: order.order_id, error: result.error || 'Unknown' });
-
-                // Still mark as attempted to avoid retrying
-                await supabase
-                    .from('amazon_orders')
-                    .update({ review_email_sent_at: new Date().toISOString() })
-                    .eq('order_id', order.order_id);
-
-                console.log(`[request-reviews] ✗ Failed for ${order.order_id}: ${result.error}`);
+            // Small delay between accounts
+            if (accounts.length > 1) {
+                await delay(500);
             }
-
-            // Rate limiting delay (1 request per second)
-            await delay(1000);
         }
 
         const summary = {
             success: true,
-            processed: results.processed,
-            reviewsSent: results.success,
-            failed: results.failed,
-            errors: results.errors.slice(0, 10) // Limit errors in response
+            accountsProcessed: accounts.length,
+            totalProcessed,
+            totalSuccess,
+            totalFailed,
+            results
         };
 
         console.log('[request-reviews] Completed:', summary);
 
         return NextResponse.json(summary);
 
-    } catch (error: any) {
-        console.error('[request-reviews] Error:', error);
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('[request-reviews] Error:', errorMessage);
         return NextResponse.json({
-            error: error.message || 'Internal server error'
+            error: errorMessage
         }, { status: 500 });
     }
 }

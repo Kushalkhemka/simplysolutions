@@ -2,7 +2,7 @@
  * FBA Redemption Check Utility
  * 
  * Checks if an FBA order can be redeemed based on:
- * 1. State-based delivery delay (from synced_at date)
+ * 1. State-based delivery delay (from order_date)
  * 2. Early appeal approval status
  * 
  * NOTE: This only applies to FBA (AFN) orders. MFN orders are not affected.
@@ -10,8 +10,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Default delay if state not found in database
-const DEFAULT_DELAY_DAYS = 4;
+// Default delay in hours if state not found in database (4 days = 96 hours)
+const DEFAULT_DELAY_HOURS = 96;
 
 // Cache for state delays to avoid repeated DB calls
 let stateDelaysCache: Map<string, number> | null = null;
@@ -37,7 +37,7 @@ async function getStateDelaysFromDB(): Promise<Map<string, number>> {
 
         const { data, error } = await supabase
             .from('fba_state_delays')
-            .select('state_name, delay_days');
+            .select('state_name, delay_hours');
 
         if (error) {
             console.error('Error fetching state delays:', error);
@@ -45,9 +45,9 @@ async function getStateDelaysFromDB(): Promise<Map<string, number>> {
         }
 
         const delaysMap = new Map<string, number>();
-        (data || []).forEach((row: { state_name: string; delay_days: number }) => {
-            // Store both original and uppercase for flexible matching
-            delaysMap.set(row.state_name.toUpperCase(), row.delay_days);
+        (data || []).forEach((row: { state_name: string; delay_hours: number }) => {
+            // Store state name -> delay in hours
+            delaysMap.set(row.state_name.toUpperCase(), row.delay_hours);
         });
 
         // Update cache
@@ -62,34 +62,49 @@ async function getStateDelaysFromDB(): Promise<Map<string, number>> {
 }
 
 /**
- * Get delivery delay in days for a given state
+ * Get delivery delay in hours for a given state
  */
-export async function getDeliveryDelayDays(state: string | null): Promise<number> {
-    if (!state) return DEFAULT_DELAY_DAYS;
-
+export async function getDeliveryDelayHours(state: string | null): Promise<number> {
     const stateDelays = await getStateDelaysFromDB();
-    const normalizedState = state.toUpperCase().trim();
 
-    if (stateDelays.has(normalizedState)) {
-        return stateDelays.get(normalizedState)!;
+    // First try to get delay for the specific state
+    if (state) {
+        const normalizedState = state.toUpperCase().trim();
+        if (stateDelays.has(normalizedState)) {
+            return stateDelays.get(normalizedState)!;
+        }
     }
 
-    return DEFAULT_DELAY_DAYS;
+    // Fall back to DEFAULT entry in database, then hardcoded default
+    if (stateDelays.has('DEFAULT')) {
+        return stateDelays.get('DEFAULT')!;
+    }
+
+    return DEFAULT_DELAY_HOURS;
 }
 
 /**
  * Synchronous version using cached data (for non-async contexts)
  * Falls back to default if cache not available
  */
-export function getDeliveryDelayDaysSync(state: string | null): number {
-    if (!state) return DEFAULT_DELAY_DAYS;
-
+export function getDeliveryDelayHoursSync(state: string | null): number {
     if (!stateDelaysCache) {
-        return DEFAULT_DELAY_DAYS;
+        return DEFAULT_DELAY_HOURS;
     }
 
-    const normalizedState = state.toUpperCase().trim();
-    return stateDelaysCache.get(normalizedState) || DEFAULT_DELAY_DAYS;
+    if (state) {
+        const normalizedState = state.toUpperCase().trim();
+        if (stateDelaysCache.has(normalizedState)) {
+            return stateDelaysCache.get(normalizedState)!;
+        }
+    }
+
+    // Check for DEFAULT in cache
+    if (stateDelaysCache.has('DEFAULT')) {
+        return stateDelaysCache.get('DEFAULT')!;
+    }
+
+    return DEFAULT_DELAY_HOURS;
 }
 
 export interface RedemptionCheckResult {
@@ -104,9 +119,8 @@ export interface RedemptionCheckResult {
 export interface OrderForRedemptionCheck {
     fulfillment_type?: string | null;
     fulfillment_status?: string | null;
-    synced_at?: string | null;
+    order_date?: string | null;
     created_at?: string | null;
-    redeemable_at?: string | null;
     state?: string | null;
     early_appeal_status?: string | null;
     is_refunded?: boolean | null;
@@ -154,20 +168,20 @@ export async function checkFBARedemption(order: OrderForRedemptionCheck): Promis
         };
     }
 
-    // Calculate redeemable date based on synced_at + state delay
-    const orderDate = order.synced_at || order.created_at;
+    // Calculate redeemable date based on order_date + state delay (in hours)
+    const orderDate = order.order_date || order.created_at;
     if (!orderDate) {
         // If no date available, allow redemption (shouldn't happen in practice)
         return { canRedeem: true };
     }
 
-    // Get delay days for this state
-    const delayDays = await getDeliveryDelayDays(order.state ?? null);
+    // Get delay hours for this state
+    const delayHours = await getDeliveryDelayHours(order.state ?? null);
 
-    // Calculate when the order becomes redeemable
+    // Calculate when the order becomes redeemable (order_date + state delay in hours)
     const orderCreatedAt = new Date(orderDate);
     const redeemableAt = new Date(orderCreatedAt);
-    redeemableAt.setDate(redeemableAt.getDate() + delayDays);
+    redeemableAt.setTime(redeemableAt.getTime() + (delayHours * 60 * 60 * 1000));
 
     const now = new Date();
 
@@ -183,9 +197,9 @@ export async function checkFBARedemption(order: OrderForRedemptionCheck): Promis
         if (hasPendingAppeal) {
             reason = 'Your early delivery appeal is being reviewed by our team. We will notify you once it is processed.';
         } else if (hoursRemaining <= 24) {
-            reason = `Your order is being delivered. You can activate your product in approximately ${hoursRemaining} hour(s). If you have already received your package, you can submit proof of delivery to activate early.`;
+            reason = 'Your order is still on the way. Our system has detected that your order has not been delivered yet. If you have already received your package, you can submit proof of delivery to activate early.';
         } else {
-            reason = `Your order is on the way! Estimated delivery: ${daysRemaining} day(s). If you have already received your package, you can submit proof of delivery to activate early.\n\nThis security measure helps protect your purchase from unauthorized access.`;
+            reason = 'Your order is still on the way. Our system has detected that your order has not been delivered yet. If you have already received your package, you can submit proof of delivery to activate early.\n\nThis security measure helps protect your purchase from unauthorized access.';
         }
 
         return {
@@ -203,13 +217,13 @@ export async function checkFBARedemption(order: OrderForRedemptionCheck): Promis
 
 
 /**
- * Calculate the redeemable date based on synced date and state
+ * Calculate the redeemable date based on order date and state
  * Exported for admin/display purposes
  */
-export async function calculateRedeemableAt(syncedAt: Date, state: string | null): Promise<Date> {
-    const delayDays = await getDeliveryDelayDays(state);
-    const redeemableAt = new Date(syncedAt);
-    redeemableAt.setDate(redeemableAt.getDate() + delayDays);
+export async function calculateRedeemableAt(orderDate: Date, state: string | null): Promise<Date> {
+    const delayHours = await getDeliveryDelayHours(state);
+    const redeemableAt = new Date(orderDate);
+    redeemableAt.setTime(redeemableAt.getTime() + (delayHours * 60 * 60 * 1000));
     return redeemableAt;
 }
 

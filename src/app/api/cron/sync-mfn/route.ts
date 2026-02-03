@@ -1,19 +1,21 @@
 /**
  * Cron endpoint to sync MFN (Merchant Fulfilled) orders
  * Schedule: Every 15 minutes
- * Uses ASIN mapping to get FSN for product identification
+ * 
+ * Features:
+ * - Supports multiple seller accounts (stored in database)
+ * - Uses ASIN mapping to get FSN for product identification
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import {
+    getActiveSellerAccounts,
+    updateSyncStatus,
+    SellerAccountWithCredentials
+} from '@/lib/amazon/seller-accounts';
 
-const SP_API_CONFIG = {
-    clientId: process.env.AMAZON_SP_CLIENT_ID!,
-    clientSecret: process.env.AMAZON_SP_CLIENT_SECRET!,
-    refreshToken: process.env.AMAZON_SP_REFRESH_TOKEN!,
-    marketplaceId: process.env.AMAZON_SP_MARKETPLACE_ID || 'A21TJRUUN4KGV',
-    endpoint: 'https://sellingpartnerapi-eu.amazon.com'
-};
+const SP_API_ENDPOINT = 'https://sellingpartnerapi-fe.amazon.com';
 
 // Verify cron secret
 function verifyCronAuth(request: NextRequest): boolean {
@@ -23,15 +25,15 @@ function verifyCronAuth(request: NextRequest): boolean {
     return authHeader === `Bearer ${cronSecret}`;
 }
 
-async function getAccessToken(): Promise<string> {
+async function getAccessToken(account: SellerAccountWithCredentials): Promise<string> {
     const response = await fetch('https://api.amazon.com/auth/o2/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             grant_type: 'refresh_token',
-            refresh_token: SP_API_CONFIG.refreshToken,
-            client_id: SP_API_CONFIG.clientId,
-            client_secret: SP_API_CONFIG.clientSecret
+            refresh_token: account.refreshToken,
+            client_id: account.clientId,
+            client_secret: account.clientSecret
         })
     });
 
@@ -43,13 +45,13 @@ async function getAccessToken(): Promise<string> {
     return data.access_token;
 }
 
-async function fetchMFNOrders(accessToken: string, createdAfter: string): Promise<any[]> {
+async function fetchMFNOrders(accessToken: string, marketplaceId: string, createdAfter: string): Promise<any[]> {
     const allOrders: any[] = [];
     let nextToken: string | null = null;
 
     do {
-        const url = new URL(`${SP_API_CONFIG.endpoint}/orders/v0/orders`);
-        url.searchParams.set('MarketplaceIds', SP_API_CONFIG.marketplaceId);
+        const url = new URL(`${SP_API_ENDPOINT}/orders/v0/orders`);
+        url.searchParams.set('MarketplaceIds', marketplaceId);
         url.searchParams.set('CreatedAfter', createdAfter);
         url.searchParams.set('FulfillmentChannels', 'MFN');
         url.searchParams.set('MaxResultsPerPage', '100');
@@ -85,7 +87,7 @@ async function fetchOrderItems(accessToken: string, orderId: string): Promise<an
     // Add rate limiting delay to prevent throttling
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    const url = `${SP_API_CONFIG.endpoint}/orders/v0/orders/${orderId}/orderItems`;
+    const url = `${SP_API_ENDPOINT}/orders/v0/orders/${orderId}/orderItems`;
     const response = await fetch(url, {
         headers: { 'x-amz-access-token': accessToken }
     });
@@ -97,39 +99,23 @@ async function fetchOrderItems(accessToken: string, orderId: string): Promise<an
     return data.payload?.OrderItems || [];
 }
 
-export async function GET(request: NextRequest) {
-    if (!verifyCronAuth(request)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const startTime = Date.now();
-
+async function syncMFNOrdersForAccount(
+    account: SellerAccountWithCredentials,
+    supabase: any,
+    asinToFSN: Map<string, string>
+): Promise<{ inserted: number; unmappedAsins: string[]; error?: string }> {
     try {
-        if (!SP_API_CONFIG.clientId || !SP_API_CONFIG.refreshToken) {
-            return NextResponse.json({ error: 'Missing SP-API credentials' }, { status: 500 });
-        }
-
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
-
-        const accessToken = await getAccessToken();
+        const accessToken = await getAccessToken(account);
 
         // Fetch MFN orders from last 2 days
         const twoDaysAgo = new Date();
         twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-        const orders = await fetchMFNOrders(accessToken, twoDaysAgo.toISOString());
+        const orders = await fetchMFNOrders(accessToken, account.marketplaceId, twoDaysAgo.toISOString());
 
         if (orders.length === 0) {
-            return NextResponse.json({
-                success: true,
-                message: 'No MFN orders found',
-                ordersFound: 0,
-                ordersInserted: 0,
-                duration: `${Date.now() - startTime}ms`
-            });
+            await updateSyncStatus(account.id, 'success', 0);
+            return { inserted: 0, unmappedAsins: [] };
         }
 
         // Check existing orders - get those with null FSN so we can update them
@@ -145,29 +131,13 @@ export async function GET(request: NextRequest) {
         // Process orders that are new OR have null FSN (need FSN update)
         const ordersToProcess = orders.filter((o: any) => {
             const existingFsn = existingOrdersMap.get(o.AmazonOrderId);
-            // Include if: not exists, or exists but FSN is null
             return existingFsn === undefined || existingFsn === null;
         });
 
         if (ordersToProcess.length === 0) {
-            return NextResponse.json({
-                success: true,
-                message: 'All orders already synced with FSN',
-                ordersFound: orders.length,
-                ordersInserted: 0,
-                duration: `${Date.now() - startTime}ms`
-            });
+            await updateSyncStatus(account.id, 'success', 0);
+            return { inserted: 0, unmappedAsins: [] };
         }
-
-        // Fetch ASIN mapping for FSN lookup
-        const { data: asinMappings } = await supabase
-            .from('amazon_asin_mapping')
-            .select('asin, fsn');
-
-        const asinToFSN = new Map<string, string>();
-        (asinMappings || []).forEach((m: any) => {
-            asinToFSN.set(m.asin, m.fsn);
-        });
 
         // Prepare orders with ALL fields
         const ordersToInsert = [];
@@ -192,68 +162,126 @@ export async function GET(request: NextRequest) {
             // Track unmapped ASINs for debugging
             if (asin && !mappedFSN) {
                 unmappedAsins.add(asin);
-                console.log(`[sync-mfn] Unmapped ASIN: ${asin}, SellerSKU: ${sellerSku}, Order: ${order.AmazonOrderId}`);
             }
 
             ordersToInsert.push({
                 order_id: order.AmazonOrderId,
                 fulfillment_type: 'amazon_mfn',
-                // Use FSN from ASIN mapping, fallback to SellerSKU only if no mapping exists
                 fsn: mappedFSN || sellerSku || null,
-                // Order details
                 order_date: order.PurchaseDate || null,
                 order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
                 currency: order.OrderTotal?.CurrencyCode || 'INR',
                 quantity: firstItem?.QuantityOrdered || 1,
-                // Buyer info
                 buyer_email: order.BuyerInfo?.BuyerEmail || null,
                 contact_email: order.BuyerInfo?.BuyerEmail || null,
-                // Shipping address
                 city: order.ShippingAddress?.City || null,
                 state: order.ShippingAddress?.StateOrRegion || null,
                 postal_code: order.ShippingAddress?.PostalCode || null,
                 country: order.ShippingAddress?.CountryCode || 'IN',
-                // Status
                 warranty_status: 'PENDING',
-                synced_at: new Date().toISOString()
+                synced_at: new Date().toISOString(),
+                seller_account_id: account.id  // Link to seller account
             });
         }
 
-        // Log summary of unmapped ASINs
-        if (unmappedAsins.size > 0) {
-            console.log(`[sync-mfn] Found ${unmappedAsins.size} unmapped ASINs:`, Array.from(unmappedAsins));
-        }
-
-        // Use upsert to handle race conditions and update existing orders with new FSN if available
+        // Use upsert to handle race conditions and update existing orders
         const { error } = await supabase
             .from('amazon_orders')
-            .upsert(ordersToInsert, {
-                onConflict: 'order_id'
-                // Don't use ignoreDuplicates - we want to update existing orders with correct FSN
-            });
+            .upsert(ordersToInsert, { onConflict: 'order_id' });
 
         if (error) {
+            await updateSyncStatus(account.id, `Error: ${error.message}`);
+            return { inserted: 0, unmappedAsins: Array.from(unmappedAsins), error: error.message };
+        }
+
+        await updateSyncStatus(account.id, 'success', ordersToInsert.length);
+        return { inserted: ordersToInsert.length, unmappedAsins: Array.from(unmappedAsins) };
+
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await updateSyncStatus(account.id, `Error: ${errorMessage}`);
+        return { inserted: 0, unmappedAsins: [], error: errorMessage };
+    }
+}
+
+export async function GET(request: NextRequest) {
+    if (!verifyCronAuth(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const startTime = Date.now();
+
+    try {
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        // Get all active seller accounts
+        const accounts = await getActiveSellerAccounts();
+
+        if (accounts.length === 0) {
             return NextResponse.json({
-                success: false,
-                error: error.message,
+                success: true,
+                message: 'No active seller accounts configured',
+                accountsProcessed: 0,
+                totalOrdersInserted: 0,
                 duration: `${Date.now() - startTime}ms`
-            }, { status: 500 });
+            });
+        }
+
+        // Fetch ASIN mapping for FSN lookup (shared across all accounts)
+        const { data: asinMappings } = await supabase
+            .from('amazon_asin_mapping')
+            .select('asin, fsn');
+
+        const asinToFSN = new Map<string, string>();
+        (asinMappings || []).forEach((m: any) => {
+            asinToFSN.set(m.asin, m.fsn);
+        });
+
+        // Process each seller account
+        const results: { accountName: string; inserted: number; unmappedAsins: string[]; error?: string }[] = [];
+        let totalInserted = 0;
+        const allUnmappedAsins = new Set<string>();
+
+        for (const account of accounts) {
+            console.log(`[sync-mfn] Processing account: ${account.name} (${account.merchantToken})`);
+
+            const result = await syncMFNOrdersForAccount(account, supabase, asinToFSN);
+
+            results.push({
+                accountName: account.name,
+                inserted: result.inserted,
+                unmappedAsins: result.unmappedAsins,
+                error: result.error
+            });
+
+            totalInserted += result.inserted;
+            result.unmappedAsins.forEach(asin => allUnmappedAsins.add(asin));
+
+            // Small delay between accounts to avoid rate limiting
+            if (accounts.length > 1) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
         }
 
         return NextResponse.json({
             success: true,
             message: 'MFN orders synced successfully',
-            ordersFound: orders.length,
-            ordersInserted: ordersToInsert.length,
-            unmappedAsinCount: unmappedAsins.size,
-            unmappedAsins: Array.from(unmappedAsins),
+            accountsProcessed: accounts.length,
+            totalOrdersInserted: totalInserted,
+            unmappedAsinCount: allUnmappedAsins.size,
+            unmappedAsins: Array.from(allUnmappedAsins),
+            results,
             duration: `${Date.now() - startTime}ms`
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return NextResponse.json({
             success: false,
-            error: error.message,
+            error: errorMessage,
             duration: `${Date.now() - startTime}ms`
         }, { status: 500 });
     }
