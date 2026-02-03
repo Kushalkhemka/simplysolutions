@@ -43,7 +43,7 @@ async function testAPIs() {
 
     // Try Sellers API (simpler endpoint)
     console.log('\nTrying Sellers API (getMarketplaceParticipations)...');
-    const sellersResponse = await fetch('https://sellingpartnerapi-fe.amazon.com/sellers/v1/marketplaceParticipations', {
+    const sellersResponse = await fetch('https://sellingpartnerapi-eu.amazon.com/sellers/v1/marketplaceParticipations', {
         method: 'GET',
         headers: {
             'x-amz-access-token': tokenData.access_token,
@@ -56,7 +56,7 @@ async function testAPIs() {
 
     // Try Orders API with seller ID parameter
     console.log('\nTrying Orders API...');
-    const ordersResponse = await fetch(`https://sellingpartnerapi-fe.amazon.com/orders/v0/orders?MarketplaceIds=A21TJRUUN4KGV&CreatedAfter=2025-01-01T00:00:00Z&MaxResultsPerPage=5`, {
+    const ordersResponse = await fetch(`https://sellingpartnerapi-eu.amazon.com/orders/v0/orders?MarketplaceIds=A21TJRUUN4KGV&CreatedAfter=2025-01-01T00:00:00Z&MaxResultsPerPage=5`, {
         method: 'GET',
         headers: {
             'x-amz-access-token': tokenData.access_token,
