@@ -339,7 +339,13 @@ export async function POST(request: NextRequest) {
                 isBlocked: order.warranty_status === 'BLOCKED',
                 hasActivationIssue: order.has_activation_issue || false,
                 issueStatus: order.issue_status || null,
-                warrantyStatus: order.warranty_status
+                warrantyStatus: order.warranty_status,
+                // FBA Physical Delivery Status
+                isFBA: order.fulfillment_type === 'amazon_fba',
+                isMFN: order.fulfillment_type === 'amazon_mfn',
+                isFbaShipped: order.fulfillment_type === 'amazon_fba' && order.fulfillment_status === 'Shipped',
+                isFbaPending: order.fulfillment_type === 'amazon_fba' && order.fulfillment_status !== 'Shipped',
+                fulfillmentStatus: order.fulfillment_status || 'Unknown'
             },
 
             // Order Details
@@ -418,6 +424,20 @@ export async function POST(request: NextRequest) {
 // Helper function to suggest actions based on order state
 function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any, subscriptionInfo: any): string[] {
     const actions: string[] = [];
+
+    // FBA Physical Delivery - Add this info first for FBA orders
+    if (order.fulfillment_type === 'amazon_fba') {
+        actions.push('[PHYSICAL DELIVERY] This is a PHYSICAL DELIVERY order (FBA - Fulfilled by Amazon). NOT an email delivery order.');
+        actions.push('[PHYSICAL DELIVERY] Customer will receive the product key card via physical delivery from Amazon.');
+
+        if (order.fulfillment_status !== 'Shipped') {
+            actions.push('[FBA PENDING] Order is NOT SHIPPED YET. Customer must wait for physical delivery from Amazon.');
+            actions.push('[ACTION] Inform customer: "Your order is being processed by Amazon for physical delivery. You will receive a product key card at your doorstep. Please wait for shipping."');
+        } else {
+            actions.push('[FBA SHIPPED] Order has been SHIPPED. Customer should receive physical delivery soon.');
+            actions.push('[ACTION] Customer can track delivery on Amazon. The product key will be on the physical key card delivered.');
+        }
+    }
 
     if (order.is_refunded) {
         actions.push('[REFUNDED] This order has been REFUNDED. NO LICENSE KEY should be provided.');
