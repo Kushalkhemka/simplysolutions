@@ -435,7 +435,7 @@ function getSuggestedActions(order: any, licenseInfo: any, replacementInfo: any,
             actions.push('[ACTION] Inform customer: "Your order is being processed by Amazon for physical delivery. You will receive a product key card at your doorstep. Please wait for shipping."');
         } else {
             actions.push('[FBA SHIPPED] Order has been SHIPPED. Customer should receive physical delivery soon.');
-            actions.push('[ACTION] Customer can track delivery on Amazon. The product key will be on the physical key card delivered.');
+            actions.push('[ACTION] This is a physical shipment. Customer should track delivery on Amazon and wait for the package to arrive.');
         }
     }
 
