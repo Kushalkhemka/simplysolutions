@@ -5,30 +5,37 @@ import {
     sendFeedbackAppealApproved,
     sendFeedbackAppealRejected,
     sendFeedbackAppealResubmit,
+    sendReviewRemovalRequest,
+    sendReviewAppealApproved,
+    sendReviewAppealRejected,
+    sendReviewAppealResubmit,
     type WhatsAppResponse
 } from '@/lib/whatsapp';
 
-// POST /api/admin/feedback-appeal/initiate
-// Block order and send initial WhatsApp notification
+type AppealType = 'feedback' | 'review';
+
+// POST /api/admin/feedback-appeal
+// Handle feedback/review appeal actions: initiate, approve, reject, resubmit
 export async function POST(request: NextRequest) {
     try {
-        const { orderId, phone, action } = await request.json();
+        const { orderId, phone, action, type = 'feedback' } = await request.json();
 
         if (!orderId) {
             return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
         }
 
+        const appealType: AppealType = type === 'review' ? 'review' : 'feedback';
         const adminClient = getAdminClient();
 
         switch (action) {
             case 'initiate':
-                return handleInitiate(adminClient, orderId, phone);
+                return handleInitiate(adminClient, orderId, phone, appealType);
             case 'approve':
-                return handleApprove(adminClient, orderId);
+                return handleApprove(adminClient, orderId, appealType);
             case 'reject':
-                return handleReject(adminClient, orderId);
+                return handleReject(adminClient, orderId, appealType);
             case 'resubmit':
-                return handleResubmit(adminClient, orderId);
+                return handleResubmit(adminClient, orderId, appealType);
             default:
                 return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
         }
@@ -38,8 +45,8 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// Initiate feedback removal process: Block order + send WhatsApp
-async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, orderId: string, phone: string) {
+// Initiate feedback/review removal process: Block order + send WhatsApp
+async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, orderId: string, phone: string, appealType: AppealType) {
     if (!phone) {
         return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
     }
@@ -83,7 +90,8 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
                 reminder_count: 1,
                 last_reminder_at: new Date().toISOString(),
                 whatsapp_sent: true,
-                initiated_by: 'admin'
+                initiated_by: 'admin',
+                type: appealType
             })
             .eq('id', existingAppeal.id);
     } else {
@@ -94,16 +102,19 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
                 order_id: orderId,
                 status: 'PENDING',
                 phone: phone,
-                screenshot_url: '', // Will be uploaded by customer
+                screenshot_url: '',
                 reminder_count: 1,
                 last_reminder_at: new Date().toISOString(),
                 whatsapp_sent: true,
-                initiated_by: 'admin'
+                initiated_by: 'admin',
+                type: appealType
             });
     }
 
-    // 4. Send WhatsApp notification
-    const whatsappResult = await sendFeedbackRemovalRequest(phone, orderId);
+    // 4. Send WhatsApp notification based on type
+    const whatsappResult = appealType === 'review'
+        ? await sendReviewRemovalRequest(phone, orderId)
+        : await sendFeedbackRemovalRequest(phone, orderId);
 
     return NextResponse.json({
         success: true,
@@ -114,12 +125,13 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
 }
 
 // Approve appeal: Unblock order + send WhatsApp
-async function handleApprove(adminClient: ReturnType<typeof getAdminClient>, orderId: string) {
+async function handleApprove(adminClient: ReturnType<typeof getAdminClient>, orderId: string, appealType: AppealType) {
     // 1. Get appeal details
     const { data: appeal, error: appealError } = await adminClient
         .from('feedback_appeals')
         .select('*')
         .eq('order_id', orderId)
+        .eq('type', appealType)
         .single();
 
     if (appealError || !appeal) {
@@ -133,7 +145,8 @@ async function handleApprove(adminClient: ReturnType<typeof getAdminClient>, ord
             status: 'APPROVED',
             reviewed_at: new Date().toISOString()
         })
-        .eq('order_id', orderId);
+        .eq('order_id', orderId)
+        .eq('type', appealType);
 
     // 3. Unblock the order (set to null or a normal status)
     await adminClient
@@ -141,10 +154,12 @@ async function handleApprove(adminClient: ReturnType<typeof getAdminClient>, ord
         .update({ warranty_status: null })
         .eq('order_id', orderId);
 
-    // 4. Send WhatsApp notification
+    // 4. Send WhatsApp notification based on type
     let whatsappResult: WhatsAppResponse = { success: false, error: 'No phone number' };
     if (appeal.phone) {
-        whatsappResult = await sendFeedbackAppealApproved(appeal.phone, orderId);
+        whatsappResult = appealType === 'review'
+            ? await sendReviewAppealApproved(appeal.phone, orderId)
+            : await sendFeedbackAppealApproved(appeal.phone, orderId);
     }
 
     return NextResponse.json({
@@ -156,12 +171,13 @@ async function handleApprove(adminClient: ReturnType<typeof getAdminClient>, ord
 }
 
 // Reject appeal: Keep blocked + send WhatsApp
-async function handleReject(adminClient: ReturnType<typeof getAdminClient>, orderId: string) {
+async function handleReject(adminClient: ReturnType<typeof getAdminClient>, orderId: string, appealType: AppealType) {
     // 1. Get appeal details
     const { data: appeal, error: appealError } = await adminClient
         .from('feedback_appeals')
         .select('*')
         .eq('order_id', orderId)
+        .eq('type', appealType)
         .single();
 
     if (appealError || !appeal) {
@@ -175,12 +191,15 @@ async function handleReject(adminClient: ReturnType<typeof getAdminClient>, orde
             status: 'REJECTED',
             reviewed_at: new Date().toISOString()
         })
-        .eq('order_id', orderId);
+        .eq('order_id', orderId)
+        .eq('type', appealType);
 
-    // 3. Send WhatsApp notification
+    // 3. Send WhatsApp notification based on type
     let whatsappResult: WhatsAppResponse = { success: false, error: 'No phone number' };
     if (appeal.phone) {
-        whatsappResult = await sendFeedbackAppealRejected(appeal.phone, orderId);
+        whatsappResult = appealType === 'review'
+            ? await sendReviewAppealRejected(appeal.phone, orderId)
+            : await sendFeedbackAppealRejected(appeal.phone, orderId);
     }
 
     return NextResponse.json({
@@ -192,12 +211,13 @@ async function handleReject(adminClient: ReturnType<typeof getAdminClient>, orde
 }
 
 // Request resubmission: Reset to pending + send WhatsApp
-async function handleResubmit(adminClient: ReturnType<typeof getAdminClient>, orderId: string) {
+async function handleResubmit(adminClient: ReturnType<typeof getAdminClient>, orderId: string, appealType: AppealType) {
     // 1. Get appeal details
     const { data: appeal, error: appealError } = await adminClient
         .from('feedback_appeals')
         .select('*')
         .eq('order_id', orderId)
+        .eq('type', appealType)
         .single();
 
     if (appealError || !appeal) {
@@ -209,15 +229,18 @@ async function handleResubmit(adminClient: ReturnType<typeof getAdminClient>, or
         .from('feedback_appeals')
         .update({
             status: 'RESUBMIT',
-            screenshot_url: '', // Clear old screenshot
+            screenshot_url: '',
             reviewed_at: new Date().toISOString()
         })
-        .eq('order_id', orderId);
+        .eq('order_id', orderId)
+        .eq('type', appealType);
 
-    // 3. Send WhatsApp notification
+    // 3. Send WhatsApp notification based on type
     let whatsappResult: WhatsAppResponse = { success: false, error: 'No phone number' };
     if (appeal.phone) {
-        whatsappResult = await sendFeedbackAppealResubmit(appeal.phone, orderId);
+        whatsappResult = appealType === 'review'
+            ? await sendReviewAppealResubmit(appeal.phone, orderId)
+            : await sendFeedbackAppealResubmit(appeal.phone, orderId);
     }
 
     return NextResponse.json({

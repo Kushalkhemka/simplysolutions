@@ -6,6 +6,11 @@ import {
     sendWarrantyResubmissionEmail
 } from '@/lib/emails/warranty-emails';
 import { notifyWarrantyStatus } from '@/lib/push/customer-notifications';
+import {
+    sendWarrantyApproved,
+    sendWarrantyRejected,
+    sendWarrantyResubmission
+} from '@/lib/whatsapp';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -98,6 +103,17 @@ export async function PATCH(
         };
         const customerEmail = getCustomerEmail();
 
+        // Get customer phone from warranty contact or amazon_orders
+        let customerPhone = warranty.contact && !warranty.contact.includes('@') ? warranty.contact : null;
+        if (!customerPhone) {
+            const { data: orderData } = await supabase
+                .from('amazon_orders')
+                .select('buyer_phone_number')
+                .eq('order_id', warranty.order_id)
+                .single();
+            customerPhone = orderData?.buyer_phone_number || null;
+        }
+
         if (action === 'approve') {
             updateData.status = 'VERIFIED';
             updateData.verified_at = new Date().toISOString();
@@ -122,6 +138,19 @@ export async function PATCH(
                 console.error('Failed to send warranty approval push:', pushError);
             }
 
+            // Send WhatsApp notification
+            if (customerPhone) {
+                try {
+                    const formattedDate = purchaseDate
+                        ? new Date(purchaseDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                        : 'N/A';
+                    await sendWarrantyApproved(customerPhone, warranty.order_id, productName || 'Your Product', formattedDate);
+                    console.log(`WhatsApp warranty_approved sent to ${customerPhone}`);
+                } catch (whatsappError) {
+                    console.error('Failed to send WhatsApp warranty approval:', whatsappError);
+                }
+            }
+
         } else if (action === 'reject') {
             updateData.status = 'REJECTED';
             updateData.rejection_reason = adminNotes || 'Could not verify warranty';
@@ -141,6 +170,16 @@ export async function PATCH(
                 await notifyWarrantyStatus(warranty.order_id, 'rejected', productName);
             } catch (pushError) {
                 console.error('Failed to send warranty rejection push:', pushError);
+            }
+
+            // Send WhatsApp notification
+            if (customerPhone) {
+                try {
+                    await sendWarrantyRejected(customerPhone, warranty.order_id, productName || 'Your Product', adminNotes || 'Could not verify warranty');
+                    console.log(`WhatsApp warranty_rejected sent to ${customerPhone}`);
+                } catch (whatsappError) {
+                    console.error('Failed to send WhatsApp warranty rejection:', whatsappError);
+                }
             }
 
         } else if (action === 'resubmit') {
@@ -171,6 +210,21 @@ export async function PATCH(
                     missingReview: missingReview || false,
                     adminNotes
                 });
+            }
+
+            // Send WhatsApp notification for resubmission
+            if (customerPhone) {
+                try {
+                    const requiredDoc = missingSeller && missingReview
+                        ? 'Seller Feedback & Product Review Screenshots'
+                        : missingSeller
+                            ? 'Seller Feedback Screenshot'
+                            : 'Product Review Screenshot';
+                    await sendWarrantyResubmission(customerPhone, warranty.order_id, requiredDoc, adminNotes || 'Please upload the missing screenshot(s)');
+                    console.log(`WhatsApp warranty_resubmission sent to ${customerPhone}`);
+                } catch (whatsappError) {
+                    console.error('Failed to send WhatsApp warranty resubmission:', whatsappError);
+                }
             }
         }
 

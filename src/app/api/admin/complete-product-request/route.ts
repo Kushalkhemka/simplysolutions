@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { sendSubscriptionEmail, send365EnterpriseEmail } from '@/lib/email';
 import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
 import { notifyProductRequestStatus, notify365E5Fulfilled } from '@/lib/push/customer-notifications';
+import { sendM365AccountCredentials, sendAutocadFulfilled, sendCanvaFulfilled } from '@/lib/whatsapp';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -56,6 +57,17 @@ export async function POST(request: NextRequest) {
             if (order?.fsn) {
                 fsn = order.fsn;
             }
+        }
+
+        // Get phone number for WhatsApp
+        let customerPhone: string | null = null;
+        if (productRequest.order_id) {
+            const { data: orderForPhone } = await supabase
+                .from('amazon_orders')
+                .select('buyer_phone_number')
+                .eq('order_id', productRequest.order_id)
+                .single();
+            customerPhone = orderForPhone?.buyer_phone_number || null;
         }
 
         // Check if this is a 365E5 request
@@ -159,6 +171,21 @@ export async function POST(request: NextRequest) {
                 // Don't fail the request if push fails
             }
 
+            // Send WhatsApp notification with 365 credentials
+            if (customerPhone) {
+                try {
+                    await sendM365AccountCredentials(
+                        customerPhone,
+                        productRequest.order_id || requestId,
+                        generatedEmail.trim(),
+                        generatedPassword.trim()
+                    );
+                    console.log(`WhatsApp 365e5_account_credentials sent to ${customerPhone}`);
+                } catch (whatsappError) {
+                    console.error('Failed to send WhatsApp 365 credentials:', whatsappError);
+                }
+            }
+
             return NextResponse.json({
                 success: true,
                 emailSent: true,
@@ -246,6 +273,22 @@ export async function POST(request: NextRequest) {
         } catch (pushError) {
             console.error('Failed to send push notification:', pushError);
             // Don't fail the request if push fails
+        }
+
+        // Send WhatsApp notification for subscription
+        if (customerPhone && fsn) {
+            try {
+                const orderId = productRequest.order_id || requestId;
+                if (fsn.toUpperCase().includes('AUTOCAD')) {
+                    await sendAutocadFulfilled(customerPhone, orderId, processedEmail);
+                    console.log(`WhatsApp autocad_fulfill sent to ${customerPhone}`);
+                } else if (fsn.toUpperCase().includes('CANVA')) {
+                    await sendCanvaFulfilled(customerPhone, orderId, processedEmail);
+                    console.log(`WhatsApp canva_fulfilled sent to ${customerPhone}`);
+                }
+            } catch (whatsappError) {
+                console.error('Failed to send subscription WhatsApp:', whatsappError);
+            }
         }
 
         return NextResponse.json({

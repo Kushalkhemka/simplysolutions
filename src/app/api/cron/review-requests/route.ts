@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase/admin';
 import { sendReviewRequestEmail } from '@/lib/email';
+import { sendReviewRequest } from '@/lib/whatsapp';
 
 // This endpoint should be called by an external cron service (e.g., cron-job.org, Vercel Cron)
 // Run daily at 10:00 AM IST
@@ -73,6 +74,21 @@ export async function GET(request: NextRequest) {
                         .from('amazon_orders')
                         .update({ review_email_sent_at: new Date().toISOString() })
                         .eq('id', order.id);
+
+                    // Also send WhatsApp if phone available
+                    if (order.buyer_phone_number) {
+                        try {
+                            const formattedDate = new Date(order.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                            await sendReviewRequest(
+                                order.buyer_phone_number,
+                                order.order_id,
+                                order.product_name || 'your product',
+                                formattedDate
+                            );
+                        } catch (whatsappErr) {
+                            console.error(`WhatsApp review request failed for ${order.order_id}:`, whatsappErr);
+                        }
+                    }
 
                     sentCount++;
                 } else {

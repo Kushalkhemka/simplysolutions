@@ -5,10 +5,12 @@ import { createClient } from '@/lib/supabase/client';
 import {
     CheckCircle, XCircle, Clock, ExternalLink, ChevronLeft, ChevronRight,
     Loader2, Search, Eye, X, Phone, Calendar, Image as ImageIcon,
-    AlertTriangle, Ban, RefreshCw, Send, IndianRupee
+    AlertTriangle, Ban, RefreshCw, Send, IndianRupee, Star, MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Image from 'next/image';
+
+type AppealType = 'feedback' | 'review';
 
 interface FeedbackAppeal {
     id: string;
@@ -27,6 +29,7 @@ interface FeedbackAppeal {
 }
 
 export default function FeedbackAppealsClient() {
+    const [appealType, setAppealType] = useState<AppealType>('feedback');
     const [appeals, setAppeals] = useState<FeedbackAppeal[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
@@ -42,6 +45,11 @@ export default function FeedbackAppealsClient() {
     const [initiateOrderId, setInitiateOrderId] = useState('');
     const [initiatePhone, setInitiatePhone] = useState('');
 
+    // Review Removal modal state
+    const [isReviewRemovalModalOpen, setIsReviewRemovalModalOpen] = useState(false);
+    const [reviewRemovalOrderId, setReviewRemovalOrderId] = useState('');
+    const [reviewRemovalPhone, setReviewRemovalPhone] = useState('');
+
     // Stats
     const [pendingCount, setPendingCount] = useState(0);
     const [approvedCount, setApprovedCount] = useState(0);
@@ -52,40 +60,48 @@ export default function FeedbackAppealsClient() {
     const supabase = createClient();
 
     const fetchStats = useCallback(async () => {
+        const typeFilter = appealType === 'feedback' ? 'feedback' : 'review';
+
         const { count: pending } = await supabase
             .from('feedback_appeals')
             .select('*', { count: 'exact', head: true })
+            .eq('type', typeFilter)
             .eq('status', 'PENDING');
 
         const { count: approved } = await supabase
             .from('feedback_appeals')
             .select('*', { count: 'exact', head: true })
+            .eq('type', typeFilter)
             .eq('status', 'APPROVED');
 
         const { count: rejected } = await supabase
             .from('feedback_appeals')
             .select('*', { count: 'exact', head: true })
+            .eq('type', typeFilter)
             .eq('status', 'REJECTED');
 
         const { count: resubmit } = await supabase
             .from('feedback_appeals')
             .select('*', { count: 'exact', head: true })
+            .eq('type', typeFilter)
             .eq('status', 'RESUBMIT');
 
         setPendingCount(pending || 0);
         setApprovedCount(approved || 0);
         setRejectedCount(rejected || 0);
         setResubmitCount(resubmit || 0);
-    }, [supabase]);
+    }, [supabase, appealType]);
 
     const fetchAppeals = useCallback(async () => {
         setIsLoading(true);
         const from = (currentPage - 1) * pageSize;
         const to = from + pageSize - 1;
+        const typeFilter = appealType === 'feedback' ? 'feedback' : 'review';
 
         let query = supabase
             .from('feedback_appeals')
             .select('*', { count: 'exact' })
+            .eq('type', typeFilter)
             .order('created_at', { ascending: false });
 
         if (searchQuery) {
@@ -106,7 +122,7 @@ export default function FeedbackAppealsClient() {
             setTotalCount(count || 0);
         }
         setIsLoading(false);
-    }, [currentPage, searchQuery, statusFilter, supabase]);
+    }, [currentPage, searchQuery, statusFilter, supabase, appealType]);
 
     useEffect(() => {
         fetchAppeals();
@@ -132,10 +148,11 @@ export default function FeedbackAppealsClient() {
     const handleAction = async (action: 'approve' | 'reject' | 'resubmit', orderId: string) => {
         setIsActionLoading(true);
         try {
+            // Always use same API, pass the type
             const response = await fetch('/api/admin/feedback-appeal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId, action })
+                body: JSON.stringify({ orderId, action, type: appealType })
             });
 
             const data = await response.json();
@@ -199,6 +216,41 @@ export default function FeedbackAppealsClient() {
         }
     };
 
+    const handleReviewRemoval = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!reviewRemovalOrderId || !reviewRemovalPhone) {
+            toast.error('Order ID and phone number are required');
+            return;
+        }
+
+        setIsActionLoading(true);
+        try {
+            const response = await fetch('/api/admin/review-removal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: reviewRemovalOrderId,
+                    phone: reviewRemovalPhone
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success('Review removal WhatsApp sent!');
+                setIsReviewRemovalModalOpen(false);
+                setReviewRemovalOrderId('');
+                setReviewRemovalPhone('');
+            } else {
+                toast.error(data.error || 'Failed to send');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        } finally {
+            setIsActionLoading(false);
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'APPROVED':
@@ -239,15 +291,57 @@ export default function FeedbackAppealsClient() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">Feedback Appeals</h1>
-                    <p className="text-muted-foreground">Review and manage feedback removal requests ({totalCount.toLocaleString()} total)</p>
+                    <h1 className="text-2xl font-bold">
+                        {appealType === 'feedback' ? 'Seller Feedback Appeals' : 'Product Review Appeals'}
+                    </h1>
+                    <p className="text-muted-foreground">
+                        {appealType === 'feedback' ? 'Manage seller feedback removal requests' : 'Manage product review removal requests'}
+                        ({totalCount.toLocaleString()} total)
+                    </p>
                 </div>
+                <div className="flex gap-2">
+                    {appealType === 'review' && (
+                        <button
+                            onClick={() => setIsReviewRemovalModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                            <Star className="h-4 w-4" />
+                            Review Removal
+                        </button>
+                    )}
+                    {appealType === 'feedback' && (
+                        <button
+                            onClick={() => setIsInitiateModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                            <Ban className="h-4 w-4" />
+                            Block Order
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Appeal Type Tabs */}
+            <div className="flex gap-2 border-b">
                 <button
-                    onClick={() => setIsInitiateModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    onClick={() => { setAppealType('feedback'); setCurrentPage(1); }}
+                    className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors border-b-2 -mb-px ${appealType === 'feedback'
+                        ? 'text-amber-600 border-amber-600'
+                        : 'text-muted-foreground border-transparent hover:text-foreground'
+                        }`}
                 >
-                    <Ban className="h-4 w-4" />
-                    Block Order
+                    <MessageSquare className="h-4 w-4" />
+                    Seller Feedback
+                </button>
+                <button
+                    onClick={() => { setAppealType('review'); setCurrentPage(1); }}
+                    className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors border-b-2 -mb-px ${appealType === 'review'
+                        ? 'text-purple-600 border-purple-600'
+                        : 'text-muted-foreground border-transparent hover:text-foreground'
+                        }`}
+                >
+                    <Star className="h-4 w-4" />
+                    Product Reviews
                 </button>
             </div>
 
@@ -577,6 +671,64 @@ export default function FeedbackAppealsClient() {
                             >
                                 {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                 Block & Send WhatsApp
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Review Removal Modal */}
+            {isReviewRemovalModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50" onClick={() => setIsReviewRemovalModalOpen(false)} />
+                    <div className="relative bg-card border rounded-xl shadow-xl w-full max-w-md m-4">
+                        <div className="px-6 py-4 border-b flex items-center justify-between">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <Star className="h-5 w-5 text-amber-500" />
+                                Request Review Removal
+                            </h2>
+                            <button onClick={() => setIsReviewRemovalModalOpen(false)} className="p-2 hover:bg-muted rounded-full">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleReviewRemoval} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Order ID *</label>
+                                <input
+                                    type="text"
+                                    value={reviewRemovalOrderId}
+                                    onChange={(e) => setReviewRemovalOrderId(e.target.value)}
+                                    placeholder="e.g., 408-1234567-8901234"
+                                    className="w-full px-3 py-2 border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Customer Phone *</label>
+                                <input
+                                    type="tel"
+                                    value={reviewRemovalPhone}
+                                    onChange={(e) => setReviewRemovalPhone(e.target.value)}
+                                    placeholder="e.g., 9953999215"
+                                    className="w-full px-3 py-2 border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                    required
+                                />
+                            </div>
+                            <div className="p-3 bg-amber-900/20 border border-amber-700/50 rounded-lg text-sm">
+                                <p className="font-medium mb-1 text-amber-400">This will:</p>
+                                <ul className="list-disc list-inside space-y-1 text-amber-300/80">
+                                    <li>Set order status to BLOCKED</li>
+                                    <li>Send WhatsApp asking customer to remove/modify negative product review</li>
+                                </ul>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={isActionLoading}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50"
+                            >
+                                {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                Send Review Removal WhatsApp
                             </button>
                         </form>
                     </div>

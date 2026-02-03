@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { notifyReplacementRequestStatus } from '@/lib/push/customer-notifications';
+import { sendReplacementCompleted, sendReplacementRejected } from '@/lib/whatsapp';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -46,6 +47,16 @@ export async function PATCH(
                 { status: 400 }
             );
         }
+
+        // Get phone number from amazon_orders for WhatsApp
+        const { data: orderData } = await supabase
+            .from('amazon_orders')
+            .select('buyer_phone_number, product_name')
+            .eq('order_id', replacementRequest.order_id)
+            .single();
+
+        const customerPhone = orderData?.buyer_phone_number;
+        const productName = orderData?.product_name || replacementRequest.fsn || 'Your Product';
 
         if (action === 'approve') {
             if (!newLicenseKeyId) {
@@ -158,6 +169,21 @@ export async function PATCH(
                 console.error('Failed to send approval push notification:', pushError);
             }
 
+            // Send WhatsApp notification to customer
+            if (customerPhone) {
+                try {
+                    await sendReplacementCompleted(
+                        customerPhone,
+                        replacementRequest.order_id,
+                        productName,
+                        newKey.license_key
+                    );
+                    console.log(`WhatsApp replacement_completed sent to ${customerPhone}`);
+                } catch (whatsappError) {
+                    console.error('Failed to send WhatsApp approval notification:', whatsappError);
+                }
+            }
+
             return NextResponse.json({
                 success: true,
                 message: 'Replacement request approved successfully',
@@ -235,6 +261,21 @@ export async function PATCH(
                 );
             } catch (pushError) {
                 console.error('Failed to send rejection push notification:', pushError);
+            }
+
+            // Send WhatsApp notification to customer
+            if (customerPhone) {
+                try {
+                    await sendReplacementRejected(
+                        customerPhone,
+                        replacementRequest.order_id,
+                        productName,
+                        adminNotes
+                    );
+                    console.log(`WhatsApp replacement_rejected sent to ${customerPhone}`);
+                } catch (whatsappError) {
+                    console.error('Failed to send WhatsApp rejection notification:', whatsappError);
+                }
             }
 
             return NextResponse.json({
