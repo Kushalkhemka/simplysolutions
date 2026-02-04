@@ -93,7 +93,13 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
     }
 
     if (!order) {
-        return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        // Log what we tried for debugging
+        console.error(`[feedback-appeal] Order not found. Tried: exact="${orderId}", formatted="${orderId.replace(/\D/g, '').length >= 17 ? `${orderId.replace(/\D/g, '').slice(0, 3)}-${orderId.replace(/\D/g, '').slice(3, 10)}-${orderId.replace(/\D/g, '').slice(10, 17)}` : 'N/A'}"`);
+        return NextResponse.json({
+            error: 'Order not found in database',
+            searched: orderId,
+            hint: 'This order may not have been synced yet. Check Amazon Orders page to verify it exists.'
+        }, { status: 404 });
     }
 
     // 2. Block the order (use matched order's order_id)
