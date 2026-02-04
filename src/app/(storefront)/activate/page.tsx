@@ -411,10 +411,10 @@ function ActivatePageContent() {
             // Show success popup
             setShowSuccessPopup(true);
 
-            // Auto-close popup after 10 seconds
+            // Auto-close popup after 20 seconds (gives time for push notification prompt)
             setTimeout(() => {
                 setShowSuccessPopup(false);
-            }, 10000);
+            }, 20000);
 
             // Check for any existing replacement requests
             await checkReplacementStatus(secretCode.trim());
