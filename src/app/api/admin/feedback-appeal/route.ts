@@ -58,9 +58,11 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
     // Try exact match first
     const { data: exactMatch, error: exactError } = await adminClient
         .from('amazon_orders')
-        .select('id, order_id, buyer_phone_number, warranty_status')
+        .select('id, order_id, contact_phone, warranty_status')
         .eq('order_id', orderId)
         .maybeSingle();
+
+    console.log(`[feedback-appeal] Query for "${orderId}": data=${JSON.stringify(exactMatch)}, error=${JSON.stringify(exactError)}`);
 
     if (exactMatch) {
         order = exactMatch;
@@ -68,7 +70,7 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
         // Try case-insensitive match
         const { data: ilikeMatch } = await adminClient
             .from('amazon_orders')
-            .select('id, order_id, buyer_phone_number, warranty_status')
+            .select('id, order_id, contact_phone, warranty_status')
             .ilike('order_id', orderId)
             .maybeSingle();
 
@@ -81,7 +83,7 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
                 const formattedOrderId = `${cleanCode.slice(0, 3)}-${cleanCode.slice(3, 10)}-${cleanCode.slice(10, 17)}`;
                 const { data: formattedMatch } = await adminClient
                     .from('amazon_orders')
-                    .select('id, order_id, buyer_phone_number, warranty_status')
+                    .select('id, order_id, contact_phone, warranty_status')
                     .eq('order_id', formattedOrderId)
                     .maybeSingle();
 
