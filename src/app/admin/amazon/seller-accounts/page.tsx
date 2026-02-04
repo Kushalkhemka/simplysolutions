@@ -353,122 +353,157 @@ export default function SellerAccountsPage() {
                     </button>
                 </div>
             ) : (
-                <div className="grid gap-4">
+                <div className="space-y-3">
                     {accounts.map((account, index) => (
                         <div
                             key={account.id}
-                            className={`p-4 md:p-5 bg-card border rounded-lg transition-all ${account.isActive
+                            className={`bg-card border rounded-lg transition-all ${account.isActive
                                 ? 'border-green-500/30 bg-gradient-to-r from-green-500/5 to-transparent'
                                 : 'border-gray-300 dark:border-gray-700 opacity-60'
                                 }`}
                         >
-                            {/* Header Row - Mobile Responsive */}
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                                <div className="flex items-center gap-3 min-w-0">
-                                    {/* Priority Badge */}
-                                    <span className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 text-sm font-bold">
-                                        {index + 1}
-                                    </span>
-                                    <div className="min-w-0 flex-1">
-                                        <h3 className="text-lg font-semibold truncate">{account.name}</h3>
-                                        <div className="flex flex-wrap items-center gap-2 mt-1">
-                                            {account.isActive ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
-                                                    <CheckCircle className="h-3 w-3" />
-                                                    Active
+                            {/* Mobile Layout */}
+                            <div className="lg:hidden p-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <span className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 text-sm font-bold">
+                                            {index + 1}
+                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="text-lg font-semibold truncate">{account.name}</h3>
+                                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                {account.isActive ? (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+                                                        <CheckCircle className="h-3 w-3" />
+                                                        Active
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                                                        <XCircle className="h-3 w-3" />
+                                                        Disabled
+                                                    </span>
+                                                )}
+                                                <span className="text-xs text-muted-foreground">
+                                                    Priority: {account.priority}
                                                 </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                                                    <XCircle className="h-3 w-3" />
-                                                    Disabled
-                                                </span>
-                                            )}
-                                            <span className="text-xs text-muted-foreground">
-                                                Priority: {account.priority}
-                                            </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Action Buttons - Horizontal on all screens */}
-                                <div className="flex items-center gap-1 flex-shrink-0 self-end sm:self-start">
-                                    <button
-                                        onClick={() => updatePriority(account, 'up')}
-                                        disabled={account.priority <= 1}
-                                        className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-30"
-                                        title="Move up"
-                                    >
-                                        <ArrowUp className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => updatePriority(account, 'down')}
-                                        className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                                        title="Move down"
-                                    >
-                                        <ArrowDown className="h-4 w-4" />
-                                    </button>
-                                    <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1 hidden sm:block" />
-                                    <button
-                                        onClick={() => toggleAccountStatus(account)}
-                                        disabled={togglingId === account.id}
-                                        className={`p-2 rounded-lg transition-colors ${account.isActive
-                                            ? 'text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/30'
-                                            : 'text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'
-                                            } disabled:opacity-50`}
-                                        title={account.isActive ? 'Disable' : 'Enable'}
-                                    >
-                                        {togglingId === account.id ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <RefreshCw className="h-4 w-4" />
-                                        )}
-                                    </button>
-                                    <button
-                                        onClick={() => openEditModal(account)}
-                                        className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                        title="Edit"
-                                    >
-                                        <Edit2 className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => deleteAccount(account.id)}
-                                        disabled={deletingId === account.id}
-                                        className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
-                                        title="Delete"
-                                    >
-                                        {deletingId === account.id ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Trash2 className="h-4 w-4" />
-                                        )}
-                                    </button>
+                                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                                    <div className="bg-muted/30 rounded p-2">
+                                        <p className="text-xs text-muted-foreground">Merchant Token</p>
+                                        <p className="font-mono text-xs truncate">{account.merchantToken}</p>
+                                    </div>
+                                    <div className="bg-muted/30 rounded p-2">
+                                        <p className="text-xs text-muted-foreground">Orders</p>
+                                        <p className="font-medium">{account.ordersSyncedCount.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between">
+                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                        {account.lastSyncStatus === 'success' ? (
+                                            <CheckCircle className="h-3 w-3 text-green-500" />
+                                        ) : account.lastSyncStatus ? (
+                                            <XCircle className="h-3 w-3 text-red-500" />
+                                        ) : null}
+                                        {formatDate(account.lastSyncAt)}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <button onClick={() => updatePriority(account, 'up')} disabled={account.priority <= 1} className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-30" title="Move up">
+                                            <ArrowUp className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button onClick={() => updatePriority(account, 'down')} className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Move down">
+                                            <ArrowDown className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button onClick={() => toggleAccountStatus(account)} disabled={togglingId === account.id} className={`p-1.5 rounded transition-colors ${account.isActive ? 'text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/30' : 'text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'} disabled:opacity-50`} title={account.isActive ? 'Disable' : 'Enable'}>
+                                            {togglingId === account.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                                        </button>
+                                        <button onClick={() => openEditModal(account)} className="p-1.5 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors" title="Edit">
+                                            <Edit2 className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button onClick={() => deleteAccount(account.id)} disabled={deletingId === account.id} className="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-50" title="Delete">
+                                            {deletingId === account.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Stats Grid - Responsive */}
-                            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                                <div className="bg-muted/30 rounded-lg p-2.5">
+                            {/* Desktop Layout - Compact Horizontal */}
+                            <div className="hidden lg:flex items-center gap-4 px-4 py-3">
+                                {/* Priority */}
+                                <span className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 text-sm font-bold">
+                                    {index + 1}
+                                </span>
+
+                                {/* Name & Status */}
+                                <div className="w-40 flex-shrink-0">
+                                    <h3 className="font-semibold truncate">{account.name}</h3>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        {account.isActive ? (
+                                            <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                                                <CheckCircle className="h-3 w-3" />
+                                                Active
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                                                <XCircle className="h-3 w-3" />
+                                                Disabled
+                                            </span>
+                                        )}
+                                        <span className="text-xs text-muted-foreground">P:{account.priority}</span>
+                                    </div>
+                                </div>
+
+                                {/* Merchant Token */}
+                                <div className="flex-1 min-w-0">
                                     <p className="text-xs text-muted-foreground">Merchant Token</p>
-                                    <p className="font-mono font-medium text-xs sm:text-sm truncate">{account.merchantToken}</p>
+                                    <p className="font-mono text-sm truncate">{account.merchantToken}</p>
                                 </div>
-                                <div className="bg-muted/30 rounded-lg p-2.5">
+
+                                {/* Marketplace */}
+                                <div className="w-24 flex-shrink-0 text-center">
                                     <p className="text-xs text-muted-foreground">Marketplace</p>
-                                    <p className="font-medium">{account.marketplaceId === 'A21TJRUUN4KGV' ? '🇮🇳 India' : account.marketplaceId}</p>
+                                    <p className="text-sm">{account.marketplaceId === 'A21TJRUUN4KGV' ? '🇮🇳 India' : account.marketplaceId.slice(0, 8)}</p>
                                 </div>
-                                <div className="bg-muted/30 rounded-lg p-2.5">
+
+                                {/* Orders */}
+                                <div className="w-20 flex-shrink-0 text-center">
                                     <p className="text-xs text-muted-foreground">Orders Synced</p>
-                                    <p className="font-medium text-lg">{account.ordersSyncedCount.toLocaleString()}</p>
+                                    <p className="font-semibold">{account.ordersSyncedCount.toLocaleString()}</p>
                                 </div>
-                                <div className="bg-muted/30 rounded-lg p-2.5">
+
+                                {/* Last Sync */}
+                                <div className="w-36 flex-shrink-0">
                                     <p className="text-xs text-muted-foreground">Last Sync</p>
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1 text-sm">
                                         {account.lastSyncStatus === 'success' ? (
                                             <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
                                         ) : account.lastSyncStatus ? (
                                             <XCircle className="h-3 w-3 text-red-500 flex-shrink-0" />
                                         ) : null}
-                                        <p className="font-medium text-xs sm:text-sm">{formatDate(account.lastSyncAt)}</p>
+                                        <span className="truncate">{formatDate(account.lastSyncAt)}</span>
                                     </div>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex items-center gap-0.5 flex-shrink-0">
+                                    <button onClick={() => updatePriority(account, 'up')} disabled={account.priority <= 1} className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-30" title="Move up">
+                                        <ArrowUp className="h-4 w-4" />
+                                    </button>
+                                    <button onClick={() => updatePriority(account, 'down')} className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" title="Move down">
+                                        <ArrowDown className="h-4 w-4" />
+                                    </button>
+                                    <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1" />
+                                    <button onClick={() => toggleAccountStatus(account)} disabled={togglingId === account.id} className={`p-1.5 rounded transition-colors ${account.isActive ? 'text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/30' : 'text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'} disabled:opacity-50`} title={account.isActive ? 'Disable' : 'Enable'}>
+                                        {togglingId === account.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                    </button>
+                                    <button onClick={() => openEditModal(account)} className="p-1.5 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors" title="Edit">
+                                        <Edit2 className="h-4 w-4" />
+                                    </button>
+                                    <button onClick={() => deleteAccount(account.id)} disabled={deletingId === account.id} className="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-50" title="Delete">
+                                        {deletingId === account.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                    </button>
                                 </div>
                             </div>
                         </div>
