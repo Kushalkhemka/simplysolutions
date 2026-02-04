@@ -67,7 +67,6 @@ export default function AmazonOrdersClient() {
     const [isEditingOrder, setIsEditingOrder] = useState(false);
     const [editedOrder, setEditedOrder] = useState<{
         fsn: string;
-        product_title: string;
         installation_id: string;
         confirmation_id: string;
         contact_email: string;
@@ -238,7 +237,6 @@ export default function AmazonOrdersClient() {
         if (selectedOrder) {
             setEditedOrder({
                 fsn: selectedOrder.fsn || '',
-                product_title: selectedOrder.product_title || '',
                 installation_id: selectedOrder.installation_id || '',
                 confirmation_id: selectedOrder.confirmation_id || '',
                 contact_email: selectedOrder.contact_email || '',
@@ -262,7 +260,6 @@ export default function AmazonOrdersClient() {
                 .from('amazon_orders')
                 .update({
                     fsn: editedOrder.fsn || null,
-                    product_title: editedOrder.product_title || null,
                     installation_id: editedOrder.installation_id || null,
                     confirmation_id: editedOrder.confirmation_id || null,
                     contact_email: editedOrder.contact_email || null,
@@ -277,7 +274,6 @@ export default function AmazonOrdersClient() {
             setSelectedOrder({
                 ...selectedOrder,
                 fsn: editedOrder.fsn || null,
-                product_title: editedOrder.product_title || null,
                 installation_id: editedOrder.installation_id || null,
                 confirmation_id: editedOrder.confirmation_id || null,
                 contact_email: editedOrder.contact_email || null,
@@ -288,7 +284,6 @@ export default function AmazonOrdersClient() {
                     ? {
                         ...o,
                         fsn: editedOrder.fsn || null,
-                        product_title: editedOrder.product_title || null,
                         installation_id: editedOrder.installation_id || null,
                         confirmation_id: editedOrder.confirmation_id || null,
                         contact_email: editedOrder.contact_email || null,
@@ -829,17 +824,12 @@ export default function AmazonOrdersClient() {
                                     )}
                                     <div className="flex-1">
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Product Name</p>
-                                        {isEditingOrder && editedOrder ? (
-                                            <input
-                                                type="text"
-                                                value={editedOrder.product_title}
-                                                onChange={(e) => setEditedOrder({ ...editedOrder, product_title: e.target.value })}
-                                                className="w-full font-medium text-lg p-2 border rounded-lg bg-background focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter product name..."
-                                            />
-                                        ) : (
-                                            <p className="font-medium text-lg">
-                                                {selectedOrder.productData?.product_title || selectedOrder.product_title || selectedOrder.fsn || 'Not Available'}
+                                        <p className="font-medium text-lg">
+                                            {selectedOrder.productData?.product_title || selectedOrder.fsn || 'Not Available'}
+                                        </p>
+                                        {isEditingOrder && (
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                (Product name is managed in Products Data)
                                             </p>
                                         )}
                                     </div>

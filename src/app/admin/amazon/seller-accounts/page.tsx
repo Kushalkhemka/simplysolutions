@@ -299,19 +299,19 @@ export default function SellerAccountsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Store className="h-6 w-6 text-orange-500" />
-                        Amazon Seller Accounts
+                    <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                        <Store className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+                        Seller Accounts
                     </h1>
-                    <p className="text-muted-foreground">
-                        Manage your Amazon SP API credentials for multiple seller accounts
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Manage Amazon SP API credentials
                     </p>
                 </div>
                 <button
                     onClick={openAddModal}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors w-full sm:w-auto"
                 >
                     <Plus className="h-4 w-4" />
                     Add Account
@@ -357,80 +357,57 @@ export default function SellerAccountsPage() {
                     {accounts.map((account, index) => (
                         <div
                             key={account.id}
-                            className={`p-5 bg-card border rounded-lg transition-all ${account.isActive
+                            className={`p-4 md:p-5 bg-card border rounded-lg transition-all ${account.isActive
                                 ? 'border-green-500/30 bg-gradient-to-r from-green-500/5 to-transparent'
                                 : 'border-gray-300 dark:border-gray-700 opacity-60'
                                 }`}
                         >
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3">
-                                        {/* Priority Badge */}
-                                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 text-sm font-bold">
-                                            {index + 1}
-                                        </span>
-                                        <h3 className="text-lg font-semibold">{account.name}</h3>
-                                        {account.isActive ? (
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
-                                                <CheckCircle className="h-3 w-3" />
-                                                Active
+                            {/* Header Row - Mobile Responsive */}
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    {/* Priority Badge */}
+                                    <span className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 text-sm font-bold">
+                                        {index + 1}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="text-lg font-semibold truncate">{account.name}</h3>
+                                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                                            {account.isActive ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+                                                    <CheckCircle className="h-3 w-3" />
+                                                    Active
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                                                    <XCircle className="h-3 w-3" />
+                                                    Disabled
+                                                </span>
+                                            )}
+                                            <span className="text-xs text-muted-foreground">
+                                                Priority: {account.priority}
                                             </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                                                <XCircle className="h-3 w-3" />
-                                                Disabled
-                                            </span>
-                                        )}
-                                        <span className="text-xs text-muted-foreground">
-                                            Priority: {account.priority}
-                                        </span>
-                                    </div>
-
-                                    <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                        <div>
-                                            <p className="text-muted-foreground">Merchant Token</p>
-                                            <p className="font-mono font-medium">{account.merchantToken}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-muted-foreground">Marketplace</p>
-                                            <p className="font-medium">{account.marketplaceId === 'A21TJRUUN4KGV' ? '🇮🇳 India' : account.marketplaceId}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-muted-foreground">Orders Synced</p>
-                                            <p className="font-medium">{account.ordersSyncedCount.toLocaleString()}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-muted-foreground">Last Sync</p>
-                                            <div className="flex items-center gap-1">
-                                                {account.lastSyncStatus === 'success' ? (
-                                                    <CheckCircle className="h-3 w-3 text-green-500" />
-                                                ) : account.lastSyncStatus ? (
-                                                    <XCircle className="h-3 w-3 text-red-500" />
-                                                ) : null}
-                                                <p className="font-medium">{formatDate(account.lastSyncAt)}</p>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-1">
-                                    {/* Priority controls */}
+                                {/* Action Buttons - Horizontal on all screens */}
+                                <div className="flex items-center gap-1 flex-shrink-0 self-end sm:self-start">
                                     <button
                                         onClick={() => updatePriority(account, 'up')}
                                         disabled={account.priority <= 1}
                                         className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-30"
-                                        title="Move up (higher priority)"
+                                        title="Move up"
                                     >
                                         <ArrowUp className="h-4 w-4" />
                                     </button>
                                     <button
                                         onClick={() => updatePriority(account, 'down')}
                                         className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                                        title="Move down (lower priority)"
+                                        title="Move down"
                                     >
                                         <ArrowDown className="h-4 w-4" />
                                     </button>
-                                    <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
+                                    <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1 hidden sm:block" />
                                     <button
                                         onClick={() => toggleAccountStatus(account)}
                                         disabled={togglingId === account.id}
@@ -438,7 +415,7 @@ export default function SellerAccountsPage() {
                                             ? 'text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/30'
                                             : 'text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'
                                             } disabled:opacity-50`}
-                                        title={account.isActive ? 'Disable account' : 'Enable account'}
+                                        title={account.isActive ? 'Disable' : 'Enable'}
                                     >
                                         {togglingId === account.id ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -449,7 +426,7 @@ export default function SellerAccountsPage() {
                                     <button
                                         onClick={() => openEditModal(account)}
                                         className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                        title="Edit account"
+                                        title="Edit"
                                     >
                                         <Edit2 className="h-4 w-4" />
                                     </button>
@@ -457,7 +434,7 @@ export default function SellerAccountsPage() {
                                         onClick={() => deleteAccount(account.id)}
                                         disabled={deletingId === account.id}
                                         className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
-                                        title="Delete account"
+                                        title="Delete"
                                     >
                                         {deletingId === account.id ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -465,6 +442,33 @@ export default function SellerAccountsPage() {
                                             <Trash2 className="h-4 w-4" />
                                         )}
                                     </button>
+                                </div>
+                            </div>
+
+                            {/* Stats Grid - Responsive */}
+                            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                                <div className="bg-muted/30 rounded-lg p-2.5">
+                                    <p className="text-xs text-muted-foreground">Merchant Token</p>
+                                    <p className="font-mono font-medium text-xs sm:text-sm truncate">{account.merchantToken}</p>
+                                </div>
+                                <div className="bg-muted/30 rounded-lg p-2.5">
+                                    <p className="text-xs text-muted-foreground">Marketplace</p>
+                                    <p className="font-medium">{account.marketplaceId === 'A21TJRUUN4KGV' ? '🇮🇳 India' : account.marketplaceId}</p>
+                                </div>
+                                <div className="bg-muted/30 rounded-lg p-2.5">
+                                    <p className="text-xs text-muted-foreground">Orders Synced</p>
+                                    <p className="font-medium text-lg">{account.ordersSyncedCount.toLocaleString()}</p>
+                                </div>
+                                <div className="bg-muted/30 rounded-lg p-2.5">
+                                    <p className="text-xs text-muted-foreground">Last Sync</p>
+                                    <div className="flex items-center gap-1">
+                                        {account.lastSyncStatus === 'success' ? (
+                                            <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                                        ) : account.lastSyncStatus ? (
+                                            <XCircle className="h-3 w-3 text-red-500 flex-shrink-0" />
+                                        ) : null}
+                                        <p className="font-medium text-xs sm:text-sm">{formatDate(account.lastSyncAt)}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
