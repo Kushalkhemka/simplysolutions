@@ -51,22 +51,57 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
         return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
     }
 
-    // 1. Get order details
-    const { data: order, error: orderError } = await adminClient
+    // 1. Get order details - try multiple formats
+    // Amazon orders are stored with dashes (xxx-xxxxxxx-xxxxxxx) but users might enter without
+    let order = null;
+
+    // Try exact match first
+    const { data: exactMatch } = await adminClient
         .from('amazon_orders')
         .select('id, order_id, buyer_phone_number, warranty_status')
         .eq('order_id', orderId)
         .single();
 
-    if (orderError || !order) {
+    if (exactMatch) {
+        order = exactMatch;
+    } else {
+        // Try case-insensitive match
+        const { data: ilikeMatch } = await adminClient
+            .from('amazon_orders')
+            .select('id, order_id, buyer_phone_number, warranty_status')
+            .ilike('order_id', orderId)
+            .single();
+
+        if (ilikeMatch) {
+            order = ilikeMatch;
+        } else {
+            // If orderId is all digits, try to format as Amazon order ID (xxx-xxxxxxx-xxxxxxx)
+            const cleanCode = orderId.replace(/\D/g, '');
+            if (cleanCode.length >= 17) {
+                const formattedOrderId = `${cleanCode.slice(0, 3)}-${cleanCode.slice(3, 10)}-${cleanCode.slice(10, 17)}`;
+                const { data: formattedMatch } = await adminClient
+                    .from('amazon_orders')
+                    .select('id, order_id, buyer_phone_number, warranty_status')
+                    .eq('order_id', formattedOrderId)
+                    .single();
+
+                if (formattedMatch) {
+                    order = formattedMatch;
+                }
+            }
+        }
+    }
+
+    if (!order) {
         return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // 2. Block the order
+    // 2. Block the order (use matched order's order_id)
+    const actualOrderId = order.order_id;
     const { error: blockError } = await adminClient
         .from('amazon_orders')
         .update({ warranty_status: 'BLOCKED' })
-        .eq('order_id', orderId);
+        .eq('order_id', actualOrderId);
 
     if (blockError) {
         console.error('Error blocking order:', blockError);
@@ -77,7 +112,7 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
     const { data: existingAppeal } = await adminClient
         .from('feedback_appeals')
         .select('id')
-        .eq('order_id', orderId)
+        .eq('order_id', actualOrderId)
         .single();
 
     if (existingAppeal) {
@@ -99,7 +134,7 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
         await adminClient
             .from('feedback_appeals')
             .insert({
-                order_id: orderId,
+                order_id: actualOrderId,
                 status: 'PENDING',
                 phone: phone,
                 screenshot_url: '',
@@ -113,8 +148,8 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
 
     // 4. Send WhatsApp notification based on type
     const whatsappResult = appealType === 'review'
-        ? await sendReviewRemovalRequest(phone, orderId)
-        : await sendFeedbackRemovalRequest(phone, orderId);
+        ? await sendReviewRemovalRequest(phone, actualOrderId)
+        : await sendFeedbackRemovalRequest(phone, actualOrderId);
 
     return NextResponse.json({
         success: true,
