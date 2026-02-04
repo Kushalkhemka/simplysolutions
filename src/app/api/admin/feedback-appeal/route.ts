@@ -56,11 +56,11 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
     let order = null;
 
     // Try exact match first
-    const { data: exactMatch } = await adminClient
+    const { data: exactMatch, error: exactError } = await adminClient
         .from('amazon_orders')
         .select('id, order_id, buyer_phone_number, warranty_status')
         .eq('order_id', orderId)
-        .single();
+        .maybeSingle();
 
     if (exactMatch) {
         order = exactMatch;
@@ -70,7 +70,7 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
             .from('amazon_orders')
             .select('id, order_id, buyer_phone_number, warranty_status')
             .ilike('order_id', orderId)
-            .single();
+            .maybeSingle();
 
         if (ilikeMatch) {
             order = ilikeMatch;
@@ -83,7 +83,7 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
                     .from('amazon_orders')
                     .select('id, order_id, buyer_phone_number, warranty_status')
                     .eq('order_id', formattedOrderId)
-                    .single();
+                    .maybeSingle();
 
                 if (formattedMatch) {
                     order = formattedMatch;
