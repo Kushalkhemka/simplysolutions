@@ -339,9 +339,14 @@ export default function ActivationIssuesClient() {
                                         </>
                                     )}
                                     {order.issue_status === 'notified' && (
-                                        <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">
-                                            <Key className="h-3 w-3 inline mr-1" />Assign
-                                        </button>
+                                        <>
+                                            <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">
+                                                <Key className="h-3 w-3 inline mr-1" />Assign
+                                            </button>
+                                            <button onClick={() => handleCancel(order)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400">
+                                                <XCircle className="h-3 w-3" />
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -409,9 +414,14 @@ export default function ActivationIssuesClient() {
                                                 </div>
                                             )}
                                             {order.issue_status === 'notified' && (
-                                                <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50">
-                                                    <Key className="h-3 w-3 inline mr-1" />Assign
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => openResolveModal(order)} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50">
+                                                        <Key className="h-3 w-3 inline mr-1" />Assign
+                                                    </button>
+                                                    <button onClick={() => handleCancel(order)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50">
+                                                        <XCircle className="h-3 w-3" />
+                                                    </button>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>

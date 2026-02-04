@@ -260,8 +260,8 @@ function ActivatePageContent() {
                     setShowPreactivatedCountdown(true);
                     setIsLoading(false);
 
-                    // Start countdown
-                    let seconds = 5;
+                    // Start countdown (10 seconds)
+                    let seconds = 10;
                     setCountdownSeconds(seconds);
                     const countdownInterval = setInterval(() => {
                         seconds--;
