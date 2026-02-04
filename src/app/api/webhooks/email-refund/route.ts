@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifyMailgunWebhook, parseInboundEmail } from '@/lib/mailgun';
 
 /**
  * Email Refund Webhook
  * 
- * This endpoint receives refund notification emails (via Mailgun/SendGrid inbound parse
- * or Gmail Pub/Sub) and immediately marks the order as refunded.
+ * This endpoint receives refund notification emails from Mailgun Inbound Parse
+ * and immediately marks the order as refunded.
+ * 
+ * Setup Instructions:
+ * 1. Go to Mailgun Dashboard → Receiving → Routes
+ * 2. Create a new route:
+ *    - Expression Type: Match Recipient
+ *    - Recipient: refunds@your-domain.com (or catch_all for sandbox)
+ *    - Actions: Forward → https://simplysolutions.co.in/api/webhooks/email-refund
+ *    - Store and Notify
+ * 3. Set up Gmail to forward refund emails to: refunds@your-domain.com
  * 
  * Expected email subject format:
- * "Refund Initiated for Order XXX-XXXXXXX-XXXXXXX - Refund Initiated for Order XXX-XXXXXXX-XXXXXXX..."
- * 
- * This provides real-time fraud prevention instead of waiting for the cron job.
+ * "Refund Initiated for Order XXX-XXXXXXX-XXXXXXX - Refund Initiated for Order..."
  */
 
 // Webhook secret for verification (set in environment variable)
