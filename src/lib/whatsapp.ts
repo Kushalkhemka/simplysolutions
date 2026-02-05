@@ -217,7 +217,8 @@ export async function sendReviewAppealRejected(
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'review_appeal_rejected', {
         bodyVariables: [orderId],
-        buttonUrlSuffix: orderId  // For the dynamic "Submit Proof" button URL
+        buttonUrlSuffix: orderId,
+        buttonIndex: 1  // Dynamic button at index 1
     });
 }
 
@@ -233,7 +234,8 @@ export async function sendReviewAppealResubmit(
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'review_appeal_resubmit', {
         bodyVariables: [orderId],
-        buttonUrlSuffix: orderId  // For the dynamic "Upload Screenshot" button URL
+        buttonUrlSuffix: orderId,
+        buttonIndex: 1  // Dynamic button at index 1
     });
 }
 
@@ -281,7 +283,8 @@ export async function sendFeedbackAppealResubmit(
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'resubmission_needed', {
         bodyVariables: [orderId],
-        buttonUrlSuffix: orderId  // For the dynamic "Resubmit Proof" button URL
+        buttonUrlSuffix: orderId,
+        buttonIndex: 1  // Dynamic button at index 1
     });
 }
 
@@ -395,7 +398,8 @@ export async function sendWarrantyResubmission(
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'warranty_resubmission', {
         bodyVariables: [orderId, requiredDocument, adminNotes],
-        buttonUrlSuffix: orderId
+        buttonUrlSuffix: orderId,
+        buttonIndex: 1  // Dynamic button at index 1
     });
 }
 
@@ -417,7 +421,8 @@ export async function sendReviewRequest(
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'review_request', {
         bodyVariables: [orderId, productName, purchaseDate],
-        buttonUrlSuffix: orderId
+        buttonUrlSuffix: orderId,
+        buttonIndex: 1  // Dynamic button at index 1
     });
 }
 
@@ -439,7 +444,8 @@ export async function sendReplacementRejected(
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'replacement_rejected', {
         bodyVariables: [orderId, productName, reason],
-        buttonUrlSuffix: orderId
+        buttonUrlSuffix: orderId,
+        buttonIndex: 1  // Dynamic button at index 1
     });
 }
 
