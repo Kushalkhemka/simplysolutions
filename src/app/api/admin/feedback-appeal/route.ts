@@ -187,6 +187,12 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
         ? await sendReviewRemovalRequest(phone, actualOrderId)
         : await sendFeedbackRemovalRequest(phone, actualOrderId);
 
+    console.log(`[feedback-appeal] WhatsApp result for ${actualOrderId} to ${phone}:`, {
+        success: whatsappResult.success,
+        messageId: whatsappResult.messageId,
+        error: whatsappResult.error
+    });
+
     return NextResponse.json({
         success: true,
         message: 'Order blocked and WhatsApp sent',

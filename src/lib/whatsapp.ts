@@ -7,6 +7,8 @@
  * - WHATSAPP_ACCESS_TOKEN
  */
 
+import { getAdminClient } from '@/lib/supabase/admin';
+
 const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
 
 interface WhatsAppTemplateVariable {
@@ -25,6 +27,48 @@ interface TemplateOptions {
     bodyVariables?: string[];       // For body text variables like {{1}}
     buttonUrlSuffix?: string;       // For dynamic URL button (appended to base URL)
     buttonIndex?: number;           // Button index (0 for first button, 1 for second)
+    orderId?: string;               // Order ID for logging
+    context?: WhatsAppLogContext;   // Context for logging
+}
+
+export type WhatsAppLogContext =
+    | 'feedback_appeal'
+    | 'review_appeal'
+    | 'warranty'
+    | 'replacement'
+    | 'subscription'
+    | 'review_request'
+    | 'test';
+
+/**
+ * Log WhatsApp message to database for tracking
+ */
+async function logWhatsAppMessage(
+    orderId: string,
+    phone: string,
+    templateName: string,
+    templateVariables: Record<string, unknown> | null,
+    status: 'success' | 'failed',
+    messageId?: string,
+    errorMessage?: string,
+    context?: WhatsAppLogContext
+): Promise<void> {
+    try {
+        const adminClient = getAdminClient();
+        await adminClient.from('whatsapp_message_logs').insert({
+            order_id: orderId,
+            phone: phone,
+            template_name: templateName,
+            template_variables: templateVariables,
+            message_id: messageId || null,
+            status: status,
+            error_message: errorMessage || null,
+            context: context || null
+        });
+    } catch (error) {
+        // Don't fail the main operation if logging fails
+        console.error('Failed to log WhatsApp message:', error);
+    }
 }
 
 /**
@@ -40,6 +84,19 @@ export async function sendWhatsAppTemplateAdvanced(
 
     if (!phoneNumberId || !accessToken) {
         console.error('WhatsApp credentials not configured');
+        // Log this failure if we have an orderId
+        if (options.orderId) {
+            await logWhatsAppMessage(
+                options.orderId,
+                phoneNumber,
+                templateName,
+                { bodyVariables: options.bodyVariables, buttonUrlSuffix: options.buttonUrlSuffix },
+                'failed',
+                undefined,
+                'WhatsApp credentials not configured',
+                options.context
+            );
+        }
         return { success: false, error: 'WhatsApp credentials not configured' };
     }
 
@@ -117,23 +174,74 @@ export async function sendWhatsAppTemplateAdvanced(
 
         const data = await response.json();
 
+        console.log('WhatsApp API response:', {
+            status: response.status,
+            ok: response.ok,
+            data: JSON.stringify(data, null, 2)
+        });
+
         if (!response.ok) {
             console.error('WhatsApp API error:', data);
+            const errorMsg = data.error?.message || 'Failed to send message';
+            // Log failure
+            if (options.orderId) {
+                await logWhatsAppMessage(
+                    options.orderId,
+                    formattedPhone,
+                    templateName,
+                    { bodyVariables: options.bodyVariables, buttonUrlSuffix: options.buttonUrlSuffix },
+                    'failed',
+                    undefined,
+                    errorMsg,
+                    options.context
+                );
+            }
             return {
                 success: false,
-                error: data.error?.message || 'Failed to send message'
+                error: errorMsg
             };
+        }
+
+        const messageId = data.messages?.[0]?.id;
+        console.log(`WhatsApp message sent successfully! MessageId: ${messageId}`);
+
+        // Log success
+        if (options.orderId) {
+            await logWhatsAppMessage(
+                options.orderId,
+                formattedPhone,
+                templateName,
+                { bodyVariables: options.bodyVariables, buttonUrlSuffix: options.buttonUrlSuffix },
+                'success',
+                messageId,
+                undefined,
+                options.context
+            );
         }
 
         return {
             success: true,
-            messageId: data.messages?.[0]?.id
+            messageId: messageId
         };
     } catch (error) {
         console.error('WhatsApp send error:', error);
+        const errorMsg = error instanceof Error ? error.message : 'Network error';
+        // Log network error
+        if (options.orderId) {
+            await logWhatsAppMessage(
+                options.orderId,
+                formattedPhone,
+                templateName,
+                { bodyVariables: options.bodyVariables, buttonUrlSuffix: options.buttonUrlSuffix },
+                'failed',
+                undefined,
+                errorMsg,
+                options.context
+            );
+        }
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Network error'
+            error: errorMsg
         };
     }
 }
@@ -169,7 +277,9 @@ export async function sendFeedbackRemovalRequest(
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'feedback_removal_request', {
         bodyVariables: [orderId],
         buttonUrlSuffix: orderId,
-        buttonIndex: 1  // Dynamic "Submit Proof" button is at index 1
+        buttonIndex: 1,  // Dynamic "Submit Proof" button is at index 1
+        orderId: orderId,
+        context: 'feedback_appeal'
     });
 }
 
@@ -187,7 +297,9 @@ export async function sendReviewRemovalRequest(
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'review_removal_request', {
         bodyVariables: [orderId],
         buttonUrlSuffix: orderId,
-        buttonIndex: 1  // Dynamic "Submit Proof" button is at index 1
+        buttonIndex: 1,  // Dynamic "Submit Proof" button is at index 1
+        orderId: orderId,
+        context: 'review_appeal'
     });
 }
 
@@ -201,7 +313,9 @@ export async function sendReviewAppealApproved(
     orderId: string
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'review_appeal_approved', {
-        bodyVariables: [orderId]
+        bodyVariables: [orderId],
+        orderId: orderId,
+        context: 'review_appeal'
     });
 }
 
@@ -218,7 +332,9 @@ export async function sendReviewAppealRejected(
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'review_appeal_rejected', {
         bodyVariables: [orderId],
         buttonUrlSuffix: orderId,
-        buttonIndex: 1  // Dynamic button at index 1
+        buttonIndex: 1,  // Dynamic button at index 1
+        orderId: orderId,
+        context: 'review_appeal'
     });
 }
 
@@ -235,7 +351,9 @@ export async function sendReviewAppealResubmit(
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'review_appeal_resubmit', {
         bodyVariables: [orderId],
         buttonUrlSuffix: orderId,
-        buttonIndex: 1  // Dynamic button at index 1
+        buttonIndex: 1,  // Dynamic button at index 1
+        orderId: orderId,
+        context: 'review_appeal'
     });
 }
 
@@ -249,7 +367,9 @@ export async function sendFeedbackAppealApproved(
     orderId: string
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'feedback_appeal_approved', {
-        bodyVariables: [orderId]
+        bodyVariables: [orderId],
+        orderId: orderId,
+        context: 'feedback_appeal'
     });
 }
 
@@ -267,7 +387,9 @@ export async function sendFeedbackAppealRejected(
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'feedback_appeal_rejected', {
         bodyVariables: [orderId],
         buttonUrlSuffix: orderId,
-        buttonIndex: 1  // Second button is the dynamic URL
+        buttonIndex: 1,  // Second button is the dynamic URL
+        orderId: orderId,
+        context: 'feedback_appeal'
     });
 }
 
@@ -284,7 +406,9 @@ export async function sendFeedbackAppealResubmit(
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'resubmission_needed', {
         bodyVariables: [orderId],
         buttonUrlSuffix: orderId,
-        buttonIndex: 1  // Dynamic button at index 1
+        buttonIndex: 1,  // Dynamic button at index 1
+        orderId: orderId,
+        context: 'feedback_appeal'
     });
 }
 

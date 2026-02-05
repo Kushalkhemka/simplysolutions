@@ -56,6 +56,21 @@ export default function FeedbackAppealsClient() {
     const [rejectedCount, setRejectedCount] = useState(0);
     const [resubmitCount, setResubmitCount] = useState(0);
 
+    // WhatsApp message logs
+    interface WhatsAppLog {
+        id: string;
+        order_id: string;
+        phone: string;
+        template_name: string;
+        status: 'success' | 'failed';
+        message_id: string | null;
+        error_message: string | null;
+        created_at: string;
+    }
+    const [whatsappLogs, setWhatsappLogs] = useState<WhatsAppLog[]>([]);
+    const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+    const [resendPhone, setResendPhone] = useState('');
+
     const pageSize = 50;
     const supabase = createClient();
 
@@ -135,14 +150,69 @@ export default function FeedbackAppealsClient() {
         fetchAppeals();
     };
 
+    const fetchWhatsAppLogs = async (orderId: string) => {
+        setIsLoadingLogs(true);
+        try {
+            const response = await fetch(`/api/admin/whatsapp-logs?orderId=${encodeURIComponent(orderId)}`);
+            const data = await response.json();
+            if (data.success) {
+                setWhatsappLogs(data.logs || []);
+            } else {
+                setWhatsappLogs([]);
+            }
+        } catch {
+            setWhatsappLogs([]);
+        } finally {
+            setIsLoadingLogs(false);
+        }
+    };
+
     const viewDetails = (appeal: FeedbackAppeal) => {
         setSelectedAppeal(appeal);
+        setResendPhone(appeal.phone || '');
+        setWhatsappLogs([]);
         setIsModalOpen(true);
+        fetchWhatsAppLogs(appeal.order_id);
     };
 
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedAppeal(null);
+        setWhatsappLogs([]);
+        setResendPhone('');
+    };
+
+    const handleResend = async () => {
+        if (!selectedAppeal || !resendPhone) {
+            toast.error('Phone number is required');
+            return;
+        }
+
+        setIsActionLoading(true);
+        try {
+            const response = await fetch('/api/admin/whatsapp-logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: selectedAppeal.order_id,
+                    phone: resendPhone,
+                    templateType: appealType
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success('WhatsApp message resent!');
+                fetchWhatsAppLogs(selectedAppeal.order_id);
+            } else {
+                toast.error(data.error || 'Failed to resend');
+            }
+        } catch {
+            toast.error('Network error');
+        } finally {
+            setIsActionLoading(false);
+        }
     };
 
     const handleAction = async (action: 'approve' | 'reject' | 'resubmit', orderId: string) => {
@@ -572,6 +642,81 @@ export default function FeedbackAppealsClient() {
                                 <div className="p-4 bg-muted/30 rounded-lg">
                                     <p className="text-xs text-muted-foreground uppercase flex items-center gap-1"><Calendar className="h-3 w-3" /> Reviewed</p>
                                     <p className="font-medium text-sm">{formatDate(selectedAppeal.reviewed_at)}</p>
+                                </div>
+                            </div>
+
+                            {/* WhatsApp History */}
+                            <div className="p-4 bg-muted/30 rounded-lg">
+                                <div className="flex items-center justify-between mb-3">
+                                    <p className="text-xs text-muted-foreground uppercase flex items-center gap-1">
+                                        <Send className="h-3 w-3" /> WhatsApp Messages
+                                    </p>
+                                    <button
+                                        onClick={() => fetchWhatsAppLogs(selectedAppeal.order_id)}
+                                        className="text-xs text-primary hover:underline flex items-center gap-1"
+                                        disabled={isLoadingLogs}
+                                    >
+                                        {isLoadingLogs ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                                        Refresh
+                                    </button>
+                                </div>
+
+                                {isLoadingLogs ? (
+                                    <div className="flex items-center justify-center py-4">
+                                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                    </div>
+                                ) : whatsappLogs.length > 0 ? (
+                                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                                        {whatsappLogs.map((log) => (
+                                            <div key={log.id} className="flex items-center justify-between p-2 bg-background rounded border text-xs">
+                                                <div className="flex items-center gap-2">
+                                                    {log.status === 'success' ? (
+                                                        <CheckCircle className="h-3 w-3 text-green-500" />
+                                                    ) : (
+                                                        <XCircle className="h-3 w-3 text-red-500" />
+                                                    )}
+                                                    <span className="font-mono">{log.phone}</span>
+                                                    <span className="text-muted-foreground">{log.template_name}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {log.message_id && (
+                                                        <span className="text-xs text-muted-foreground font-mono truncate max-w-[100px]" title={log.message_id}>
+                                                            {log.message_id.slice(0, 12)}...
+                                                        </span>
+                                                    )}
+                                                    {log.error_message && (
+                                                        <span className="text-red-500 truncate max-w-[100px]" title={log.error_message}>
+                                                            {log.error_message}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-muted-foreground">
+                                                        {formatDate(log.created_at)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground text-sm italic py-2">No messages logged yet</p>
+                                )}
+
+                                {/* Resend Section */}
+                                <div className="mt-3 pt-3 border-t flex gap-2">
+                                    <input
+                                        type="tel"
+                                        value={resendPhone}
+                                        onChange={(e) => setResendPhone(e.target.value)}
+                                        placeholder="Phone number"
+                                        className="flex-1 px-3 py-2 text-sm border rounded-lg bg-background"
+                                    />
+                                    <button
+                                        onClick={handleResend}
+                                        disabled={isActionLoading || !resendPhone}
+                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+                                    >
+                                        {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                        Resend
+                                    </button>
                                 </div>
                             </div>
 
