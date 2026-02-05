@@ -102,10 +102,15 @@ export async function sendWhatsAppTemplateAdvanced(
 
     // Format phone number (remove spaces, ensure country code)
     let formattedPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
-    if (!formattedPhone.startsWith('+')) {
-        formattedPhone = '+91' + formattedPhone; // Default to India
+
+    // Remove + if present
+    formattedPhone = formattedPhone.replace(/^\+/, '');
+
+    // Only add country code if the number doesn't already start with 91 (India)
+    // and is a 10-digit number
+    if (!formattedPhone.startsWith('91') && formattedPhone.length === 10) {
+        formattedPhone = '91' + formattedPhone;
     }
-    formattedPhone = formattedPhone.replace('+', ''); // API expects without +
 
     // Build template components
     const components: Array<{ type: string; parameters?: Array<{ type: string; text?: string }>; sub_type?: string; index?: string }> = [];

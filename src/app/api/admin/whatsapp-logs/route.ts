@@ -5,17 +5,15 @@ import {
     sendReviewRemovalRequest
 } from '@/lib/whatsapp';
 
-// GET /api/admin/whatsapp-logs?orderId=XXX
-// Fetch WhatsApp message logs for an order
+// GET /api/admin/whatsapp-logs?orderId=XXX&phone=YYY
+// Fetch WhatsApp message logs (optionally filtered by orderId or phone)
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const orderId = searchParams.get('orderId');
         const phone = searchParams.get('phone');
 
-        if (!orderId && !phone) {
-            return NextResponse.json({ error: 'orderId or phone is required' }, { status: 400 });
-        }
+        // No filter requirement - can fetch all logs
 
         const adminClient = getAdminClient();
 
