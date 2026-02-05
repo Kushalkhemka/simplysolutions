@@ -159,7 +159,8 @@ export async function sendWhatsAppTemplate(
  * Send initial feedback removal request (seller feedback)
  * Template: feedback_removal_request
  * Body Variables: {{1}} = Order ID  
- * Button URL: Dynamic - orderId suffix for submit proof button
+ * Button 0: Static URL (no param)
+ * Button 1: Dynamic URL (orderId param for submit proof)
  */
 export async function sendFeedbackRemovalRequest(
     phoneNumber: string,
@@ -167,7 +168,8 @@ export async function sendFeedbackRemovalRequest(
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'feedback_removal_request', {
         bodyVariables: [orderId],
-        buttonUrlSuffix: orderId  // For the dynamic "Submit Proof" button URL
+        buttonUrlSuffix: orderId,
+        buttonIndex: 1  // Dynamic "Submit Proof" button is at index 1
     });
 }
 
@@ -175,7 +177,8 @@ export async function sendFeedbackRemovalRequest(
  * Send product review removal request
  * Template: review_removal_request (separate template for product reviews)
  * Body Variables: {{1}} = Order ID  
- * Button URL: Dynamic - orderId suffix for submit proof button
+ * Button 0: Static URL (no param)
+ * Button 1: Dynamic URL (orderId param for submit proof)
  */
 export async function sendReviewRemovalRequest(
     phoneNumber: string,
@@ -183,7 +186,8 @@ export async function sendReviewRemovalRequest(
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'review_removal_request', {
         bodyVariables: [orderId],
-        buttonUrlSuffix: orderId  // For the dynamic "Submit Proof" button URL
+        buttonUrlSuffix: orderId,
+        buttonIndex: 1  // Dynamic "Submit Proof" button is at index 1
     });
 }
 
