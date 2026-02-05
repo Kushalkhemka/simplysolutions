@@ -77,8 +77,10 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
         if (ilikeMatch) {
             order = ilikeMatch;
         } else {
-            // If orderId is all digits, try to format as Amazon order ID (xxx-xxxxxxx-xxxxxxx)
+            // If orderId is all digits, try different formats
             const cleanCode = orderId.replace(/\D/g, '');
+
+            // Try to format as standard Amazon order ID (xxx-xxxxxxx-xxxxxxx) if 17+ digits
             if (cleanCode.length >= 17) {
                 const formattedOrderId = `${cleanCode.slice(0, 3)}-${cleanCode.slice(3, 10)}-${cleanCode.slice(10, 17)}`;
                 const { data: formattedMatch } = await adminClient
@@ -89,6 +91,32 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
 
                 if (formattedMatch) {
                     order = formattedMatch;
+                }
+            }
+
+            // If still not found, try a partial match (order_id contains the input)
+            if (!order) {
+                const { data: partialMatch } = await adminClient
+                    .from('amazon_orders')
+                    .select('id, order_id, contact_phone, warranty_status')
+                    .ilike('order_id', `%${orderId}%`)
+                    .maybeSingle();
+
+                if (partialMatch) {
+                    order = partialMatch;
+                }
+            }
+
+            // If still not found and input is digits only, try searching for order_id containing those digits
+            if (!order && cleanCode.length >= 10) {
+                const { data: digitsMatch } = await adminClient
+                    .from('amazon_orders')
+                    .select('id, order_id, contact_phone, warranty_status')
+                    .ilike('order_id', `%${cleanCode}%`)
+                    .maybeSingle();
+
+                if (digitsMatch) {
+                    order = digitsMatch;
                 }
             }
         }

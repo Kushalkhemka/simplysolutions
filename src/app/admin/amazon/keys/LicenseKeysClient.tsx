@@ -294,16 +294,21 @@ export default function LicenseKeysClient() {
         if (!confirm('Are you sure you want to delete this key?')) return;
 
         setDeleteId(id);
-        const { error } = await supabase
-            .from('amazon_activation_license_keys')
-            .delete()
-            .eq('id', id);
+        try {
+            const response = await fetch(`/api/admin/license-keys?id=${id}`, {
+                method: 'DELETE',
+            });
 
-        if (error) {
-            alert(`Error deleting key: ${error.message}`);
-        } else {
-            fetchKeys();
-            fetchStats();
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                alert(`Error deleting key: ${data.error || 'Unknown error'}`);
+            } else {
+                fetchKeys();
+                fetchStats();
+            }
+        } catch (error) {
+            alert('Network error while deleting key');
         }
         setDeleteId(null);
     };
@@ -346,24 +351,28 @@ export default function LicenseKeysClient() {
         const idsToDelete = Array.from(selectedKeys);
         let deleted = 0;
 
-        // Delete in batches of 50
-        for (let i = 0; i < idsToDelete.length; i += 50) {
-            const batch = idsToDelete.slice(i, i + 50);
-            const { error } = await supabase
-                .from('amazon_activation_license_keys')
-                .delete()
-                .in('id', batch);
+        // Delete in batches of 50 using API
+        try {
+            for (let i = 0; i < idsToDelete.length; i += 50) {
+                const batch = idsToDelete.slice(i, i + 50);
+                const response = await fetch(`/api/admin/license-keys?ids=${batch.join(',')}`, {
+                    method: 'DELETE',
+                });
 
-            if (!error) {
-                deleted += batch.length;
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    deleted += data.deleted || batch.length;
+                }
             }
-        }
 
-        setSelectedKeys(new Set());
+            setSelectedKeys(new Set());
+            fetchKeys();
+            fetchStats();
+            alert(`Successfully deleted ${deleted} key(s)`);
+        } catch (error) {
+            alert('Network error while deleting keys');
+        }
         setIsBulkDeleting(false);
-        fetchKeys();
-        fetchStats();
-        alert(`Successfully deleted ${deleted} key(s)`);
     };
 
     const totalPages = Math.ceil(totalCount / pageSize);
