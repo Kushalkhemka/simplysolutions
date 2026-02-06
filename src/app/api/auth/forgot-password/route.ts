@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         }
 
         // Build reset URL
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in';
         const resetUrl = `${baseUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
         // Send reset email via Resend

@@ -84,3 +84,36 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
+
+// DELETE /api/admin/whatsapp-logs?id=XXX
+// Delete a WhatsApp log entry (stops cron resends for this order)
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'id is required' }, { status: 400 });
+        }
+
+        const adminClient = getAdminClient();
+
+        const { error } = await adminClient
+            .from('whatsapp_message_logs')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting WhatsApp log:', error);
+            return NextResponse.json({ error: 'Failed to delete log' }, { status: 500 });
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: 'WhatsApp log entry deleted'
+        });
+    } catch (error) {
+        console.error('WhatsApp log delete error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}

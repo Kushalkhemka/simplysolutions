@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
             email: email,
             password: password,
             options: {
-                redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/login?verified=true`,
+                redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in'}/login?verified=true`,
             },
         });
 
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
             const tokenType = supabaseUrl.searchParams.get('type');
 
             // Create a verification URL that goes through our app's callback
-            const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?token_hash=${token}&type=${tokenType}`;
+            const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in'}/auth/callback?token_hash=${token}&type=${tokenType}`;
 
             // Send verification email via Resend
             const emailResult = await sendVerificationEmail({

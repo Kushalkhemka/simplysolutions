@@ -42,7 +42,7 @@ export async function GET() {
 
         return successResponse({
             referralCode: profile?.referral_code,
-            referralLink: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/register?ref=${profile?.referral_code}`,
+            referralLink: `${process.env.NEXT_PUBLIC_APP_URL || 'https://simplysolutions.co.in'}/register?ref=${profile?.referral_code}`,
             walletBalance: profile?.wallet_balance || 0,
             stats: {
                 totalReferrals: count || 0,

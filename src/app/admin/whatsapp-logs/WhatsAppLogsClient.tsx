@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, RefreshCw, Loader2, CheckCircle, XCircle, Phone, Send, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
+import { Search, RefreshCw, Loader2, CheckCircle, XCircle, Phone, Send, Trash2, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface WhatsAppLog {
@@ -22,6 +22,7 @@ export default function WhatsAppLogsClient() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isResending, setIsResending] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
     const fetchLogs = useCallback(async () => {
         setIsLoading(true);
@@ -91,6 +92,33 @@ export default function WhatsAppLogsClient() {
             toast.error('Failed to resend message');
         } finally {
             setIsResending(null);
+        }
+    };
+
+    const handleDelete = async (log: WhatsAppLog) => {
+        if (!confirm(`Delete log for order ${log.order_id}? This will stop cron resends for this order.`)) {
+            return;
+        }
+
+        setIsDeleting(log.id);
+        try {
+            const response = await fetch(`/api/admin/whatsapp-logs?id=${log.id}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success('Log entry deleted');
+                fetchLogs();
+            } else {
+                toast.error(data.error || 'Failed to delete');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            toast.error('Failed to delete');
+        } finally {
+            setIsDeleting(null);
         }
     };
 
@@ -249,18 +277,33 @@ export default function WhatsAppLogsClient() {
                                             {formatDate(log.created_at)}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <button
-                                                onClick={() => handleResend(log)}
-                                                disabled={isResending === log.id}
-                                                className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 disabled:opacity-50"
-                                            >
-                                                {isResending === log.id ? (
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                ) : (
-                                                    <Send className="h-3 w-3" />
-                                                )}
-                                                Resend
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleResend(log)}
+                                                    disabled={isResending === log.id || isDeleting === log.id}
+                                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 disabled:opacity-50"
+                                                >
+                                                    {isResending === log.id ? (
+                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                    ) : (
+                                                        <Send className="h-3 w-3" />
+                                                    )}
+                                                    Resend
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(log)}
+                                                    disabled={isResending === log.id || isDeleting === log.id}
+                                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 disabled:opacity-50"
+                                                    title="Delete (stops cron resends)"
+                                                >
+                                                    {isDeleting === log.id ? (
+                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="h-3 w-3" />
+                                                    )}
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
