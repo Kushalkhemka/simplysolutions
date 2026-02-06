@@ -27,14 +27,18 @@ export async function POST(request: NextRequest) {
         const endpointHash = subscription.endpoint.split('/').pop() || subscription.endpoint;
 
         // Upsert the subscription
+        // Note: The database uses 'keys' JSONB column, not separate p256dh/auth columns
         const { error } = await adminClient
             .from('push_subscriptions')
             .upsert({
                 user_id: userId,
                 endpoint: subscription.endpoint,
-                p256dh: subscription.keys.p256dh,
-                auth: subscription.keys.auth,
+                keys: {
+                    p256dh: subscription.keys.p256dh,
+                    auth: subscription.keys.auth
+                },
                 is_customer: true,
+                is_active: true,
                 order_id: orderId || null,
                 notify_replacement_status: requestType === 'replacement',
                 notify_product_request_status: requestType === 'product_request',

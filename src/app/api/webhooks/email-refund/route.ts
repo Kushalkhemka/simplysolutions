@@ -117,12 +117,11 @@ async function markOrdersAsRefunded(orderIds: string[]): Promise<{ marked: numbe
             }
 
             // Mark as refunded
+            // Note: Only updating is_refunded - other columns don't exist yet
             const { error: updateError } = await supabase
                 .from('amazon_orders')
                 .update({
-                    is_refunded: true,
-                    refunded_at: new Date().toISOString(),
-                    refund_source: 'email_webhook'
+                    is_refunded: true
                 })
                 .eq('order_id', orderId);
 
@@ -143,8 +142,45 @@ async function markOrdersAsRefunded(orderIds: string[]): Promise<{ marked: numbe
 }
 
 /**
+ * Log webhook request for debugging
+ */
+async function logWebhookRequest(
+    subject: string | null,
+    from: string | null,
+    orderIds: string[],
+    action: string,
+    ordersMarked: number,
+    contentType: string,
+    payloadKeys: string[],
+    errorMessage: string | null,
+    rawPayload: any
+): Promise<void> {
+    try {
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        await supabase.from('email_webhook_logs').insert({
+            subject,
+            from_address: from,
+            order_ids: orderIds.length > 0 ? orderIds : null,
+            action,
+            orders_marked: ordersMarked,
+            content_type: contentType,
+            payload_keys: payloadKeys,
+            error_message: errorMessage,
+            raw_payload: rawPayload
+        });
+    } catch (error) {
+        console.error('[email-refund] Failed to log webhook request:', error);
+    }
+}
+
+/**
  * Parse Mailgun inbound email format
  */
+
 function parseMailgunPayload(body: any): { subject: string; from: string } | null {
     if (body.subject && (body.sender || body.from)) {
         return {
@@ -271,6 +307,8 @@ export async function POST(request: NextRequest) {
 
         if (!isRefundEmail) {
             console.log('[email-refund] Not a refund email, ignoring:', subject.substring(0, 100));
+            // Log anyway for debugging
+            await logWebhookRequest(subject, from, [], 'ignored', 0, contentType, Object.keys(body), null, body);
             return NextResponse.json({
                 success: true,
                 action: 'ignored',
@@ -284,6 +322,7 @@ export async function POST(request: NextRequest) {
 
         if (orderIds.length === 0) {
             console.log('[email-refund] No order IDs found in refund email:', subject);
+            await logWebhookRequest(subject, from, [], 'no_orders_found', 0, contentType, Object.keys(body), null, body);
             return NextResponse.json({
                 success: true,
                 action: 'no_orders_found',
@@ -296,6 +335,19 @@ export async function POST(request: NextRequest) {
         // Mark orders as refunded
         const result = await markOrdersAsRefunded(orderIds);
 
+        // Log successful processing
+        await logWebhookRequest(
+            subject,
+            from,
+            orderIds,
+            'processed',
+            result.marked,
+            contentType,
+            Object.keys(body),
+            result.errors.length > 0 ? result.errors.join('; ') : null,
+            body
+        );
+
         return NextResponse.json({
             success: true,
             action: 'processed',
@@ -306,6 +358,10 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         console.error('[email-refund] Webhook error:', error);
+        // Log error (best effort - may also fail)
+        try {
+            await logWebhookRequest(null, null, [], 'error', 0, '', [], error instanceof Error ? error.message : 'Unknown error', null);
+        } catch { } // Silently ignore logging errors
         return NextResponse.json({
             error: 'Internal server error',
             message: error instanceof Error ? error.message : 'Unknown error'
