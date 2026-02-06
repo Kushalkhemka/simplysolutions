@@ -23,6 +23,8 @@ export default function WhatsAppLogsClient() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isResending, setIsResending] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
     const fetchLogs = useCallback(async () => {
         setIsLoading(true);
@@ -122,6 +124,60 @@ export default function WhatsAppLogsClient() {
         }
     };
 
+    // Toggle single selection
+    const toggleSelection = (id: string) => {
+        setSelectedIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
+    };
+
+    // Toggle select all
+    const toggleSelectAll = () => {
+        if (selectedIds.size === logs.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(logs.map(l => l.id)));
+        }
+    };
+
+    // Bulk delete
+    const handleBulkDelete = async () => {
+        if (selectedIds.size === 0) return;
+        if (!confirm(`Delete ${selectedIds.size} log entries? This will stop cron resends for these orders.`)) {
+            return;
+        }
+
+        setIsBulkDeleting(true);
+        let deleted = 0;
+        const idsToDelete = Array.from(selectedIds);
+
+        try {
+            for (const id of idsToDelete) {
+                const response = await fetch(`/api/admin/whatsapp-logs?id=${id}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    deleted++;
+                }
+            }
+            toast.success(`Deleted ${deleted} log entries`);
+            setSelectedIds(new Set());
+            fetchLogs();
+        } catch (error) {
+            console.error('Bulk delete error:', error);
+            toast.error('Failed to delete some entries');
+        } finally {
+            setIsBulkDeleting(false);
+        }
+    };
+
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleString('en-IN', {
             day: 'numeric',
@@ -211,6 +267,32 @@ export default function WhatsAppLogsClient() {
                 </div>
             </div>
 
+            {/* Selection Toolbar */}
+            {selectedIds.size > 0 && (
+                <div className="flex items-center justify-between p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                    <span className="text-sm font-medium">
+                        {selectedIds.size} log(s) selected
+                    </span>
+                    <button
+                        onClick={handleBulkDelete}
+                        disabled={isBulkDeleting}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                    >
+                        {isBulkDeleting ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Deleting...
+                            </>
+                        ) : (
+                            <>
+                                <Trash2 className="h-4 w-4" />
+                                Delete Selected
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
+
             {/* Logs Table */}
             <div className="bg-card border rounded-lg overflow-hidden">
                 {isLoading ? (
@@ -229,6 +311,14 @@ export default function WhatsAppLogsClient() {
                         <table className="w-full">
                             <thead className="bg-muted/50">
                                 <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-medium w-10">
+                                        <input
+                                            type="checkbox"
+                                            checked={logs.length > 0 && selectedIds.size === logs.length}
+                                            onChange={toggleSelectAll}
+                                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                    </th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Order ID</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Phone</th>
@@ -241,7 +331,15 @@ export default function WhatsAppLogsClient() {
                             </thead>
                             <tbody className="divide-y">
                                 {logs.map((log) => (
-                                    <tr key={log.id} className="hover:bg-muted/30">
+                                    <tr key={log.id} className={`hover:bg-muted/30 ${selectedIds.has(log.id) ? 'bg-primary/10' : ''}`}>
+                                        <td className="px-4 py-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.has(log.id)}
+                                                onChange={() => toggleSelection(log.id)}
+                                                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                            />
+                                        </td>
                                         <td className="px-4 py-3">
                                             {log.status === 'success' ? (
                                                 <span className="flex items-center gap-1 text-green-600">
