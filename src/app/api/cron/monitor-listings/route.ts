@@ -1,11 +1,12 @@
 /**
  * Cron endpoint to monitor Amazon product listings for flagged keywords
- * Schedule: Every 12 hours (configurable in Vercel/deployment)
+ * Schedule: Every 1 hour (configurable in Vercel/deployment)
  * 
  * Purpose:
  * - Detects competitor sabotage attempts (adding "email", "digital" keywords)
  * - Scans titles, descriptions, and bullet points
- * - Sends email alerts when flagged keywords are detected
+ * - Sends email and push notifications when NEW flagged keywords are detected
+ * - Ignores baseline ASINs that are known to have safe keyword usage
  * 
  * Flagged Keywords (can trigger abuse reports):
  * - email, e-mail
@@ -18,6 +19,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { amazonAsinMap } from '@/lib/data/amazonAsinMap';
 import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
+import { sendPushToAdmins } from '@/lib/push/admin-notifications';
 
 const SP_API_ENDPOINT = 'https://sellingpartnerapi-eu.amazon.com';
 
@@ -43,6 +45,14 @@ const SAFE_CONTEXTS = [
     'support email'
 ];
 
+// Baseline ASINs - these have known "email" keywords that are harmless (added by us)
+// Only alert on NEW products with flagged keywords
+const BASELINE_ASINS = [
+    'B0GFCQ2KHC', // office-pro-plus-ltsc-2024 - mentions "emails" in description
+    'B0GFD72V9P', // office-2021-windows-11-combo - mentions "email" 
+    'B0GFD2WW8R'  // gemini-pro-advanced - mentions "email" for account
+];
+
 interface FlaggedResult {
     asin: string;
     productKey: string;
@@ -50,6 +60,7 @@ interface FlaggedResult {
     flaggedKeywords: string[];
     locations: string[]; // 'title', 'description', 'bullet_points'
     url: string;
+    isNew: boolean; // true if not in baseline
 }
 
 // Verify cron secret
@@ -162,7 +173,8 @@ function scanProduct(asin: string, productKey: string, catalogData: any): Flagge
             title: title.substring(0, 100) + (title.length > 100 ? '...' : ''),
             flaggedKeywords: [...new Set(allFlagged)], // Deduplicate
             locations,
-            url: `https://www.amazon.in/dp/${asin}`
+            url: `https://www.amazon.in/dp/${asin}`,
+            isNew: !BASELINE_ASINS.includes(asin) // New if not in baseline
         };
     }
 
@@ -305,11 +317,30 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // Send alert if flagged products found
+        // Filter to only NEW flagged products (not in baseline)
+        const newFlaggedProducts = flaggedProducts.filter(p => p.isNew);
+
+        // Send alert only for NEW flagged products
         let alertSent = false;
-        if (flaggedProducts.length > 0) {
-            console.log(`[monitor-listings] Sending alert for ${flaggedProducts.length} flagged products...`);
-            alertSent = await sendListingAlertEmail(flaggedProducts);
+        let pushSent = false;
+        if (newFlaggedProducts.length > 0) {
+            console.log(`[monitor-listings] 🚨 NEW ALERT: ${newFlaggedProducts.length} NEW products have flagged keywords!`);
+            alertSent = await sendListingAlertEmail(newFlaggedProducts);
+
+            // Send push notification to admins
+            await sendPushToAdmins({
+                title: '🚨 Listing Alert - NEW Flagged Keywords!',
+                body: `${newFlaggedProducts.length} NEW product(s) have suspicious keywords. Check immediately!`,
+                type: 'listing_alert',
+                data: {
+                    count: newFlaggedProducts.length,
+                    products: newFlaggedProducts.map(p => p.asin)
+                },
+                tag: 'listing-monitor-alert'
+            });
+            pushSent = true;
+        } else if (flaggedProducts.length > 0) {
+            console.log(`[monitor-listings] ℹ️ ${flaggedProducts.length} baseline products have flagged keywords (ignored)`);
         }
 
         // Log to cron history
@@ -337,13 +368,19 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: flaggedProducts.length > 0
-                ? `⚠️ ALERT: ${flaggedProducts.length} product(s) have flagged keywords!`
-                : '✅ All products clean - no flagged keywords detected',
+            message: newFlaggedProducts.length > 0
+                ? `🚨 URGENT: ${newFlaggedProducts.length} NEW product(s) have flagged keywords!`
+                : flaggedProducts.length > 0
+                    ? `✅ ${flaggedProducts.length} baseline product(s) with known keywords (ignored)`
+                    : '✅ All products clean - no flagged keywords detected',
             productsScanned: scannedProducts.length,
             productsFlagged: flaggedProducts.length,
-            flaggedProducts: flaggedProducts,
+            newProductsFlagged: newFlaggedProducts.length,
+            baselineIgnored: flaggedProducts.length - newFlaggedProducts.length,
+            newFlaggedProducts: newFlaggedProducts,
+            allFlaggedProducts: flaggedProducts,
             alertSent,
+            pushSent,
             errors: errors.length > 0 ? errors : undefined,
             duration: `${Date.now() - startTime}ms`
         });
