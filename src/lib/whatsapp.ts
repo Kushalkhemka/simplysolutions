@@ -42,6 +42,7 @@ export type WhatsAppLogContext =
 
 /**
  * Log WhatsApp message to database for tracking
+ * Uses upsert to update existing entries instead of creating duplicates
  */
 async function logWhatsAppMessage(
     orderId: string,
@@ -55,16 +56,42 @@ async function logWhatsAppMessage(
 ): Promise<void> {
     try {
         const adminClient = getAdminClient();
-        await adminClient.from('whatsapp_message_logs').insert({
-            order_id: orderId,
-            phone: phone,
-            template_name: templateName,
-            template_variables: templateVariables,
-            message_id: messageId || null,
-            status: status,
-            error_message: errorMessage || null,
-            context: context || null
-        });
+
+        // First, check if an entry exists for this order + template + phone
+        const { data: existing } = await adminClient
+            .from('whatsapp_message_logs')
+            .select('id')
+            .eq('order_id', orderId)
+            .eq('template_name', templateName)
+            .eq('phone', phone)
+            .single();
+
+        if (existing) {
+            // Update existing entry
+            await adminClient
+                .from('whatsapp_message_logs')
+                .update({
+                    template_variables: templateVariables,
+                    message_id: messageId || null,
+                    status: status,
+                    error_message: errorMessage || null,
+                    context: context || null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', existing.id);
+        } else {
+            // Create new entry
+            await adminClient.from('whatsapp_message_logs').insert({
+                order_id: orderId,
+                phone: phone,
+                template_name: templateName,
+                template_variables: templateVariables,
+                message_id: messageId || null,
+                status: status,
+                error_message: errorMessage || null,
+                context: context || null
+            });
+        }
     } catch (error) {
         // Don't fail the main operation if logging fails
         console.error('Failed to log WhatsApp message:', error);
