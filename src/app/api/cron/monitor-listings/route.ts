@@ -20,6 +20,7 @@ import { Resend } from 'resend';
 import { amazonAsinMap } from '@/lib/data/amazonAsinMap';
 import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
 import { sendPushToAdmins } from '@/lib/push/admin-notifications';
+import { getActiveSellerAccounts, SellerAccountWithCredentials } from '@/lib/amazon/seller-accounts';
 
 const SP_API_ENDPOINT = 'https://sellingpartnerapi-eu.amazon.com';
 
@@ -71,15 +72,15 @@ function verifyCronAuth(request: NextRequest): boolean {
     return authHeader === `Bearer ${cronSecret}`;
 }
 
-async function getAccessToken(): Promise<string> {
+async function getAccessToken(account: SellerAccountWithCredentials): Promise<string> {
     const response = await fetch('https://api.amazon.com/auth/o2/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             grant_type: 'refresh_token',
-            refresh_token: process.env.AMAZON_SP_REFRESH_TOKEN!,
-            client_id: process.env.AMAZON_SP_CLIENT_ID!,
-            client_secret: process.env.AMAZON_SP_CLIENT_SECRET!
+            refresh_token: account.refreshToken,
+            client_id: account.clientId,
+            client_secret: account.clientSecret
         })
     });
 
@@ -91,8 +92,7 @@ async function getAccessToken(): Promise<string> {
     return data.access_token;
 }
 
-async function fetchCatalogItem(accessToken: string, asin: string): Promise<any> {
-    const marketplaceId = process.env.AMAZON_SP_MARKETPLACE_ID || 'A21TJRUUN4KGV';
+async function fetchCatalogItem(accessToken: string, asin: string, marketplaceId: string): Promise<any> {
     const url = new URL(`${SP_API_ENDPOINT}/catalog/2022-04-01/items/${asin}`);
     url.searchParams.set('marketplaceIds', marketplaceId);
     url.searchParams.set('includedData', 'attributes,summaries');
@@ -278,9 +278,25 @@ export async function GET(request: NextRequest) {
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
 
-        // Get access token
+        // Get seller accounts from database
+        console.log('[monitor-listings] Getting seller accounts from database...');
+        const accounts = await getActiveSellerAccounts();
+
+        if (accounts.length === 0) {
+            return NextResponse.json({
+                success: false,
+                error: 'No active seller accounts configured',
+                duration: `${Date.now() - startTime}ms`
+            }, { status: 500 });
+        }
+
+        // Use the first active account
+        const account = accounts[0];
+        console.log(`[monitor-listings] Using seller account: ${account.name}`);
+
+        // Get access token using account credentials
         console.log('[monitor-listings] Getting access token...');
-        const accessToken = await getAccessToken();
+        const accessToken = await getAccessToken(account);
 
         // Get all ASINs from our mapping
         const asins = Object.entries(amazonAsinMap);
@@ -294,7 +310,7 @@ export async function GET(request: NextRequest) {
             const [productKey, asin] = asins[i];
 
             try {
-                const catalogData = await fetchCatalogItem(accessToken, asin);
+                const catalogData = await fetchCatalogItem(accessToken, asin, account.marketplaceId);
 
                 if (catalogData.error) {
                     errors.push(`${asin}: ${catalogData.error}`);
