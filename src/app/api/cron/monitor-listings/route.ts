@@ -21,6 +21,7 @@ import { amazonAsinMap } from '@/lib/data/amazonAsinMap';
 import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
 import { sendPushToAdmins } from '@/lib/push/admin-notifications';
 import { getActiveSellerAccounts, SellerAccountWithCredentials } from '@/lib/amazon/seller-accounts';
+import { computeImageHash, hasImageChanged } from '@/lib/amazon/image-hash';
 
 const SP_API_ENDPOINT = 'https://sellingpartnerapi-eu.amazon.com';
 
@@ -63,6 +64,9 @@ interface FlaggedResult {
     url: string;
     imageUrl: string | null;  // Main product image
     isNew: boolean; // true if not in baseline
+    imageChanged?: boolean;  // true if main image hash differs from baseline
+    previousImageHash?: string;  // Previous baseline hash
+    currentImageHash?: string;  // Current image hash
 }
 
 // Verify cron secret
@@ -133,6 +137,26 @@ function checkForFlaggedKeywords(text: string): string[] {
     return foundKeywords;
 }
 
+// Extract main image URL from catalog data
+function extractMainImageUrl(catalogData: any): string | null {
+    const imagesData = catalogData.images?.[0]?.images || [];
+    const mainImages = imagesData.filter((img: any) => img.variant === 'MAIN');
+    if (mainImages.length > 0) {
+        mainImages.sort((a: any, b: any) => (b.height || 0) - (a.height || 0));
+        return mainImages[0].link;
+    }
+    return null;
+}
+
+// Image change tracking
+interface ImageChangeProduct {
+    asin: string;
+    productKey: string;
+    previousHash: string | null;
+    currentHash: string | null;
+    imageUrl: string | null;
+}
+
 function scanProduct(asin: string, productKey: string, catalogData: any): FlaggedResult | null {
     if (catalogData.error) return null;
 
@@ -191,6 +215,75 @@ function scanProduct(asin: string, productKey: string, catalogData: any): Flagge
     }
 
     return null;
+}
+
+// Image change detection result
+interface ImageChangeResult {
+    changed: boolean;
+    currentHash: string | null;
+    previousHash: string | null;
+    isNewBaseline: boolean;
+}
+
+// Check if product image has changed from baseline
+async function checkImageHash(
+    supabase: any,  // eslint-disable-line @typescript-eslint/no-explicit-any
+    asin: string,
+    imageUrl: string | null
+): Promise<ImageChangeResult> {
+    if (!imageUrl) {
+        return { changed: false, currentHash: null, previousHash: null, isNewBaseline: false };
+    }
+
+    try {
+        // Compute current image hash
+        const hashResult = await computeImageHash(imageUrl);
+        const currentHash = hashResult.hash;
+
+        if (!currentHash) {
+            return { changed: false, currentHash: null, previousHash: null, isNewBaseline: false };
+        }
+
+        // Look up baseline hash
+        const { data: baseline } = await supabase
+            .from('product_image_baselines')
+            .select('main_image_hash')
+            .eq('asin', asin)
+            .single();
+
+        if (!baseline) {
+            // No baseline exists - store this as the new baseline
+            await supabase.from('product_image_baselines').insert({
+                asin,
+                main_image_url: imageUrl,
+                main_image_hash: currentHash,
+                image_count: 1,
+                updated_at: new Date().toISOString()
+            });
+            return { changed: false, currentHash, previousHash: null, isNewBaseline: true };
+        }
+
+        // Check if hash changed
+        const previousHash = baseline.main_image_hash;
+        const changed = hasImageChanged(previousHash, currentHash);
+
+        if (changed) {
+            // Update baseline with new hash (and log the change)
+            await supabase.from('product_image_baselines')
+                .update({
+                    main_image_url: imageUrl,
+                    main_image_hash: currentHash,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('asin', asin);
+        }
+
+        return { changed, currentHash, previousHash, isNewBaseline: false };
+
+    } catch (error) {
+        console.error(`[monitor-listings] Image hash check failed for ${asin}:`, error);
+        return { changed: false, currentHash: null, previousHash: null, isNewBaseline: false };
+    }
 }
 
 async function sendListingAlertEmail(flaggedProducts: FlaggedResult[]): Promise<boolean> {
@@ -316,6 +409,7 @@ export async function GET(request: NextRequest) {
 
         const flaggedProducts: FlaggedResult[] = [];
         const scannedProducts: string[] = [];
+        const imageChangedProducts: ImageChangeProduct[] = [];
         const errors: string[] = [];
 
         for (let i = 0; i < asins.length; i++) {
@@ -332,7 +426,27 @@ export async function GET(request: NextRequest) {
                 scannedProducts.push(asin);
                 const flagged = scanProduct(asin, productKey, catalogData);
 
+                // Check for image changes
+                const imageUrl = flagged?.imageUrl || extractMainImageUrl(catalogData);
+                const imageCheck = await checkImageHash(supabase, asin, imageUrl);
+
+                if (imageCheck.changed) {
+                    console.log(`[monitor-listings] 🖼️ IMAGE CHANGED: ${asin}`);
+                    imageChangedProducts.push({
+                        asin,
+                        productKey,
+                        previousHash: imageCheck.previousHash,
+                        currentHash: imageCheck.currentHash,
+                        imageUrl
+                    });
+                }
+
                 if (flagged) {
+                    // Add image change info to flagged result
+                    flagged.imageChanged = imageCheck.changed;
+                    flagged.previousImageHash = imageCheck.previousHash || undefined;
+                    flagged.currentImageHash = imageCheck.currentHash || undefined;
+
                     flaggedProducts.push(flagged);
                     console.log(`[monitor-listings] ⚠️ FLAGGED: ${asin} - Keywords: ${flagged.flaggedKeywords.join(', ')}`);
                 }
@@ -405,6 +519,8 @@ export async function GET(request: NextRequest) {
             baselineIgnored: flaggedProducts.length - newFlaggedProducts.length,
             newFlaggedProducts: newFlaggedProducts,
             allFlaggedProducts: flaggedProducts,
+            imagesChanged: imageChangedProducts.length,
+            imageChangedProducts: imageChangedProducts,
             alertSent,
             pushSent,
             errors: errors.length > 0 ? errors : undefined,
