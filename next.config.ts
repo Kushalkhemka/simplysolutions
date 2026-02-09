@@ -141,6 +141,11 @@ const nextConfig: NextConfig = {
         destination: '/365enterprise',
         permanent: true,
       },
+      {
+        source: '/activation',
+        destination: '/activate',
+        permanent: true,
+      },
     ];
   },
 };

@@ -138,6 +138,13 @@ function ActivatePageContent() {
     const [appealEmail, setAppealEmail] = useState('');
     const [appealWhatsApp, setAppealWhatsApp] = useState('');
 
+    // Contact info modal state (for when keys are not available)
+    const [showContactModal, setShowContactModal] = useState(false);
+    const [contactEmail, setContactEmail] = useState('');
+    const [contactPhone, setContactPhone] = useState('');
+    const [contactSubmitting, setContactSubmitting] = useState(false);
+    const [pendingFsn, setPendingFsn] = useState<string | null>(null);
+
     // Check for existing replacement request when order is verified
     const checkReplacementStatus = async (orderId: string) => {
         try {
@@ -364,6 +371,13 @@ function ActivatePageContent() {
             const data = await response.json();
 
             if (!response.ok || !data.success) {
+                // Check if we need to ask for contact info (no keys available)
+                if (data.needsContactInfo) {
+                    setPendingFsn(data.fsn || null);
+                    setShowContactModal(true);
+                    setIsLoading(false);
+                    return;
+                }
                 setError(data.error || 'Failed to generate license key');
                 setIsLoading(false);
                 return;
@@ -617,6 +631,46 @@ function ActivatePageContent() {
             toast.error('Network error. Please try again.');
         } finally {
             setAppealLoading(false);
+        }
+    };
+
+    // Handle contact info submission when keys are not available
+    const handleContactSubmit = async () => {
+        if (!contactEmail.trim() && !contactPhone.trim()) {
+            toast.error('Please provide either email or phone number');
+            return;
+        }
+
+        setContactSubmitting(true);
+
+        try {
+            const response = await fetch('/api/activation-issues', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order_id: secretCode.trim(),
+                    customer_email: contactEmail.trim() || null,
+                    customer_phone: contactPhone.trim() || null,
+                    issue_type: 'no_keys_available'
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                toast.success('Your request has been submitted! We will contact you soon.');
+                setShowContactModal(false);
+                setContactEmail('');
+                setContactPhone('');
+                setError('We have received your request. Our support team will contact you shortly with your license key.');
+            } else {
+                toast.error(data.error || 'Failed to submit. Please try again.');
+            }
+        } catch (err) {
+            console.error('Error submitting contact info:', err);
+            toast.error('Network error. Please try again.');
+        } finally {
+            setContactSubmitting(false);
         }
     };
 
@@ -2099,6 +2153,80 @@ function ActivatePageContent() {
                             >
                                 I Understand, Show Me the Instructions
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Contact Info Modal - When Keys Not Available */}
+            {showContactModal && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden">
+                        <div className="bg-[#232F3E] px-4 py-3 flex items-center justify-between">
+                            <span className="text-white font-bold">Contact Information Required</span>
+                            <button onClick={() => setShowContactModal(false)} className="text-white/70 hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="mb-5 p-4 bg-[#FFF4E5] border-l-4 border-[#FF9900] rounded-r">
+                                <p className="text-base font-medium text-[#0F1111] leading-relaxed">
+                                    <AlertTriangle className="w-5 h-5 inline mr-2 text-[#FF9900]" />
+                                    We are facing a temporary technical issue.
+                                </p>
+                                <p className="text-sm text-[#565959] mt-2 ml-7 leading-relaxed">
+                                    Your license key is currently not available in our system. Please try again after <strong>6-12 hours</strong>, or provide your contact details below and we will send you the license key as soon as it&apos;s available.
+                                </p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-[#0F1111] mb-2">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={contactEmail}
+                                        onChange={(e) => setContactEmail(e.target.value)}
+                                        placeholder="your.email@example.com"
+                                        className="w-full px-4 py-3 border border-[#888C8C] rounded text-base text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900]"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-[#0F1111] mb-2">
+                                        Phone Number (WhatsApp preferred)
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={contactPhone}
+                                        onChange={(e) => setContactPhone(e.target.value)}
+                                        placeholder="+91 XXXXXXXXXX"
+                                        className="w-full px-4 py-3 border border-[#888C8C] rounded text-base text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900]"
+                                    />
+                                </div>
+
+                                <p className="text-sm text-[#565959]">
+                                    * Please provide at least one contact method so we can reach you
+                                </p>
+                            </div>
+
+                            <div className="mt-6 flex gap-3">
+                                <button
+                                    onClick={() => setShowContactModal(false)}
+                                    className="flex-1 py-2 border border-[#888C8C] rounded text-sm font-medium text-black bg-white hover:bg-gray-100"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleContactSubmit}
+                                    disabled={contactSubmitting || (!contactEmail.trim() && !contactPhone.trim())}
+                                    className="flex-1 py-2 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded border border-[#FCD200] disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {contactSubmitting ? 'Submitting...' : 'Submit'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

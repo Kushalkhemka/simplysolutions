@@ -174,11 +174,14 @@ export async function POST(request: NextRequest) {
                 const available = keys?.length || 0;
                 return NextResponse.json({
                     success: false,
-                    error: `Not enough keys for ${componentFSN}. Need ${keysPerComponent}, only ${available} available.`,
+                    needsContactInfo: true,
+                    error: `Not enough license keys available. Please try again later or contact support.`,
+                    orderId: cleanCode,
+                    fsn: fsn,
                     missingComponent: componentFSN,
                     needed: keysPerComponent,
                     available
-                }, { status: 404 });
+                }, { status: 503 });
             }
 
             availableKeys.push(...keys);
