@@ -9,7 +9,7 @@ interface SafeTOrder {
     fsn: string | null;
     product_title: string | null;
     contact_email: string | null;
-    refunded_at: string;
+    refundedAt: string; // Normalized field from API
     created_at: string;
     daysSinceRefund: number;
     daysUntilEligible: number;
@@ -158,8 +158,8 @@ export default function SafeTClaimsClient() {
                 <button
                     onClick={() => setActiveTab('eligible')}
                     className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'eligible'
-                            ? 'border-green-500 text-green-500'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                        ? 'border-green-500 text-green-500'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
                     Eligible ({data.summary.eligible})
@@ -167,8 +167,8 @@ export default function SafeTClaimsClient() {
                 <button
                     onClick={() => setActiveTab('approaching')}
                     className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'approaching'
-                            ? 'border-yellow-500 text-yellow-500'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                        ? 'border-yellow-500 text-yellow-500'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
                     Approaching ({data.summary.approaching})
@@ -176,8 +176,8 @@ export default function SafeTClaimsClient() {
                 <button
                     onClick={() => setActiveTab('all')}
                     className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'all'
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
                     All Refunded ({data.summary.totalRefunded})
@@ -214,13 +214,13 @@ export default function SafeTClaimsClient() {
                                     <td className="px-4 py-3 text-sm max-w-[200px] truncate">
                                         {order.product_title || '-'}
                                     </td>
-                                    <td className="px-4 py-3 text-sm">{formatDate(order.refunded_at)}</td>
+                                    <td className="px-4 py-3 text-sm">{formatDate(order.refundedAt)}</td>
                                     <td className="px-4 py-3">
                                         <span className={`font-bold ${order.daysSinceRefund >= 50
-                                                ? 'text-green-500'
-                                                : order.daysSinceRefund >= 45
-                                                    ? 'text-yellow-500'
-                                                    : 'text-muted-foreground'
+                                            ? 'text-green-500'
+                                            : order.daysSinceRefund >= 45
+                                                ? 'text-yellow-500'
+                                                : 'text-muted-foreground'
                                             }`}>
                                             {order.daysSinceRefund} days
                                         </span>

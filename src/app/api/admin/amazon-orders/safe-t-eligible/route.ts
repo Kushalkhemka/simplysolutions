@@ -15,18 +15,19 @@ export async function GET() {
 
         // Calculate the cutoff date (50 days ago)
         const now = new Date();
-        const eligibleCutoff = new Date(now.getTime() - (50 * 24 * 60 * 60 * 1000));
-        const approachingCutoff = new Date(now.getTime() - (45 * 24 * 60 * 60 * 1000));
 
-        // Fetch all refunded orders with refunded_at date
+        // Fetch all refunded orders
+        // Use refunded_at if available, otherwise fall back to updated_at
         const { data: refundedOrders, error } = await supabase
             .from('amazon_orders')
             .select('*')
             .eq('is_refunded', true)
-            .not('refunded_at', 'is', null)
-            .order('refunded_at', { ascending: true });
+            .order('updated_at', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
 
         const orders = refundedOrders || [];
 
@@ -36,12 +37,17 @@ export async function GET() {
         const notYetEligible: any[] = []; // < 45 days
 
         for (const order of orders) {
-            const refundedAt = new Date(order.refunded_at);
+            // Use refunded_at if available, otherwise use updated_at
+            const refundDate = order.refunded_at || order.updated_at;
+            if (!refundDate) continue;
+
+            const refundedAt = new Date(refundDate);
             const daysSinceRefund = Math.floor((now.getTime() - refundedAt.getTime()) / (24 * 60 * 60 * 1000));
             const daysUntilEligible = 50 - daysSinceRefund;
 
             const orderWithDays = {
                 ...order,
+                refundedAt: refundDate, // Normalize the field name
                 daysSinceRefund,
                 daysUntilEligible: Math.max(0, daysUntilEligible),
                 isEligible: daysSinceRefund >= 50,
@@ -70,11 +76,16 @@ export async function GET() {
             notYetEligible  // Less than 45 days
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching Safe-T eligible orders:', error);
         return NextResponse.json(
-            { success: false, error: 'Failed to fetch Safe-T eligible orders' },
+            {
+                success: false,
+                error: 'Failed to fetch Safe-T eligible orders',
+                details: error?.message || 'Unknown error'
+            },
             { status: 500 }
         );
     }
 }
+
