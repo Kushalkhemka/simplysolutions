@@ -28,11 +28,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if there's already a pending appeal for this order
+        // Check if there's already a pending FEEDBACK appeal for this order
+        // Filter by type = 'feedback' OR type is null (for legacy records)
         const { data: existing } = await supabase
             .from('feedback_appeals')
-            .select('id, status')
+            .select('id, status, type')
             .eq('order_id', orderId)
+            .or('type.eq.feedback,type.is.null')
             .single();
 
         if (existing && existing.status === 'PENDING') {
@@ -91,7 +93,7 @@ export async function POST(request: NextRequest) {
                 );
             }
         } else {
-            // Create new appeal record
+            // Create new appeal record with type='feedback'
             const { error: insertError } = await supabase
                 .from('feedback_appeals')
                 .insert({
@@ -100,7 +102,8 @@ export async function POST(request: NextRequest) {
                     screenshot_url: screenshotUrl.publicUrl,
                     submitted_at: new Date().toISOString(),
                     refund_type: refundType,
-                    partial_amount: refundType === 'partial' && partialAmount ? parseFloat(partialAmount) : null
+                    partial_amount: refundType === 'partial' && partialAmount ? parseFloat(partialAmount) : null,
+                    type: 'feedback'
                 });
 
             if (insertError) {
@@ -143,6 +146,7 @@ export async function GET(request: NextRequest) {
             .from('feedback_appeals')
             .select('*')
             .eq('order_id', orderId)
+            .or('type.eq.feedback,type.is.null')
             .single();
 
         if (error || !data) {
