@@ -197,7 +197,6 @@ export default function SafeTClaimsClient() {
                             <tr>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Order ID</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">FSN</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium">Product</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Refund Date</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Days Since</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
@@ -211,9 +210,6 @@ export default function SafeTClaimsClient() {
                                         <span className="font-mono text-sm">{order.order_id}</span>
                                     </td>
                                     <td className="px-4 py-3 text-sm">{order.fsn || '-'}</td>
-                                    <td className="px-4 py-3 text-sm max-w-[200px] truncate">
-                                        {order.product_title || '-'}
-                                    </td>
                                     <td className="px-4 py-3 text-sm">{formatDate(order.refundedAt)}</td>
                                     <td className="px-4 py-3">
                                         <span className={`font-bold ${order.daysSinceRefund >= 50
