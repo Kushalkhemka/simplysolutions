@@ -53,7 +53,10 @@ export async function POST(request: NextRequest) {
         if (order.warranty_status === 'BLOCKED') {
             return NextResponse.json({
                 success: false,
-                error: 'This order has been blocked. Please contact support for assistance.'
+                error: `This order has been blocked. Please contact support for assistance.\n\nIt may happen you have left a negative seller feedback. You need to remove that from amazon.in/hz/feedback and fill the appeal form after removal at simplysolutions.co.in/feedback-appeal/${orderId.trim()}`,
+                isBlocked: true,
+                feedbackUrl: 'https://www.amazon.in/hz/feedback',
+                appealUrl: `https://simplysolutions.co.in/feedback-appeal/${orderId.trim()}`
             }, { status: 403 });
         }
 

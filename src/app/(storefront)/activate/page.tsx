@@ -69,6 +69,7 @@ function ActivatePageContent() {
     const [showOSModal, setShowOSModal] = useState(false);
     const [activationResult, setActivationResult] = useState<ActivationResult | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isBlocked, setIsBlocked] = useState(false);
     const [installationIds, setInstallationIds] = useState<string[]>(Array(9).fill(''));
     const installationRef = useRef<HTMLDivElement>(null);
     const installationGuideRef = useRef<HTMLDivElement>(null);
@@ -224,10 +225,12 @@ function ActivatePageContent() {
             if (!response.ok || !data.valid) {
                 setError(data.error || 'Invalid secret code');
                 setCanAppeal(data.canAppeal === true);
+                setIsBlocked(data.isBlocked === true);
                 setIsLoading(false);
                 return;
             }
             setCanAppeal(false); // Reset on success
+            setIsBlocked(false); // Reset on success
 
             // Check if this is a subscription product that needs to be redirected to its specific page
             if (data.fsn) {
@@ -876,6 +879,33 @@ function ActivatePageContent() {
                                             <AlertTriangle className="w-5 h-5 text-[#CC0C39] flex-shrink-0 mt-0.5" />
                                             <div className="flex-1">
                                                 <span className="text-[#CC0C39] text-sm whitespace-pre-line">{error}</span>
+
+                                                {/* Blocked Order - Show Feedback Removal and Appeal Form buttons */}
+                                                {isBlocked && (
+                                                    <div className="mt-4 space-y-2">
+                                                        <a
+                                                            href="https://www.amazon.in/hz/feedback"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="w-full py-2 px-4 bg-[#FF9900] hover:bg-[#E47911] text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                            </svg>
+                                                            Remove Feedback on Amazon
+                                                        </a>
+                                                        <a
+                                                            href={`/feedback-appeal/${secretCode.trim()}`}
+                                                            className="w-full py-2 px-4 bg-[#0078D4] hover:bg-[#106EBE] text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                            </svg>
+                                                            Fill Appeal Form After Removal
+                                                        </a>
+                                                    </div>
+                                                )}
+
                                                 {canAppeal && (
                                                     <button
                                                         onClick={() => setShowAppealModal(true)}
