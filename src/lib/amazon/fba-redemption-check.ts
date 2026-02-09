@@ -124,7 +124,6 @@ export interface OrderForRedemptionCheck {
     state?: string | null;
     early_appeal_status?: string | null;
     is_refunded?: boolean | null;
-    shipment_status?: string | null;  // Admin-controlled: PENDING, SHIPPED, DELIVERED
 }
 
 /**
@@ -142,7 +141,7 @@ export async function checkFBARedemption(order: OrderForRedemptionCheck): Promis
     }
 
     // If admin has marked as DELIVERED, bypass time-based lock
-    if (order.shipment_status === 'DELIVERED') {
+    if (order.fulfillment_status === 'Delivered') {
         return { canRedeem: true };
     }
 

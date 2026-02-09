@@ -6,13 +6,13 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-const VALID_STATUSES = ['PENDING', 'SHIPPED', 'DELIVERED'] as const;
-type ShipmentStatus = typeof VALID_STATUSES[number];
+const VALID_STATUSES = ['Pending', 'Shipped', 'Delivered'] as const;
+type FulfillmentStatus = typeof VALID_STATUSES[number];
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { orderId, shipmentStatus } = body as { orderId?: string; shipmentStatus?: string };
+        const { orderId, fulfillmentStatus } = body as { orderId?: string; fulfillmentStatus?: string };
 
         if (!orderId || typeof orderId !== 'string') {
             return NextResponse.json(
@@ -21,37 +21,44 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!shipmentStatus || !VALID_STATUSES.includes(shipmentStatus as ShipmentStatus)) {
+        if (!fulfillmentStatus || !VALID_STATUSES.includes(fulfillmentStatus as FulfillmentStatus)) {
             return NextResponse.json(
-                { error: `Invalid shipment status. Must be one of: ${VALID_STATUSES.join(', ')}` },
+                { error: `Invalid fulfillment status. Must be one of: ${VALID_STATUSES.join(', ')}` },
                 { status: 400 }
             );
         }
 
-        // Update the order's shipment status
+        // Update the order's fulfillment status
+        const updateData: any = {
+            fulfillment_status: fulfillmentStatus,
+            updated_at: new Date().toISOString()
+        };
+
+        // If marking as Shipped, also set shipped_at timestamp
+        if (fulfillmentStatus === 'Shipped') {
+            updateData.shipped_at = new Date().toISOString();
+        }
+
         const { error: updateError } = await supabase
             .from('amazon_orders')
-            .update({
-                shipment_status: shipmentStatus,
-                updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('order_id', orderId);
 
         if (updateError) {
-            console.error('Error updating shipment status:', updateError);
+            console.error('Error updating fulfillment status:', updateError);
             return NextResponse.json(
-                { error: 'Failed to update shipment status' },
+                { error: 'Failed to update fulfillment status' },
                 { status: 500 }
             );
         }
 
         return NextResponse.json({
             success: true,
-            message: `Shipment status updated to ${shipmentStatus}`
+            message: `Fulfillment status updated to ${fulfillmentStatus}`
         });
 
     } catch (error) {
-        console.error('Shipment status update error:', error);
+        console.error('Fulfillment status update error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
