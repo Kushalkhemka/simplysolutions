@@ -61,6 +61,7 @@ interface FlaggedResult {
     flaggedKeywords: string[];
     locations: string[]; // 'title', 'description', 'bullet_points'
     url: string;
+    imageUrl: string | null;  // Main product image
     isNew: boolean; // true if not in baseline
 }
 
@@ -95,7 +96,7 @@ async function getAccessToken(account: SellerAccountWithCredentials): Promise<st
 async function fetchCatalogItem(accessToken: string, asin: string, marketplaceId: string): Promise<any> {
     const url = new URL(`${SP_API_ENDPOINT}/catalog/2022-04-01/items/${asin}`);
     url.searchParams.set('marketplaceIds', marketplaceId);
-    url.searchParams.set('includedData', 'attributes,summaries');
+    url.searchParams.set('includedData', 'attributes,summaries,images');
 
     const response = await fetch(url.toString(), {
         headers: {
@@ -142,6 +143,16 @@ function scanProduct(asin: string, productKey: string, catalogData: any): Flagge
     const description = attributes.product_description?.[0]?.value || '';
     const bulletPoints = (attributes.bullet_point || []).map((bp: any) => bp.value).join(' ');
 
+    // Extract main image URL (largest MAIN variant)
+    let imageUrl: string | null = null;
+    const imagesData = catalogData.images?.[0]?.images || [];
+    const mainImages = imagesData.filter((img: any) => img.variant === 'MAIN');
+    if (mainImages.length > 0) {
+        // Get the largest main image
+        mainImages.sort((a: any, b: any) => (b.height || 0) - (a.height || 0));
+        imageUrl = mainImages[0].link;
+    }
+
     const allFlagged: string[] = [];
     const locations: string[] = [];
 
@@ -174,6 +185,7 @@ function scanProduct(asin: string, productKey: string, catalogData: any): Flagge
             flaggedKeywords: [...new Set(allFlagged)], // Deduplicate
             locations,
             url: `https://www.amazon.in/dp/${asin}`,
+            imageUrl,
             isNew: !BASELINE_ASINS.includes(asin) // New if not in baseline
         };
     }
@@ -367,19 +379,17 @@ export async function GET(request: NextRequest) {
             flaggedProducts: flaggedProducts.map(p => ({ asin: p.asin, keywords: p.flaggedKeywords }))
         });
 
-        // Also log to database for historical tracking (table may not exist)
-        if (flaggedProducts.length > 0) {
-            try {
-                await supabase.from('listing_keyword_alerts').insert({
-                    scanned_at: new Date().toISOString(),
-                    products_scanned: scannedProducts.length,
-                    products_flagged: flaggedProducts.length,
-                    flagged_details: flaggedProducts,
-                    alert_sent: alertSent
-                });
-            } catch {
-                // Table might not exist, that's okay
-            }
+        // Always log to database for historical tracking and auto-load on page mount
+        try {
+            await supabase.from('listing_keyword_alerts').insert({
+                scanned_at: new Date().toISOString(),
+                products_scanned: scannedProducts.length,
+                products_flagged: flaggedProducts.length,
+                flagged_details: flaggedProducts,
+                alert_sent: alertSent
+            });
+        } catch {
+            // Table might not exist, that's okay
         }
 
         return NextResponse.json({

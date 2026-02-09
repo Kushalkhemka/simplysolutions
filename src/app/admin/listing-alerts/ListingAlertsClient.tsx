@@ -11,6 +11,7 @@ interface FlaggedProduct {
     flaggedKeywords: string[];
     locations: string[];
     url: string;
+    imageUrl: string | null;  // Main product image
     isNew: boolean;
 }
 
@@ -24,15 +25,17 @@ interface ScanResult {
     newFlaggedProducts: FlaggedProduct[];
     allFlaggedProducts: FlaggedProduct[];
     alertSent: boolean;
-    pushSent: boolean;
+    pushSent?: boolean;
     errors?: string[];
     duration: string;
+    scannedAt?: string;
 }
 
 export default function ListingAlertsClient() {
     const [lastScan, setLastScan] = useState<ScanResult | null>(null);
     const [isScanning, setIsScanning] = useState(false);
     const [lastScanTime, setLastScanTime] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const runScan = useCallback(async () => {
         setIsScanning(true);
@@ -67,9 +70,24 @@ export default function ListingAlertsClient() {
         }
     }, []);
 
-    // Load last scan on mount (if we have cached data)
+    // Load last scan on mount
     useEffect(() => {
-        // Could load from localStorage or API if we stored scan history
+        const loadLastScan = async () => {
+            try {
+                const response = await fetch('/api/admin/listing-alerts/last-scan');
+                const data = await response.json();
+
+                if (data.success && data.hasData) {
+                    setLastScan(data);
+                    setLastScanTime(new Date(data.scannedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
+                }
+            } catch (error) {
+                console.error('Failed to load last scan:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadLastScan();
     }, []);
 
     const getStatusColor = (product: FlaggedProduct) => {
@@ -216,6 +234,7 @@ export default function ListingAlertsClient() {
                                     <thead className="bg-muted/30">
                                         <tr>
                                             <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+                                            <th className="px-4 py-3 text-left text-sm font-medium">Image</th>
                                             <th className="px-4 py-3 text-left text-sm font-medium">ASIN</th>
                                             <th className="px-4 py-3 text-left text-sm font-medium">Product</th>
                                             <th className="px-4 py-3 text-left text-sm font-medium">Keywords</th>
@@ -230,6 +249,17 @@ export default function ListingAlertsClient() {
                                                         <span className="px-2 py-1 text-xs bg-red-500 text-white rounded-full font-bold">NEW</span>
                                                     ) : (
                                                         <span className="px-2 py-1 text-xs bg-yellow-500 text-white rounded-full">Baseline</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {product.imageUrl ? (
+                                                        <img
+                                                            src={product.imageUrl}
+                                                            alt={product.title}
+                                                            className="w-12 h-12 object-contain rounded border"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-xs text-muted-foreground">N/A</div>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-3">
