@@ -109,6 +109,12 @@ const guides = [
         href: '/installation-docs/acrobat2024',
         category: 'Productivity',
     },
+    {
+        title: 'ChatGPT Plus 12 Months',
+        description: 'Activation guide for ChatGPT Plus subscription',
+        href: '/installation-docs/chatgpt',
+        category: 'AI & Productivity',
+    },
 ];
 
 export default function InstallationDocsPage() {
