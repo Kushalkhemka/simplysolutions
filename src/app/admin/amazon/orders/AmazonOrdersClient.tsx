@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2, Edit2, Save, Phone, Ban, DollarSign } from 'lucide-react';
+import { Search, Filter, Eye, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, X, Package, Key, Fingerprint, ShieldCheck, Calendar, Loader2, Edit2, Save, Phone, Ban, DollarSign, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 import { isComboProduct } from '@/lib/amazon/combo-products';
 
@@ -22,6 +22,7 @@ interface AmazonOrder {
     product_title: string | null;
     license_key_id: string | null;
     is_refunded: boolean | null;
+    shipment_status: string | null;  // PENDING, SHIPPED, DELIVERED
     created_at: string;
     updated_at: string;
 }
@@ -79,6 +80,9 @@ export default function AmazonOrdersClient() {
 
     // Refund toggle state
     const [isTogglingRefund, setIsTogglingRefund] = useState(false);
+
+    // Shipment status state
+    const [isUpdatingShipment, setIsUpdatingShipment] = useState(false);
 
     // Filter state
     const [filterFsn, setFilterFsn] = useState<string>('all');
@@ -434,6 +438,38 @@ export default function AmazonOrdersClient() {
             toast.error(error instanceof Error ? error.message : 'Failed to update refund status');
         } finally {
             setIsTogglingRefund(false);
+        }
+    };
+
+    // Update shipment status
+    const updateShipmentStatus = async (orderId: string, newStatus: string) => {
+        setIsUpdatingShipment(true);
+        try {
+            const response = await fetch('/api/admin/amazon-orders/update-shipment-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, shipmentStatus: newStatus })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update shipment status');
+            }
+
+            // Update local state
+            if (selectedOrder) {
+                setSelectedOrder({ ...selectedOrder, shipment_status: newStatus });
+            }
+            setOrders(prev => prev.map(o =>
+                o.order_id === orderId ? { ...o, shipment_status: newStatus } : o
+            ));
+
+            toast.success(`Shipment status updated to ${newStatus}`);
+        } catch (error) {
+            console.error('Error updating shipment status:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to update shipment status');
+        } finally {
+            setIsUpdatingShipment(false);
         }
     };
 
@@ -1135,6 +1171,57 @@ export default function AmazonOrdersClient() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Shipment Status - Only show for FBA orders */}
+                                {selectedOrder.fulfillment_type === 'amazon_fba' && (
+                                    <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border-l-4 border-l-blue-500">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-blue-100 rounded-lg">
+                                                <Truck className="h-5 w-5 text-blue-600" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground uppercase tracking-wide">Shipment Status</p>
+                                                <p className="font-medium">
+                                                    {selectedOrder.shipment_status === 'DELIVERED' ? (
+                                                        <span className="text-green-600">✓ Delivered (Lock Bypassed)</span>
+                                                    ) : selectedOrder.shipment_status === 'SHIPPED' ? (
+                                                        <span className="text-amber-600">📦 Shipped</span>
+                                                    ) : (
+                                                        <span className="text-gray-500">⏳ Pending</span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <select
+                                                value={selectedOrder.shipment_status || 'PENDING'}
+                                                onChange={(e) => updateShipmentStatus(selectedOrder.order_id, e.target.value)}
+                                                disabled={isUpdatingShipment}
+                                                className="px-2 py-1.5 text-sm border rounded-lg bg-background disabled:opacity-50"
+                                            >
+                                                <option value="PENDING">Pending</option>
+                                                <option value="SHIPPED">Shipped</option>
+                                                <option value="DELIVERED">Delivered</option>
+                                            </select>
+                                            {selectedOrder.shipment_status !== 'DELIVERED' && (
+                                                <button
+                                                    onClick={() => updateShipmentStatus(selectedOrder.order_id, 'DELIVERED')}
+                                                    disabled={isUpdatingShipment}
+                                                    className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                                >
+                                                    {isUpdatingShipment ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <CheckCircle className="h-4 w-4" />
+                                                            Mark Delivered
+                                                        </>
+                                                    )}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Refund Status - Only show for FBA orders */}
                                 {selectedOrder.fulfillment_type === 'amazon_fba' && (
