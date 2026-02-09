@@ -7,7 +7,7 @@ import {
     Menu, X, LogOut, LayoutDashboard, Package, ShoppingCart, Key,
     Users, Tag, BarChart3, Settings, ShoppingBag, Shield, Mail,
     Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database, Sparkles, Bell, MessageSquareWarning,
-    Clock, FileCheck, Store, Activity, MessageSquare, ShieldAlert
+    Clock, FileCheck, Store, Activity, MessageSquare, ShieldAlert, DollarSign
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -34,6 +34,7 @@ const amazonLinks = [
     { name: 'Activation Issues', href: '/admin/amazon/issues', icon: AlertTriangle },
     { name: 'Fraud Orders', href: '/admin/amazon/fraud', icon: ShieldX },
     { name: 'Warranty Claims', href: '/admin/amazon/warranty', icon: Shield },
+    { name: 'Safe-T Claims', href: '/admin/amazon/safe-t-claims', icon: DollarSign },
     { name: 'Feedback Appeals', href: '/admin/amazon/feedback-appeals', icon: MessageSquareWarning },
     { name: 'WhatsApp Logs', href: '/admin/whatsapp-logs', icon: MessageSquare },
     { name: 'Listing Alerts', href: '/admin/listing-alerts', icon: ShieldAlert },
