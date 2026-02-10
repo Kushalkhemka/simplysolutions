@@ -52,6 +52,8 @@ export default function AdminReplacementRequestsPage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [adminNotes, setAdminNotes] = useState('');
     const [selectedKeyId, setSelectedKeyId] = useState('');
+    const [useManualKey, setUseManualKey] = useState(false);
+    const [manualKeyValue, setManualKeyValue] = useState('');
 
     useEffect(() => {
         fetchRequests();
@@ -86,6 +88,8 @@ export default function AdminReplacementRequestsPage() {
                 setSelectedRequest(data.data);
                 setAdminNotes('');
                 setSelectedKeyId('');
+                setUseManualKey(false);
+                setManualKeyValue('');
                 setIsModalOpen(true);
             }
         } catch (error) {
@@ -94,26 +98,45 @@ export default function AdminReplacementRequestsPage() {
     };
 
     const handleApprove = async () => {
-        if (!selectedRequest || !selectedKeyId) {
-            toast.error('Please select a new license key');
-            return;
+        if (!selectedRequest) return;
+
+        if (useManualKey) {
+            if (!manualKeyValue.trim()) {
+                toast.error('Please enter a manual license key');
+                return;
+            }
+        } else {
+            if (!selectedKeyId) {
+                toast.error('Please select a new license key');
+                return;
+            }
         }
 
         setIsProcessing(true);
         try {
+            const payload: Record<string, string> = {
+                action: 'approve',
+                adminNotes: adminNotes || (useManualKey ? 'Replacement approved (manual key)' : 'Replacement approved')
+            };
+
+            if (useManualKey) {
+                payload.manualKey = manualKeyValue.trim();
+            } else {
+                payload.newLicenseKeyId = selectedKeyId;
+            }
+
             const res = await fetch(`/api/admin/replacement-requests/${selectedRequest.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'approve',
-                    newLicenseKeyId: selectedKeyId,
-                    adminNotes: adminNotes || 'Replacement approved'
-                })
+                body: JSON.stringify(payload)
             });
 
             const data = await res.json();
             if (data.success) {
-                toast.success('Replacement request approved! Customer notified via email.');
+                toast.success(useManualKey
+                    ? 'Replacement approved with manual key! Customer notified.'
+                    : 'Replacement request approved! Customer notified via email.'
+                );
                 setIsModalOpen(false);
                 fetchRequests();
             } else {
@@ -438,29 +461,75 @@ export default function AdminReplacementRequestsPage() {
                                         </div>
                                     </div>
 
-                                    {/* New License Key Selection */}
+                                    {/* Key Assignment Mode Toggle */}
                                     <div>
-                                        <label className="block text-sm font-medium mb-2">
-                                            Select New License Key (for approval)
-                                        </label>
-                                        <select
-                                            value={selectedKeyId}
-                                            onChange={(e) => setSelectedKeyId(e.target.value)}
-                                            className="w-full px-3 py-2 border rounded-md bg-background font-mono text-sm"
-                                        >
-                                            <option value="">-- Select a key --</option>
-                                            {selectedRequest.available_keys.map(key => (
-                                                <option key={key.id} value={key.id}>
-                                                    {key.license_key}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {selectedRequest.available_keys.length === 0 && (
-                                            <p className="text-sm text-red-500 mt-1">
-                                                No available keys for this FSN. Please add keys first.
-                                            </p>
-                                        )}
+                                        <label className="block text-sm font-medium mb-2">Key Assignment Mode</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => { setUseManualKey(false); setManualKeyValue(''); }}
+                                                className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${!useManualKey
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                                                    }`}
+                                            >
+                                                From Inventory
+                                            </button>
+                                            <button
+                                                onClick={() => { setUseManualKey(true); setSelectedKeyId(''); }}
+                                                className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${useManualKey
+                                                    ? 'bg-orange-600 text-white'
+                                                    : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                                                    }`}
+                                            >
+                                                Manual Entry
+                                            </button>
+                                        </div>
                                     </div>
+
+                                    {/* Inventory Key Selection */}
+                                    {!useManualKey && (
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2">
+                                                Select New License Key (for approval)
+                                            </label>
+                                            <select
+                                                value={selectedKeyId}
+                                                onChange={(e) => setSelectedKeyId(e.target.value)}
+                                                className="w-full px-3 py-2 border rounded-md bg-background font-mono text-sm"
+                                            >
+                                                <option value="">-- Select a key --</option>
+                                                {selectedRequest.available_keys.map(key => (
+                                                    <option key={key.id} value={key.id}>
+                                                        {key.license_key}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {selectedRequest.available_keys.length === 0 && (
+                                                <p className="text-sm text-red-500 mt-1">
+                                                    No available keys for this FSN. Please add keys first.
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Manual Key Input */}
+                                    {useManualKey && (
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2">
+                                                Enter License Key Manually
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={manualKeyValue}
+                                                onChange={(e) => setManualKeyValue(e.target.value)}
+                                                placeholder="Paste or type the license key here..."
+                                                className="w-full px-3 py-2 border rounded-md bg-background font-mono text-sm"
+                                            />
+                                            <p className="text-xs text-amber-600 mt-1">
+                                                ⚠ This key is NOT from the inventory and won&apos;t be tracked as redeemed.
+                                            </p>
+                                        </div>
+                                    )}
 
                                     {/* Admin Notes Input */}
                                     <div>
@@ -479,11 +548,11 @@ export default function AdminReplacementRequestsPage() {
                                     <div className="flex gap-3">
                                         <Button
                                             onClick={handleApprove}
-                                            disabled={isProcessing || !selectedKeyId}
+                                            disabled={isProcessing || (useManualKey ? !manualKeyValue.trim() : !selectedKeyId)}
                                             className="flex-1 bg-green-600 hover:bg-green-700"
                                         >
                                             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-                                            Approve & Assign Key
+                                            {useManualKey ? 'Approve with Manual Key' : 'Approve & Assign Key'}
                                         </Button>
                                         <Button
                                             onClick={handleReject}

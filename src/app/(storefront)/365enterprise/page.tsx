@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink, Clock, Search, BookOpen, Mail, RefreshCw } from 'lucide-react';
+import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink, Clock, Search, BookOpen, Mail, RefreshCw, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
 
@@ -228,11 +228,68 @@ function Enterprise365Content() {
                                     </span>
                                 </a>
 
-                                {/* Instructions */}
-                                <div className="bg-[#FFF4E5] border-l-4 border-[#FF9900] p-4">
-                                    <p className="text-sm text-[#0F1111]">
-                                        <strong>⚠️ Important:</strong> Please change your password on first login for security.
-                                    </p>
+                                {/* OFFICE365 Password Change Warning */}
+                                <div className="bg-gradient-to-b from-[#FEF2F2] to-[#FFF7ED] border-2 border-[#DC2626] rounded-xl overflow-hidden shadow-lg">
+                                    {/* Warning Header */}
+                                    <div className="bg-[#DC2626] text-white px-4 py-3 flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <AlertTriangle className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-base">MANDATORY: Read Before You Login</h3>
+                                            <p className="text-xs opacity-90">Important instructions for your Microsoft 365 account</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 space-y-4">
+                                        {/* Step 1: Password Change */}
+                                        <div className="flex gap-3">
+                                            <span className="bg-[#DC2626] text-white font-bold rounded-full w-7 h-7 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">1</span>
+                                            <div>
+                                                <p className="font-bold text-[#0F1111] text-sm">Change Your Password on First Login</p>
+                                                <p className="text-xs text-[#565959] mt-1">
+                                                    When you log in for the first time, you will be prompted to change your password.
+                                                    <span className="font-bold text-[#DC2626]"> Carefully note down your new password.</span> Do NOT mistype it.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Step 2: Recovery Setup */}
+                                        <div className="flex gap-3">
+                                            <span className="bg-[#DC2626] text-white font-bold rounded-full w-7 h-7 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">2</span>
+                                            <div>
+                                                <p className="font-bold text-[#0F1111] text-sm">Setup Password Recovery (IMPORTANT)</p>
+                                                <p className="text-xs text-[#565959] mt-1">
+                                                    Immediately after changing your password, go to:{' '}
+                                                </p>
+                                                <a
+                                                    href="https://mysignins.microsoft.com/security-info"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-block mt-1.5 px-3 py-1.5 bg-[#0078D4] text-white text-xs font-bold rounded hover:bg-[#106EBE] transition-colors"
+                                                >
+                                                    🔗 mysignins.microsoft.com/security-info
+                                                </a>
+                                                <p className="text-xs text-[#565959] mt-1.5">
+                                                    Add your <span className="font-bold">personal phone number</span>, <span className="font-bold">alternate number</span> and <span className="font-bold">authenticator</span> as recovery methods.
+                                                    This ensures you can always reset your password if forgotten.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* No Replacement Policy */}
+                                        <div className="bg-[#FEE2E2] border border-[#FECACA] rounded-lg p-3">
+                                            <p className="text-sm font-bold text-[#991B1B] flex items-center gap-2">
+                                                <XCircle className="w-4 h-4 flex-shrink-0" />
+                                                No Replacement Policy
+                                            </p>
+                                            <p className="text-xs text-[#991B1B] mt-1 ml-6">
+                                                <strong>No replacement or support</strong> will be provided if you mistype or forget the password you changed to.
+                                                These accounts have been <strong>already verified</strong> with the password given to you.
+                                                It is your responsibility to note down and secure your new password.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Installation Guide Link */}
@@ -336,6 +393,70 @@ function Enterprise365Content() {
                                     <p className="text-sm text-[#067D62] font-medium">
                                         Bookmark this page: <strong className="text-[#0F1111]">simplysolutions.co.in/365enterprise</strong>
                                     </p>
+                                </div>
+
+                                {/* OFFICE365 Password Change Warning */}
+                                <div className="bg-gradient-to-b from-[#FEF2F2] to-[#FFF7ED] border-2 border-[#DC2626] rounded-xl overflow-hidden shadow-lg">
+                                    {/* Warning Header */}
+                                    <div className="bg-[#DC2626] text-white px-4 py-3 flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <AlertTriangle className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-base">MANDATORY: Read Before You Login</h3>
+                                            <p className="text-xs opacity-90">Important instructions for your Microsoft 365 account</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 space-y-4">
+                                        {/* Step 1: Password Change */}
+                                        <div className="flex gap-3">
+                                            <span className="bg-[#DC2626] text-white font-bold rounded-full w-7 h-7 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">1</span>
+                                            <div>
+                                                <p className="font-bold text-[#0F1111] text-sm">Change Your Password on First Login</p>
+                                                <p className="text-xs text-[#565959] mt-1">
+                                                    When you log in for the first time, you will be prompted to change your password.
+                                                    <span className="font-bold text-[#DC2626]"> Carefully note down your new password.</span> Do NOT mistype it.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Step 2: Recovery Setup */}
+                                        <div className="flex gap-3">
+                                            <span className="bg-[#DC2626] text-white font-bold rounded-full w-7 h-7 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">2</span>
+                                            <div>
+                                                <p className="font-bold text-[#0F1111] text-sm">Setup Password Recovery (IMPORTANT)</p>
+                                                <p className="text-xs text-[#565959] mt-1">
+                                                    After receiving your credentials and changing your password, go to:{' '}
+                                                </p>
+                                                <a
+                                                    href="https://mysignins.microsoft.com/security-info"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-block mt-1.5 px-3 py-1.5 bg-[#0078D4] text-white text-xs font-bold rounded hover:bg-[#106EBE] transition-colors"
+                                                >
+                                                    🔗 mysignins.microsoft.com/security-info
+                                                </a>
+                                                <p className="text-xs text-[#565959] mt-1.5">
+                                                    Add your <span className="font-bold">personal phone number</span>, <span className="font-bold">alternate number</span> and <span className="font-bold">authenticator</span> as recovery methods.
+                                                    This ensures you can always reset your password if forgotten.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* No Replacement Policy */}
+                                        <div className="bg-[#FEE2E2] border border-[#FECACA] rounded-lg p-3">
+                                            <p className="text-sm font-bold text-[#991B1B] flex items-center gap-2">
+                                                <XCircle className="w-4 h-4 flex-shrink-0" />
+                                                No Replacement Policy
+                                            </p>
+                                            <p className="text-xs text-[#991B1B] mt-1 ml-6">
+                                                <strong>No replacement or support</strong> will be provided if you mistype or forget the password you changed to.
+                                                These accounts have been <strong>already verified</strong> with the password given to you.
+                                                It is your responsibility to note down and secure your new password.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">

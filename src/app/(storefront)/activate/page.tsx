@@ -81,6 +81,7 @@ function ActivatePageContent() {
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [showFbaWarning, setShowFbaWarning] = useState(false);
     const [fulfillmentType, setFulfillmentType] = useState<string | null>(null);
+    const [popupCountdown, setPopupCountdown] = useState(30);
 
     // Pre-fill secret code from URL query parameter
     useEffect(() => {
@@ -425,13 +426,25 @@ function ActivatePageContent() {
                 });
             }
 
-            // Show success popup
+            // Show success popup with countdown
             setShowSuccessPopup(true);
+            setPopupCountdown(30);
 
-            // Auto-close popup after 20 seconds (gives time for push notification prompt)
-            setTimeout(() => {
-                setShowSuccessPopup(false);
-            }, 20000);
+            // Start countdown timer
+            const countdownInterval = setInterval(() => {
+                setPopupCountdown(prev => {
+                    if (prev <= 1) {
+                        clearInterval(countdownInterval);
+                        setShowSuccessPopup(false);
+                        // Scroll to installation guide
+                        setTimeout(() => {
+                            installationGuideRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 300);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
 
             // Check for any existing replacement requests
             await checkReplacementStatus(secretCode.trim());
@@ -446,21 +459,7 @@ function ActivatePageContent() {
 
     const handleSuccessPopupClose = () => {
         setShowSuccessPopup(false);
-
-        // Show FBA/MFN warning if applicable (physical delivery orders)
-        if (fulfillmentType === 'amazon_fba' || fulfillmentType === 'seller_easy_ship' || fulfillmentType === 'seller_self_ship') {
-            setShowFbaWarning(true);
-        } else {
-            // Scroll to installation guide
-            setTimeout(() => {
-                installationGuideRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 300);
-        }
-    };
-
-    const handleFbaWarningClose = () => {
-        setShowFbaWarning(false);
-        // Scroll to installation guide after dismissing warning
+        // Scroll to installation guide
         setTimeout(() => {
             installationGuideRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 300);
@@ -1233,6 +1232,73 @@ function ActivatePageContent() {
                                             </div>
                                         )}
 
+                                        {/* OFFICE365 Password Change Warning */}
+                                        {(activationResult.licenses?.some(l => l.fsn?.toUpperCase().startsWith('OFFICE365')) ||
+                                            activationResult.productInfo?.sku?.toUpperCase().startsWith('OFFICE365')) && (
+                                                <div className="bg-gradient-to-b from-[#FEF2F2] to-[#FFF7ED] border-2 border-[#DC2626] rounded-xl overflow-hidden shadow-lg">
+                                                    {/* Warning Header */}
+                                                    <div className="bg-[#DC2626] text-white px-4 py-3 flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <AlertTriangle className="w-6 h-6" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="font-bold text-base">MANDATORY: Read Before You Login</h3>
+                                                            <p className="text-xs opacity-90">Important instructions for your Microsoft 365 account</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-4 space-y-4">
+                                                        {/* Step 1: Password Change */}
+                                                        <div className="flex gap-3">
+                                                            <span className="bg-[#DC2626] text-white font-bold rounded-full w-7 h-7 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">1</span>
+                                                            <div>
+                                                                <p className="font-bold text-[#0F1111] text-sm">Change Your Password on First Login</p>
+                                                                <p className="text-xs text-[#565959] mt-1">
+                                                                    When you log in for the first time, you will be prompted to change your password.
+                                                                    <span className="font-bold text-[#DC2626]"> Carefully note down your new password.</span> Do NOT mistype it.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Step 2: Recovery Setup */}
+                                                        <div className="flex gap-3">
+                                                            <span className="bg-[#DC2626] text-white font-bold rounded-full w-7 h-7 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">2</span>
+                                                            <div>
+                                                                <p className="font-bold text-[#0F1111] text-sm">Setup Password Recovery (IMPORTANT)</p>
+                                                                <p className="text-xs text-[#565959] mt-1">
+                                                                    Immediately after changing your password, go to:{' '}
+                                                                </p>
+                                                                <a
+                                                                    href="https://mysignins.microsoft.com/security-info"
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-block mt-1.5 px-3 py-1.5 bg-[#0078D4] text-white text-xs font-bold rounded hover:bg-[#106EBE] transition-colors"
+                                                                >
+                                                                    🔗 mysignins.microsoft.com/security-info
+                                                                </a>
+                                                                <p className="text-xs text-[#565959] mt-1.5">
+                                                                    Add your <span className="font-bold">personal phone number</span>, <span className="font-bold">alternate number</span> and <span className="font-bold">authenticator</span> as recovery methods.
+                                                                    This ensures you can always reset your password if forgotten.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* No Replacement Policy */}
+                                                        <div className="bg-[#FEE2E2] border border-[#FECACA] rounded-lg p-3">
+                                                            <p className="text-sm font-bold text-[#991B1B] flex items-center gap-2">
+                                                                <XCircle className="w-4 h-4 flex-shrink-0" />
+                                                                No Replacement Policy
+                                                            </p>
+                                                            <p className="text-xs text-[#991B1B] mt-1 ml-6">
+                                                                <strong>No replacement or support</strong> will be provided if you mistype or forget the password you changed to.
+                                                                These accounts have been <strong>already verified</strong> with the password given to you.
+                                                                It is your responsibility to note down and secure your new password.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                         {/* Multiple Keys Note */}
                                         <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
                                             <p className="text-xs text-[#B12704]">
@@ -1959,79 +2025,148 @@ function ActivatePageContent() {
 
             {/* Success Popup Modal */}
             {showSuccessPopup && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300 relative">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-2 sm:p-4">
+                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-[95vw] sm:max-w-lg overflow-hidden animate-in zoom-in-95 duration-300 relative max-h-[85vh] sm:max-h-[90vh] flex flex-col">
                         {/* Close button */}
                         <button
                             onClick={handleSuccessPopupClose}
-                            className="absolute top-3 right-3 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors z-10"
+                            className="absolute top-2 right-2 sm:top-3 sm:right-3 w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors z-10"
                             title="Close"
                         >
-                            <X className="w-5 h-5 text-white" />
+                            <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </button>
-                        <div className="bg-gradient-to-r from-[#067D62] to-[#0A9A77] px-6 py-4 pr-12">
-                            <div className="flex items-center justify-center gap-3">
-                                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                    <CheckCircle className="w-7 h-7 text-white" />
+                        <div className="bg-gradient-to-r from-[#067D62] to-[#0A9A77] px-4 py-3 sm:px-6 sm:py-4 pr-10 sm:pr-12 flex-shrink-0">
+                            <div className="flex items-center justify-center gap-2 sm:gap-3">
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-white">Success!</h2>
-                                    <p className="text-white/90 text-sm">Your License Key is Ready</p>
+                                    <h2 className="text-lg sm:text-xl font-bold text-white">Success!</h2>
+                                    <p className="text-white/90 text-xs sm:text-sm">Your License Key is Ready</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-6">
-                            <div className="text-center mb-6">
-                                <div className="bg-[#FCF5EE] border-2 border-[#FF9900] rounded-lg p-4 mb-4">
-                                    <p className="text-xs text-[#565959] mb-2">Your Product License Key:</p>
-                                    <code className="font-mono text-lg font-bold text-[#0F1111] break-all">
+                        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
+                            {/* License Key */}
+                            <div className="text-center">
+                                <div className="bg-[#FCF5EE] border-2 border-[#FF9900] rounded-lg p-3 sm:p-4 mb-2 sm:mb-3">
+                                    <p className="text-xs text-[#565959] mb-1 sm:mb-2">Your Product License Key:</p>
+                                    <code className="font-mono text-sm sm:text-lg font-bold text-[#0F1111] break-all">
                                         {activationResult?.licenseKey}
                                     </code>
                                 </div>
-                                <p className="text-[#0F1111] font-medium">
+                                <p className="text-[#0F1111] font-medium text-xs sm:text-sm">
                                     🎉 Congratulations! Your license key has been generated successfully.
                                 </p>
                             </div>
 
-                            <div className="bg-[#FFF4E5] border border-[#FF9900] rounded-lg p-4 mb-6">
-                                <div className="flex items-start gap-3">
-                                    <AlertTriangle className="w-5 h-5 text-[#FF9900] flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="font-bold text-[#0F1111] text-sm">Important!</p>
-                                        <p className="text-sm text-[#565959] mt-1">
-                                            Please follow the installation instructions below carefully to activate your product.
-                                        </p>
+                            {/* FBA Warning - Conditional */}
+                            {(fulfillmentType === 'amazon_fba' || fulfillmentType === 'seller_easy_ship' || fulfillmentType === 'seller_self_ship') && (
+                                <div className="bg-[#FEF2F2] border-l-4 border-[#CC0C39] rounded-r-lg p-2 sm:p-3">
+                                    <div className="flex items-start gap-2">
+                                        <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-[#CC0C39] flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-bold text-[#CC0C39]">Ignore Physical Instructions</p>
+                                            <p className="text-[10px] sm:text-xs text-[#565959] mt-1">
+                                                Please <strong>ignore</strong> the physical instructions sent with your package. Follow only the installation instructions on this website for a smooth activation.
+                                            </p>
+                                        </div>
                                     </div>
+                                </div>
+                            )}
+
+                            {/* OFFICE365 Password Warning - Conditional */}
+                            {(activationResult?.licenses?.some(l => l.fsn?.toUpperCase().startsWith('OFFICE365')) ||
+                                activationResult?.productInfo?.sku?.toUpperCase().startsWith('OFFICE365')) && (
+                                    <div className="bg-gradient-to-b from-[#FEF2F2] to-[#FFF7ED] border-2 border-[#DC2626] rounded-xl overflow-hidden">
+                                        <div className="bg-[#DC2626] text-white px-2 py-1.5 sm:px-3 sm:py-2 flex items-center gap-1.5 sm:gap-2">
+                                            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
+                                            <h3 className="font-bold text-xs sm:text-sm">MANDATORY: Read Before You Login</h3>
+                                        </div>
+                                        <div className="p-2 sm:p-3 space-y-2 sm:space-y-3">
+                                            <div className="flex gap-1.5 sm:gap-2">
+                                                <span className="bg-[#DC2626] text-white font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-[10px] sm:text-xs flex-shrink-0 mt-0.5">1</span>
+                                                <div>
+                                                    <p className="font-bold text-[#0F1111] text-[10px] sm:text-xs">Change Your Password on First Login</p>
+                                                    <p className="text-[10px] sm:text-xs text-[#565959] mt-0.5">
+                                                        You will be prompted to change your password.
+                                                        <span className="font-bold text-[#DC2626]"> Carefully note down your new password.</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-1.5 sm:gap-2">
+                                                <span className="bg-[#DC2626] text-white font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-[10px] sm:text-xs flex-shrink-0 mt-0.5">2</span>
+                                                <div>
+                                                    <p className="font-bold text-[#0F1111] text-[10px] sm:text-xs">Setup Password Recovery</p>
+                                                    <a
+                                                        href="https://mysignins.microsoft.com/security-info"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-block mt-1 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-[#0078D4] text-white text-[10px] sm:text-xs font-bold rounded hover:bg-[#106EBE] transition-colors break-all"
+                                                    >
+                                                        🔗 mysignins.microsoft.com/security-info
+                                                    </a>
+                                                    <p className="text-[10px] sm:text-xs text-[#565959] mt-1">
+                                                        Add your <span className="font-bold">personal phone number</span>, <span className="font-bold">alternate number</span> and <span className="font-bold">authenticator</span> as recovery methods.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-[#FEE2E2] border border-[#FECACA] rounded-lg p-1.5 sm:p-2">
+                                                <p className="text-[10px] sm:text-xs font-bold text-[#991B1B] flex items-center gap-1">
+                                                    <XCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                                                    No Replacement Policy
+                                                </p>
+                                                <p className="text-[10px] sm:text-xs text-[#991B1B] mt-0.5 ml-4 sm:ml-5">
+                                                    <strong>No replacement or support</strong> for mistyped/forgotten passwords. Accounts are <strong>already verified</strong>.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                            {/* Installation Instructions Note */}
+                            <div className="bg-[#FFF4E5] border border-[#FF9900] rounded-lg p-2 sm:p-3">
+                                <div className="flex items-start gap-2">
+                                    <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF9900] flex-shrink-0 mt-0.5" />
+                                    <p className="text-[10px] sm:text-xs text-[#565959]">
+                                        Please follow the <strong className="text-[#0F1111]">installation instructions below</strong> carefully to activate your product.
+                                    </p>
                                 </div>
                             </div>
 
-                            {/* Warranty CTA in Success Popup */}
+                            {/* Warranty CTA */}
                             <a
                                 href="/digital-warranty"
-                                className="block mb-4 p-3 bg-gradient-to-r from-[#F0FDF4] to-[#ECFDF5] border-2 border-[#067D62] rounded-lg hover:shadow-lg transition-all group"
+                                className="block p-2 sm:p-3 bg-gradient-to-r from-[#F0FDF4] to-[#ECFDF5] border-2 border-[#067D62] rounded-lg hover:shadow-lg transition-all group"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-[#067D62] to-[#0A9A77] rounded-full flex items-center justify-center">
-                                        <Shield className="w-5 h-5 text-white" />
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#067D62] to-[#0A9A77] rounded-full flex items-center justify-center flex-shrink-0">
+                                        <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                                     </div>
-                                    <div className="flex-1">
-                                        <span className="font-bold text-[#0F1111] text-sm">Register Lifetime Warranty</span>
-                                        <p className="text-xs text-[#565959]">Get tech support, installation help & key replacements</p>
+                                    <div className="flex-1 min-w-0">
+                                        <span className="font-bold text-[#0F1111] text-xs sm:text-sm">Register Lifetime Warranty</span>
+                                        <p className="text-[10px] sm:text-xs text-[#565959]">Get tech support, installation help & key replacements</p>
                                     </div>
-                                    <span className="text-[#067D62] group-hover:text-[#0A9A77] font-bold text-sm">Register →</span>
+                                    <span className="text-[#067D62] group-hover:text-[#0A9A77] font-bold text-xs sm:text-sm flex-shrink-0">Register →</span>
                                 </div>
                             </a>
 
                             {/* Push notification prompt */}
                             <CustomerPushAutoPrompt orderId={secretCode} requestType="activation" />
 
+                            {/* Close button with countdown */}
                             <button
                                 onClick={handleSuccessPopupClose}
-                                className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all duration-200 flex items-center justify-center gap-2"
+                                className="w-full py-2.5 sm:py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base"
                             >
-                                <Download className="w-5 h-5" />
+                                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                                 View Installation Instructions
+                                {popupCountdown > 0 && (
+                                    <span className="ml-1 text-[10px] sm:text-xs bg-[#0F1111]/10 px-1.5 py-0.5 sm:px-2 rounded-full">
+                                        {popupCountdown}s
+                                    </span>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -2117,46 +2252,7 @@ function ActivatePageContent() {
                 </div>
             )}
 
-            {/* FBA/MFN Physical Instructions Warning Popup */}
-            {showFbaWarning && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="bg-gradient-to-r from-[#CC0C39] to-[#E63757] px-6 py-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                                    <AlertTriangle className="w-6 h-6 text-white" />
-                                </div>
-                                <h2 className="text-xl font-bold text-white">Important Notice</h2>
-                            </div>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="bg-[#FEF2F2] border-l-4 border-[#CC0C39] rounded-r-lg p-4 mb-6">
-                                <p className="text-[#0F1111] font-medium leading-relaxed">
-                                    <strong>Please ignore</strong> the physical instructions that may be sent with your package.
-                                </p>
-                                <p className="text-[#565959] mt-3 leading-relaxed">
-                                    For the <strong>smooth experience</strong> and <strong>easy activation process</strong>, please follow only the installation and activation instructions given on this website.
-                                </p>
-                            </div>
-
-                            <div className="flex items-start gap-3 p-3 bg-[#F0FDF4] rounded-lg border border-[#BBF7D0]">
-                                <CheckCircle className="w-5 h-5 text-[#067D62] flex-shrink-0 mt-0.5" />
-                                <p className="text-sm text-[#0F1111]">
-                                    Our online instructions are always up-to-date and optimized for the best activation experience.
-                                </p>
-                            </div>
-
-                            <button
-                                onClick={handleFbaWarningClose}
-                                className="w-full mt-6 py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all duration-200"
-                            >
-                                I Understand, Show Me the Instructions
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* FBA/MFN Physical Instructions Warning Popup - Now merged into success popup above */}
 
             {/* Contact Info Modal - When Keys Not Available */}
             {showContactModal && (

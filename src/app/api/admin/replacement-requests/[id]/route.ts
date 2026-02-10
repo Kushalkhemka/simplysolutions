@@ -18,7 +18,7 @@ export async function PATCH(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { action, adminNotes, newLicenseKeyId, reviewedBy } = body;
+        const { action, adminNotes, newLicenseKeyId, manualKey, reviewedBy } = body;
 
         if (!['approve', 'reject'].includes(action)) {
             return NextResponse.json(
@@ -59,64 +59,132 @@ export async function PATCH(
         const productName = orderData?.product_name || replacementRequest.fsn || 'Your Product';
 
         if (action === 'approve') {
-            if (!newLicenseKeyId) {
-                return NextResponse.json(
-                    { error: 'New license key ID is required for approval' },
-                    { status: 400 }
-                );
-            }
+            // Determine the license key string to use in notifications
+            let licenseKeyString: string;
+            const isManualKey = !!manualKey && !newLicenseKeyId;
 
-            // Verify the new license key exists and is available
-            const { data: newKey, error: keyError } = await supabase
-                .from('amazon_activation_license_keys')
-                .select('id, license_key, is_redeemed')
-                .eq('id', newLicenseKeyId)
-                .single();
+            if (isManualKey) {
+                // --- Manual Key Flow ---
+                if (!manualKey.trim()) {
+                    return NextResponse.json(
+                        { error: 'Manual license key cannot be empty' },
+                        { status: 400 }
+                    );
+                }
+                licenseKeyString = manualKey.trim();
 
-            if (keyError || !newKey) {
-                return NextResponse.json(
-                    { error: 'New license key not found' },
-                    { status: 404 }
-                );
-            }
+                // Insert the manual key into amazon_activation_license_keys (pre-redeemed)
+                const { data: insertedKey, error: insertError } = await supabase
+                    .from('amazon_activation_license_keys')
+                    .insert({
+                        license_key: licenseKeyString,
+                        fsn: replacementRequest.fsn || 'MANUAL',
+                        is_redeemed: true,
+                        redeemed_at: new Date().toISOString()
+                    })
+                    .select('id')
+                    .single();
 
-            if (newKey.is_redeemed) {
-                return NextResponse.json(
-                    { error: 'Selected license key is already redeemed. Please choose an available key.' },
-                    { status: 400 }
-                );
-            }
+                if (insertError || !insertedKey) {
+                    console.error('Error inserting manual key:', insertError);
+                    return NextResponse.json(
+                        { error: 'Failed to save manual license key' },
+                        { status: 500 }
+                    );
+                }
 
-            // Mark the new license key as redeemed
-            await supabase
-                .from('amazon_activation_license_keys')
-                .update({ is_redeemed: true, redeemed_at: new Date().toISOString() })
-                .eq('id', newLicenseKeyId);
+                const manualKeyId = insertedKey.id;
 
-            // Update the amazon_orders table to point to the new license key
-            await supabase
-                .from('amazon_orders')
-                .update({ license_key_id: newLicenseKeyId })
-                .eq('order_id', replacementRequest.order_id);
+                // Update amazon_orders to point to the new key
+                await supabase
+                    .from('amazon_orders')
+                    .update({ license_key_id: manualKeyId })
+                    .eq('order_id', replacementRequest.order_id);
 
-            // Update the replacement request
-            const { error: updateError } = await supabase
-                .from('license_replacement_requests')
-                .update({
-                    status: 'APPROVED',
-                    admin_notes: adminNotes || 'Replacement approved',
-                    new_license_key_id: newLicenseKeyId,
-                    reviewed_at: new Date().toISOString(),
-                    reviewed_by: reviewedBy || null
-                })
-                .eq('id', id);
+                // Update the replacement request
+                const { error: updateError } = await supabase
+                    .from('license_replacement_requests')
+                    .update({
+                        status: 'APPROVED',
+                        admin_notes: adminNotes || 'Replacement approved (manual key)',
+                        new_license_key_id: manualKeyId,
+                        reviewed_at: new Date().toISOString(),
+                        reviewed_by: reviewedBy || null
+                    })
+                    .eq('id', id);
 
-            if (updateError) {
-                console.error('Error updating replacement request:', updateError);
-                return NextResponse.json(
-                    { error: 'Failed to update replacement request' },
-                    { status: 500 }
-                );
+                if (updateError) {
+                    console.error('Error updating replacement request:', updateError);
+                    return NextResponse.json(
+                        { error: 'Failed to update replacement request' },
+                        { status: 500 }
+                    );
+                }
+
+
+            } else {
+                // --- Inventory Key Flow (existing) ---
+                if (!newLicenseKeyId) {
+                    return NextResponse.json(
+                        { error: 'New license key ID or manual key is required for approval' },
+                        { status: 400 }
+                    );
+                }
+
+                // Verify the new license key exists and is available
+                const { data: newKey, error: keyError } = await supabase
+                    .from('amazon_activation_license_keys')
+                    .select('id, license_key, is_redeemed')
+                    .eq('id', newLicenseKeyId)
+                    .single();
+
+                if (keyError || !newKey) {
+                    return NextResponse.json(
+                        { error: 'New license key not found' },
+                        { status: 404 }
+                    );
+                }
+
+                if (newKey.is_redeemed) {
+                    return NextResponse.json(
+                        { error: 'Selected license key is already redeemed. Please choose an available key.' },
+                        { status: 400 }
+                    );
+                }
+
+                licenseKeyString = newKey.license_key;
+
+                // Mark the new license key as redeemed
+                await supabase
+                    .from('amazon_activation_license_keys')
+                    .update({ is_redeemed: true, redeemed_at: new Date().toISOString() })
+                    .eq('id', newLicenseKeyId);
+
+                // Update the amazon_orders table to point to the new license key
+                await supabase
+                    .from('amazon_orders')
+                    .update({ license_key_id: newLicenseKeyId })
+                    .eq('order_id', replacementRequest.order_id);
+
+                // Update the replacement request
+                const { error: updateError } = await supabase
+                    .from('license_replacement_requests')
+                    .update({
+                        status: 'APPROVED',
+                        admin_notes: adminNotes || 'Replacement approved',
+                        new_license_key_id: newLicenseKeyId,
+                        reviewed_at: new Date().toISOString(),
+                        reviewed_by: reviewedBy || null
+                    })
+                    .eq('id', id);
+
+                if (updateError) {
+                    console.error('Error updating replacement request:', updateError);
+                    return NextResponse.json(
+                        { error: 'Failed to update replacement request' },
+                        { status: 500 }
+                    );
+                }
             }
 
             // Send email notification to customer
@@ -138,7 +206,7 @@ export async function PATCH(
                                     
                                     <div style="background: #fff; border: 2px solid #FF9900; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
                                         <p style="margin: 0 0 10px 0; color: #565959; font-size: 14px;">Your New License Key:</p>
-                                        <p style="font-family: monospace; font-size: 18px; font-weight: bold; color: #0F1111; margin: 0;">${newKey.license_key}</p>
+                                        <p style="font-family: monospace; font-size: 18px; font-weight: bold; color: #0F1111; margin: 0;">${licenseKeyString}</p>
                                     </div>
 
                                     <p>You can also access your new license key by visiting our activation page:</p>
@@ -176,7 +244,7 @@ export async function PATCH(
                         customerPhone,
                         replacementRequest.order_id,
                         productName,
-                        newKey.license_key
+                        licenseKeyString
                     );
                     console.log(`WhatsApp replacement_completed sent to ${customerPhone}`);
                 } catch (whatsappError) {
@@ -186,8 +254,8 @@ export async function PATCH(
 
             return NextResponse.json({
                 success: true,
-                message: 'Replacement request approved successfully',
-                newLicenseKey: newKey.license_key
+                message: isManualKey ? 'Replacement request approved with manual key' : 'Replacement request approved successfully',
+                newLicenseKey: licenseKeyString
             });
 
         } else {

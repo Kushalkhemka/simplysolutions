@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         const orderData: any = {
             order_id: identifier,
             fsn: fsn,
-            fulfillment_type: secretCode ? 'amazon_digital' : 'amazon_fba',
+            fulfillment_type: 'amazon_digital', // All manually created orders are digital
             warranty_status: 'PENDING',
         };
 
