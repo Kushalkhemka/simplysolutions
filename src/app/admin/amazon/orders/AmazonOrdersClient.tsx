@@ -146,15 +146,15 @@ export default function AmazonOrdersClient() {
         setIsLoading(false);
     }, [currentPage, searchQuery, filterFsn, filterType, filterGetcid, filterWarranty, filterRedeemed, filterRefunded, supabase]);
 
-    // Fetch unique FSNs for filter dropdown
+    // Fetch FSNs from products_data for filter dropdown
     const fetchUniqueFsns = useCallback(async () => {
         const { data } = await supabase
-            .from('amazon_orders')
+            .from('products_data')
             .select('fsn')
-            .not('fsn', 'is', null);
+            .order('fsn');
 
         if (data) {
-            const fsns = [...new Set(data.map(d => d.fsn).filter(Boolean))].sort();
+            const fsns = data.map(d => d.fsn).filter(Boolean);
             setUniqueFsns(fsns as string[]);
         }
     }, [supabase]);

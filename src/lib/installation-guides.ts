@@ -79,7 +79,7 @@ export const installationGuideMap: Record<string, string> = {
     'getcid': 'getcid.md',
 
     // ChatGPT Plus
-    'chatgpt': 'chatgpt',
+    'CHATGPT': 'chatgpt',
 };
 
 // Get installation guide filename based on SKU, FSN, or product name
