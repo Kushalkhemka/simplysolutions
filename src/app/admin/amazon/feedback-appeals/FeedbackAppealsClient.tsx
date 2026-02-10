@@ -295,22 +295,29 @@ export default function FeedbackAppealsClient() {
 
         setIsActionLoading(true);
         try {
-            const response = await fetch('/api/admin/review-removal', {
+            const response = await fetch('/api/admin/feedback-appeal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     orderId: reviewRemovalOrderId,
-                    phone: reviewRemovalPhone
+                    phone: reviewRemovalPhone,
+                    action: 'initiate',
+                    type: 'review'
                 })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                toast.success('Review removal WhatsApp sent!');
+                toast.success(data.message || 'Review removal WhatsApp sent!');
+                if (!data.whatsappSent) {
+                    toast.warning(`WhatsApp not sent: ${data.whatsappError}`);
+                }
                 setIsReviewRemovalModalOpen(false);
                 setReviewRemovalOrderId('');
                 setReviewRemovalPhone('');
+                fetchAppeals();
+                fetchStats();
             } else {
                 toast.error(data.error || 'Failed to send');
             }
