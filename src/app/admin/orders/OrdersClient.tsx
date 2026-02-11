@@ -299,7 +299,7 @@ export default function OrdersClient() {
                                 <p className="text-lg font-bold mt-1">₹{order.total_amount?.toLocaleString('en-IN')}</p>
                                 <p className="text-sm text-muted-foreground truncate">{order.billing_name}</p>
                                 {order._allSecretCodes && order._allSecretCodes.length > 0 && (
-                                    <p className="text-xs font-mono text-purple-600 dark:text-purple-400 mt-0.5">
+                                    <p className="text-xs font-mono text-emerald-700 dark:text-emerald-300 mt-0.5">
                                         🔑 {order._allSecretCodes.join(', ')}
                                     </p>
                                 )}
@@ -385,7 +385,7 @@ export default function OrdersClient() {
                                     </td>
                                     <td className="p-4">
                                         {order._allSecretCodes && order._allSecretCodes.length > 0 ? (
-                                            <span className="font-mono text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded">
+                                            <span className="font-mono text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">
                                                 {order._allSecretCodes.join(', ')}
                                             </span>
                                         ) : (
