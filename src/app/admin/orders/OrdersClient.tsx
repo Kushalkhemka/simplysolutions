@@ -21,6 +21,7 @@ interface Order {
     payment_status: string;
     total_amount: number;
     created_at: string;
+    secret_codes: string[] | null;
     profile?: { full_name: string; email: string } | null;
 }
 
@@ -278,6 +279,11 @@ export default function OrdersClient() {
                                 </div>
                                 <p className="text-lg font-bold mt-1">₹{order.total_amount?.toLocaleString('en-IN')}</p>
                                 <p className="text-sm text-muted-foreground truncate">{order.billing_name}</p>
+                                {order.secret_codes && order.secret_codes.length > 0 && (
+                                    <p className="text-xs font-mono text-purple-600 dark:text-purple-400 mt-0.5">
+                                        🔑 {order.secret_codes.join(', ')}
+                                    </p>
+                                )}
                                 <p className="text-xs text-muted-foreground">
                                     {new Date(order.created_at).toLocaleDateString('en-IN', {
                                         day: 'numeric',
@@ -324,6 +330,7 @@ export default function OrdersClient() {
                                 <th className="text-left p-4 font-medium">Date</th>
                                 <th className="text-center p-4 font-medium">Status</th>
                                 <th className="text-center p-4 font-medium">Payment</th>
+                                <th className="text-left p-4 font-medium">Secret Code</th>
                                 <th className="text-right p-4 font-medium">Amount</th>
                                 <th className="text-right p-4 font-medium">Actions</th>
                             </tr>
@@ -355,6 +362,15 @@ export default function OrdersClient() {
                                             <CheckCircle className="h-5 w-5 text-green-500 mx-auto" />
                                         ) : (
                                             <XCircle className="h-5 w-5 text-red-500 mx-auto" />
+                                        )}
+                                    </td>
+                                    <td className="p-4">
+                                        {order.secret_codes && order.secret_codes.length > 0 ? (
+                                            <span className="font-mono text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded">
+                                                {order.secret_codes.join(', ')}
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-muted-foreground">—</span>
                                         )}
                                     </td>
                                     <td className="p-4 text-right font-medium">
