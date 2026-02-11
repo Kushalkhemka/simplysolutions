@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Search, Plus, Trash2, Key, Package, ChevronLeft, ChevronRight, Loader2, X, CheckCircle, AlertCircle, Upload, Calendar } from 'lucide-react';
+import { Search, Plus, Trash2, Key, Package, ChevronLeft, ChevronRight, Loader2, X, CheckCircle, AlertCircle, Upload, Calendar, RotateCcw } from 'lucide-react';
 
 interface LicenseKey {
     id: string;
@@ -35,6 +35,8 @@ export default function LicenseKeysClient() {
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+    const [unredeemedId, setUnredeemedId] = useState<string | null>(null);
+    const [isBulkUnredeemed, setIsBulkUnredeemed] = useState(false);
 
     // Date filter states
     const [dateFilter, setDateFilter] = useState<DateFilterType>('all');
@@ -375,6 +377,66 @@ export default function LicenseKeysClient() {
         setIsBulkDeleting(false);
     };
 
+    // Mark single key as unredeemed
+    const handleMarkUnredeemed = async (id: string) => {
+        if (!confirm('Mark this key as unredeemed? It will become available again.')) return;
+
+        setUnredeemedId(id);
+        try {
+            const response = await fetch('/api/admin/license-keys', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, action: 'mark_unredeemed' }),
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                alert(`Error: ${data.error || 'Unknown error'}`);
+            } else {
+                fetchKeys();
+                fetchStats();
+            }
+        } catch (error) {
+            alert('Network error');
+        }
+        setUnredeemedId(null);
+    };
+
+    // Bulk mark selected keys as unredeemed
+    const handleBulkMarkUnredeemed = async () => {
+        if (selectedKeys.size === 0) return;
+        if (!confirm(`Mark ${selectedKeys.size} key(s) as unredeemed?`)) return;
+
+        setIsBulkUnredeemed(true);
+        const idsToUpdate = Array.from(selectedKeys);
+        let updated = 0;
+
+        try {
+            // Send in batches of 50
+            for (let i = 0; i < idsToUpdate.length; i += 50) {
+                const batch = idsToUpdate.slice(i, i + 50);
+                const response = await fetch('/api/admin/license-keys', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: batch, action: 'mark_unredeemed' }),
+                });
+
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    updated += data.updated || batch.length;
+                }
+            }
+
+            setSelectedKeys(new Set());
+            fetchKeys();
+            fetchStats();
+            alert(`Successfully marked ${updated} key(s) as unredeemed`);
+        } catch (error) {
+            alert('Network error');
+        }
+        setIsBulkUnredeemed(false);
+    };
+
     const totalPages = Math.ceil(totalCount / pageSize);
 
     const getProductName = (fsn: string) => {
@@ -508,23 +570,42 @@ export default function LicenseKeysClient() {
                     <span className="text-sm font-medium">
                         {selectedKeys.size} key(s) selected
                     </span>
-                    <button
-                        onClick={handleBulkDelete}
-                        disabled={isBulkDeleting}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                    >
-                        {isBulkDeleting ? (
-                            <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Deleting...
-                            </>
-                        ) : (
-                            <>
-                                <Trash2 className="h-4 w-4" />
-                                Delete Selected
-                            </>
-                        )}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleBulkMarkUnredeemed}
+                            disabled={isBulkUnredeemed}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                        >
+                            {isBulkUnredeemed ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Updating...
+                                </>
+                            ) : (
+                                <>
+                                    <RotateCcw className="h-4 w-4" />
+                                    Mark Unredeemed
+                                </>
+                            )}
+                        </button>
+                        <button
+                            onClick={handleBulkDelete}
+                            disabled={isBulkDeleting}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                        >
+                            {isBulkDeleting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                <>
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete Selected
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -562,18 +643,34 @@ export default function LicenseKeysClient() {
                                             )}
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => handleDeleteKey(key.id)}
-                                        disabled={deleteId === key.id}
-                                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 shrink-0"
-                                        title="Delete Key"
-                                    >
-                                        {deleteId === key.id ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Trash2 className="h-4 w-4" />
+                                    <div className="flex items-center gap-1 shrink-0">
+                                        {key.is_redeemed && (
+                                            <button
+                                                onClick={() => handleMarkUnredeemed(key.id)}
+                                                disabled={unredeemedId === key.id}
+                                                className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                                title="Mark Unredeemed"
+                                            >
+                                                {unredeemedId === key.id ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <RotateCcw className="h-4 w-4" />
+                                                )}
+                                            </button>
                                         )}
-                                    </button>
+                                        <button
+                                            onClick={() => handleDeleteKey(key.id)}
+                                            disabled={deleteId === key.id}
+                                            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                            title="Delete Key"
+                                        >
+                                            {deleteId === key.id ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Trash2 className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -641,18 +738,34 @@ export default function LicenseKeysClient() {
                                             )}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <button
-                                                onClick={() => handleDeleteKey(key.id)}
-                                                disabled={deleteId === key.id}
-                                                className="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
-                                                title="Delete Key"
-                                            >
-                                                {deleteId === key.id ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                ) : (
-                                                    <Trash2 className="h-4 w-4" />
+                                            <div className="flex items-center gap-2">
+                                                {key.is_redeemed && (
+                                                    <button
+                                                        onClick={() => handleMarkUnredeemed(key.id)}
+                                                        disabled={unredeemedId === key.id}
+                                                        className="text-blue-500 hover:text-blue-700 transition-colors disabled:opacity-50"
+                                                        title="Mark Unredeemed"
+                                                    >
+                                                        {unredeemedId === key.id ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <RotateCcw className="h-4 w-4" />
+                                                        )}
+                                                    </button>
                                                 )}
-                                            </button>
+                                                <button
+                                                    onClick={() => handleDeleteKey(key.id)}
+                                                    disabled={deleteId === key.id}
+                                                    className="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
+                                                    title="Delete Key"
+                                                >
+                                                    {deleteId === key.id ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="h-4 w-4" />
+                                                    )}
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
