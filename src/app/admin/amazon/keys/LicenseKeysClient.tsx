@@ -114,7 +114,9 @@ export default function LicenseKeysClient() {
             .order('created_at', { ascending: false });
 
         if (searchQuery) {
-            query = query.or(`license_key.ilike.%${searchQuery}%,fsn.ilike.%${searchQuery}%`);
+            // Use .ilike() directly to avoid PostgREST filter string parsing issues
+            // with special characters like = in license keys
+            query = query.ilike('license_key', `%${searchQuery}%`);
         }
 
         if (filterFsn !== 'all') {
