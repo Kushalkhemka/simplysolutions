@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         // Check if the order exists in amazon_orders
         const { data: order } = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn')
+            .select('id, order_id, fsn, is_refunded, warranty_status')
             .eq('order_id', cleanOrderId)
             .single();
 
@@ -94,6 +94,25 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 success: false,
                 error: 'Order not found. Please check your Order ID or Secret Code.'
+            });
+        }
+
+        // Check if order has been refunded
+        if (order.is_refunded === true) {
+            return NextResponse.json({
+                success: false,
+                error: 'This order has been refunded. Activation is not available for refunded orders.'
+            });
+        }
+
+        // Check if order is BLOCKED
+        if (order.warranty_status === 'BLOCKED') {
+            return NextResponse.json({
+                success: false,
+                error: `This order has been blocked. Please contact support for assistance.\n\nIt may happen you have left a negative seller feedback. You need to remove that from amazon.in/hz/feedback and fill the appeal form after removal at simplysolutions.co.in/feedback-appeal/${cleanOrderId}`,
+                isBlocked: true,
+                feedbackUrl: 'https://www.amazon.in/hz/feedback',
+                appealUrl: `https://simplysolutions.co.in/feedback-appeal/${cleanOrderId}`
             });
         }
 
