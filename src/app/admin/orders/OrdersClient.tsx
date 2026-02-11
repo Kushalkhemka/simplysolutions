@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Eye, CheckCircle, XCircle, Download, Loader2, Calendar, Filter, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface OrderItem {
+    secret_codes: string[] | null;
+}
+
 interface Order {
     id: string;
     order_number: string;
@@ -21,8 +25,10 @@ interface Order {
     payment_status: string;
     total_amount: number;
     created_at: string;
-    secret_codes: string[] | null;
+    order_items?: OrderItem[];
     profile?: { full_name: string; email: string } | null;
+    // Computed field for display
+    _allSecretCodes?: string[];
 }
 
 export default function OrdersClient() {
@@ -48,7 +54,8 @@ export default function OrdersClient() {
             .from('orders')
             .select(`
                 *,
-                profile:profiles(full_name, email)
+                profile:profiles(full_name, email),
+                order_items(secret_codes)
             `)
             .order('created_at', { ascending: false });
 
@@ -56,7 +63,19 @@ export default function OrdersClient() {
             console.error('Error fetching orders:', error);
             toast.error('Failed to load orders');
         } else {
-            setOrders(data || []);
+            // Flatten secret codes from all order items into each order
+            const processedOrders = (data || []).map(order => {
+                const allCodes: string[] = [];
+                if (order.order_items) {
+                    for (const item of order.order_items as OrderItem[]) {
+                        if (item.secret_codes && item.secret_codes.length > 0) {
+                            allCodes.push(...item.secret_codes);
+                        }
+                    }
+                }
+                return { ...order, _allSecretCodes: allCodes };
+            });
+            setOrders(processedOrders);
         }
         setIsLoading(false);
     };
@@ -279,9 +298,9 @@ export default function OrdersClient() {
                                 </div>
                                 <p className="text-lg font-bold mt-1">₹{order.total_amount?.toLocaleString('en-IN')}</p>
                                 <p className="text-sm text-muted-foreground truncate">{order.billing_name}</p>
-                                {order.secret_codes && order.secret_codes.length > 0 && (
+                                {order._allSecretCodes && order._allSecretCodes.length > 0 && (
                                     <p className="text-xs font-mono text-purple-600 dark:text-purple-400 mt-0.5">
-                                        🔑 {order.secret_codes.join(', ')}
+                                        🔑 {order._allSecretCodes.join(', ')}
                                     </p>
                                 )}
                                 <p className="text-xs text-muted-foreground">
@@ -365,9 +384,9 @@ export default function OrdersClient() {
                                         )}
                                     </td>
                                     <td className="p-4">
-                                        {order.secret_codes && order.secret_codes.length > 0 ? (
+                                        {order._allSecretCodes && order._allSecretCodes.length > 0 ? (
                                             <span className="font-mono text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded">
-                                                {order.secret_codes.join(', ')}
+                                                {order._allSecretCodes.join(', ')}
                                             </span>
                                         ) : (
                                             <span className="text-xs text-muted-foreground">—</span>
