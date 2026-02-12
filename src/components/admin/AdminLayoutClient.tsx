@@ -41,6 +41,7 @@ const amazonLinks = [
     { name: 'Early Appeals', href: '/admin/amazon/early-appeals', icon: FileCheck },
     { name: 'FBA Settings', href: '/admin/amazon/fba-settings', icon: Clock },
     { name: 'Product Requests', href: '/admin/amazon/requests', icon: Mail },
+    { name: 'Product Data', href: '/admin/amazon/products', icon: Database },
     { name: 'GetCID Test', href: '/admin/amazon/getcid', icon: Terminal },
     { name: 'GetCID Tokens', href: '/admin/amazon/getcid-tokens', icon: Database },
 ];
