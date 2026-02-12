@@ -120,15 +120,19 @@ export default function ProductsClient() {
             if (!product) continue;
 
             const newPrice = calculateNewPrice(product.price);
-            const { error } = await supabase
-                .from('products')
-                .update({ price: newPrice })
-                .eq('id', id);
-
-            if (error) {
+            try {
+                const res = await fetch(`/api/admin/products/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ price: newPrice }),
+                });
+                if (!res.ok) {
+                    failCount++;
+                } else {
+                    successCount++;
+                }
+            } catch {
                 failCount++;
-            } else {
-                successCount++;
             }
         }
 
@@ -185,18 +189,24 @@ export default function ProductsClient() {
         }
 
         setIsSavingInline(true);
-        const { error } = await supabase
-            .from('products')
-            .update({ price: newPrice })
-            .eq('id', productId);
+        try {
+            const res = await fetch(`/api/admin/products/${productId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ price: newPrice }),
+            });
 
-        if (error) {
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                toast.error(data.error || 'Failed to update price');
+            } else {
+                toast.success('Price updated');
+                setProducts(products.map(p =>
+                    p.id === productId ? { ...p, price: newPrice } : p
+                ));
+            }
+        } catch (err) {
             toast.error('Failed to update price');
-        } else {
-            toast.success('Price updated');
-            setProducts(products.map(p =>
-                p.id === productId ? { ...p, price: newPrice } : p
-            ));
         }
         setEditingPrice(null);
         setEditPriceValue('');
@@ -211,18 +221,24 @@ export default function ProductsClient() {
         }
 
         setIsSavingInline(true);
-        const { error } = await supabase
-            .from('products')
-            .update({ stock_quantity: newStock })
-            .eq('id', productId);
+        try {
+            const res = await fetch(`/api/admin/products/${productId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stock_quantity: newStock }),
+            });
 
-        if (error) {
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                toast.error(data.error || 'Failed to update stock');
+            } else {
+                toast.success('Stock updated');
+                setProducts(products.map(p =>
+                    p.id === productId ? { ...p, stock_quantity: newStock } : p
+                ));
+            }
+        } catch (err) {
             toast.error('Failed to update stock');
-        } else {
-            toast.success('Stock updated');
-            setProducts(products.map(p =>
-                p.id === productId ? { ...p, stock_quantity: newStock } : p
-            ));
         }
         setEditingStock(null);
         setEditStockValue('');
