@@ -455,7 +455,7 @@ export default function ProductManagementPage() {
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 {product.installation_doc ? (
-                                                                    <a href={`/installation-docs/${product.installation_doc}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-mono bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:underline">
+                                                                    <a href={`/installation-docs/${product.installation_doc.replace(/\.md$/i, '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-mono bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:underline">
                                                                         <FileText className="h-3 w-3" /> {product.installation_doc}
                                                                     </a>
                                                                 ) : <span className="text-muted-foreground text-xs">—</span>}
@@ -502,7 +502,7 @@ export default function ProductManagementPage() {
                                             <div className="flex flex-wrap gap-2 text-xs">
                                                 {product.download_link && <span className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">Has Download</span>}
                                                 {product.installation_doc && (
-                                                    <a href={`/installation-docs/${product.installation_doc}`} target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-mono hover:underline flex items-center gap-1">
+                                                    <a href={`/installation-docs/${product.installation_doc.replace(/\.md$/i, '')}`} target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-mono hover:underline flex items-center gap-1">
                                                         <FileText className="h-3 w-3" /> {product.installation_doc}
                                                     </a>
                                                 )}
