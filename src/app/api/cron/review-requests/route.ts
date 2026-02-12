@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
         }
 
         let sentCount = 0;
+        let whatsappSkipped = 0;
         const errors: string[] = [];
 
         for (const order of orders) {
@@ -88,6 +89,9 @@ export async function GET(request: NextRequest) {
                         } catch (whatsappErr) {
                             console.error(`WhatsApp review request failed for ${order.order_id}:`, whatsappErr);
                         }
+                    } else {
+                        whatsappSkipped++;
+                        console.warn(`[review-request] No phone number for order ${order.order_id} — WhatsApp review_request skipped`);
                     }
 
                     sentCount++;
@@ -104,6 +108,7 @@ export async function GET(request: NextRequest) {
             message: `Sent ${sentCount} review request emails`,
             sent: sentCount,
             total: orders.length,
+            whatsappSkipped: whatsappSkipped > 0 ? whatsappSkipped : undefined,
             errors: errors.length > 0 ? errors : undefined,
         });
     } catch (error) {

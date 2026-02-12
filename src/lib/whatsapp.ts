@@ -469,7 +469,9 @@ export async function sendAutocadFulfilled(
     subscriptionEmail: string
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'autocad_fulfill', {
-        bodyVariables: [orderId, subscriptionEmail]
+        bodyVariables: [orderId, subscriptionEmail],
+        orderId: orderId,
+        context: 'subscription'
     });
 }
 
@@ -484,7 +486,9 @@ export async function sendCanvaFulfilled(
     canvaEmail: string
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'canva_fulfilled', {
-        bodyVariables: [orderId, canvaEmail]
+        bodyVariables: [orderId, canvaEmail],
+        orderId: orderId,
+        context: 'subscription'
     });
 }
 
@@ -500,7 +504,9 @@ export async function sendM365AccountCredentials(
     password: string
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, '365e5_account_credentials', {
-        bodyVariables: [orderId, email, password]
+        bodyVariables: [orderId, email, password],
+        orderId: orderId,
+        context: 'subscription'
     });
 }
 
@@ -520,7 +526,9 @@ export async function sendWarrantyApproved(
     purchaseDate: string
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'warranty_approved', {
-        bodyVariables: [orderId, productName, purchaseDate]
+        bodyVariables: [orderId, productName, purchaseDate],
+        orderId: orderId,
+        context: 'warranty'
     });
 }
 
@@ -536,7 +544,9 @@ export async function sendWarrantyRejected(
     reason: string
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'warranty_rejected', {
-        bodyVariables: [orderId, productName, reason]
+        bodyVariables: [orderId, productName, reason],
+        orderId: orderId,
+        context: 'warranty'
     });
 }
 
@@ -555,7 +565,9 @@ export async function sendWarrantyResubmission(
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'warranty_resubmission', {
         bodyVariables: [orderId, requiredDocument, adminNotes],
         buttonUrlSuffix: orderId,
-        buttonIndex: 1  // Dynamic button at index 1
+        buttonIndex: 0,  // Dynamic URL button at index 0
+        orderId: orderId,
+        context: 'warranty'
     });
 }
 
@@ -578,7 +590,9 @@ export async function sendReviewRequest(
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'review_request', {
         bodyVariables: [orderId, productName, purchaseDate],
         buttonUrlSuffix: orderId,
-        buttonIndex: 1  // Dynamic button at index 1
+        buttonIndex: 0,  // Dynamic URL button at index 0
+        orderId: orderId,
+        context: 'review_request'
     });
 }
 
@@ -601,7 +615,9 @@ export async function sendReplacementRejected(
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'replacement_rejected', {
         bodyVariables: [orderId, productName, reason],
         buttonUrlSuffix: orderId,
-        buttonIndex: 1  // Dynamic button at index 1
+        buttonIndex: 0,  // Dynamic URL button at index 0
+        orderId: orderId,
+        context: 'replacement'
     });
 }
 
@@ -617,7 +633,9 @@ export async function sendReplacementCompleted(
     licenseKey: string
 ): Promise<WhatsAppResponse> {
     return sendWhatsAppTemplateAdvanced(phoneNumber, 'replacement_completed', {
-        bodyVariables: [orderId, productName, licenseKey]
+        bodyVariables: [orderId, productName, licenseKey],
+        orderId: orderId,
+        context: 'replacement'
     });
 }
 

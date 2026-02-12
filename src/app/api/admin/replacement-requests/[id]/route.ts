@@ -250,6 +250,8 @@ export async function PATCH(
                 } catch (whatsappError) {
                     console.error('Failed to send WhatsApp approval notification:', whatsappError);
                 }
+            } else {
+                console.warn(`[replacement] No phone number found for order ${replacementRequest.order_id} — WhatsApp replacement_completed skipped`);
             }
 
             return NextResponse.json({
@@ -344,6 +346,8 @@ export async function PATCH(
                 } catch (whatsappError) {
                     console.error('Failed to send WhatsApp rejection notification:', whatsappError);
                 }
+            } else {
+                console.warn(`[replacement] No phone number found for order ${replacementRequest.order_id} — WhatsApp replacement_rejected skipped`);
             }
 
             return NextResponse.json({

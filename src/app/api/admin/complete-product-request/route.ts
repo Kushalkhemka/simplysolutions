@@ -184,6 +184,8 @@ export async function POST(request: NextRequest) {
                 } catch (whatsappError) {
                     console.error('Failed to send WhatsApp 365 credentials:', whatsappError);
                 }
+            } else {
+                console.warn(`[subscription] No phone number found for order ${productRequest.order_id || requestId} — WhatsApp 365e5_account_credentials skipped`);
             }
 
             return NextResponse.json({
@@ -289,6 +291,8 @@ export async function POST(request: NextRequest) {
             } catch (whatsappError) {
                 console.error('Failed to send subscription WhatsApp:', whatsappError);
             }
+        } else if (!customerPhone) {
+            console.warn(`[subscription] No phone number found for order ${productRequest.order_id || requestId} — WhatsApp subscription notification skipped`);
         }
 
         return NextResponse.json({

@@ -149,6 +149,8 @@ export async function PATCH(
                 } catch (whatsappError) {
                     console.error('Failed to send WhatsApp warranty approval:', whatsappError);
                 }
+            } else {
+                console.warn(`[warranty] No phone number found for order ${warranty.order_id} — WhatsApp warranty_approved skipped`);
             }
 
         } else if (action === 'reject') {
@@ -180,6 +182,8 @@ export async function PATCH(
                 } catch (whatsappError) {
                     console.error('Failed to send WhatsApp warranty rejection:', whatsappError);
                 }
+            } else {
+                console.warn(`[warranty] No phone number found for order ${warranty.order_id} — WhatsApp warranty_rejected skipped`);
             }
 
         } else if (action === 'resubmit') {
@@ -225,6 +229,8 @@ export async function PATCH(
                 } catch (whatsappError) {
                     console.error('Failed to send WhatsApp warranty resubmission:', whatsappError);
                 }
+            } else {
+                console.warn(`[warranty] No phone number found for order ${warranty.order_id} — WhatsApp warranty_resubmission skipped`);
             }
         }
 
