@@ -15,10 +15,10 @@ export default async function ProductRequestsPage() {
     const requestsWithNames = await Promise.all(
         (requests || []).map(async (req) => {
             // If it's a 365e5 request and doesn't have name data, fetch from office365_requests
-            if (req.request_type === '365e5' && (!req.first_name || !req.last_name)) {
+            if (req.request_type === '365e5') {
                 const { data: office365Data } = await supabase
                     .from('office365_requests')
-                    .select('first_name, last_name, username_prefix')
+                    .select('first_name, last_name, username_prefix, generated_email, generated_password')
                     .eq('order_id', req.order_id)
                     .single();
 
@@ -28,6 +28,8 @@ export default async function ProductRequestsPage() {
                         first_name: req.first_name || office365Data.first_name,
                         last_name: req.last_name || office365Data.last_name,
                         username_prefix: req.username_prefix || office365Data.username_prefix,
+                        generated_email: office365Data.generated_email || null,
+                        generated_password: office365Data.generated_password || null,
                     };
                 }
             }

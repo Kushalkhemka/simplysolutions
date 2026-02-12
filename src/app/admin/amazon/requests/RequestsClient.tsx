@@ -18,6 +18,8 @@ interface ProductRequest {
     first_name: string | null;
     last_name: string | null;
     username_prefix: string | null;
+    generated_email: string | null;
+    generated_password: string | null;
 }
 
 interface RequestsClientProps {
@@ -150,10 +152,15 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
         if (requestType === '365e5') {
             // Get product name based on FSN
             const productName = request.fsn?.toUpperCase() || '365E5';
-            return `Product Name - ${productName}
+            let data = `Product Name - ${productName}
 First Name - ${request.first_name || '-'}
 Last Name - ${request.last_name || '-'}
 Username - ${request.username_prefix || '-'}`;
+            // Include generated credentials if completed
+            if (request.is_completed && request.generated_email) {
+                data += `\n\n--- Sent Credentials ---\nLogin ID - ${request.generated_email}\nPassword - ${request.generated_password || '-'}`;
+            }
+            return data;
         } else if (requestType === 'autocad') {
             // Determine if 1 year or 3 year based on FSN
             let duration = '1 YEAR';
@@ -664,6 +671,26 @@ Email - ${request.email || '-'}`;
                             <div className="bg-muted rounded-lg p-4 font-mono text-sm whitespace-pre-wrap">
                                 {getFormattedCustomerData(viewRequest)}
                             </div>
+
+                            {/* Show generated credentials for completed 365e5 requests */}
+                            {viewRequest.request_type === '365e5' && viewRequest.is_completed && viewRequest.generated_email && (
+                                <div className="mt-4 rounded-lg border border-sky-500/30 bg-sky-500/5 p-4 space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <Key className="h-4 w-4 text-sky-500" />
+                                        <p className="text-sm font-semibold text-sky-600 dark:text-sky-400">Sent Credentials</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-xs text-muted-foreground">Login ID</span>
+                                            <code className="text-sm font-mono font-bold text-foreground">{viewRequest.generated_email}</code>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-xs text-muted-foreground">Password</span>
+                                            <code className="text-sm font-mono font-bold text-foreground">{viewRequest.generated_password || '-'}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <button
                                 onClick={handleCopyData}
