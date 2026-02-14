@@ -137,25 +137,30 @@ export async function POST(request: NextRequest) {
         let purchaseDate = null;
         let fulfillmentType = null;
 
-        const { data: order } = await supabase
+        const { data: order, error: orderError } = await supabase
             .from('amazon_orders')
             .select('fsn, quantity, order_date, fulfillment_type')
             .eq('order_id', orderId)
             .single();
 
-        if (order) {
-            quantity = order.quantity || 1;
-            purchaseDate = order.order_date;
-            fulfillmentType = order.fulfillment_type;
+        if (orderError || !order) {
+            return NextResponse.json(
+                { error: '⚠️ This Order ID does not belong to SimplySolutions. This product was sold by a FAKE SELLER / our competitor who sells fake pirated copies and makes their listing identical to ours to mislead customers. There is NO warranty for this order. We strongly recommend you REQUEST A REFUND immediately and give a 1-STAR RATING to warn other buyers. You have been scammed — we are sorry this happened to you.' },
+                { status: 400 }
+            );
+        }
 
-            if (order.fsn) {
-                const { data: product } = await supabase
-                    .from('products_data')
-                    .select('product_title')
-                    .eq('fsn', order.fsn)
-                    .single();
-                productName = product?.product_title || null;
-            }
+        quantity = order.quantity || 1;
+        purchaseDate = order.order_date;
+        fulfillmentType = order.fulfillment_type;
+
+        if (order.fsn) {
+            const { data: product } = await supabase
+                .from('products_data')
+                .select('product_title')
+                .eq('fsn', order.fsn)
+                .single();
+            productName = product?.product_title || null;
         }
 
         // Auto-approve warranty for website_payment orders (no screenshots needed)
