@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         if (orderError || !order) {
             return NextResponse.json({
                 valid: false,
-                error: '⚠️ This Order ID does not belong to SimplySolutions. This product was sold by a FAKE SELLER / our competitor who sells fake pirated copies and makes their listing identical to ours to mislead customers. There is NO warranty for this order. We strongly recommend you REQUEST A REFUND immediately and give a 1-STAR RATING to warn other buyers. You have been scammed — we are sorry this happened to you.'
+                error: 'Order ID not found. Please double-check your Amazon Order ID and try again. You can find it in Amazon → Your Orders → Order Details.'
             }, { status: 404 });
         }
 

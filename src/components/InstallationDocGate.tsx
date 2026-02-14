@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
-import { Shield, Search, Loader2, AlertTriangle, Lock, CheckCircle, ShoppingBag, FileText, HelpCircle } from 'lucide-react';
+import { Shield, Loader2, AlertTriangle, Lock, CheckCircle, ShoppingBag, FileText, HelpCircle } from 'lucide-react';
 
 const SESSION_KEY = 'verified_order_id_docs';
 
@@ -70,7 +70,7 @@ export default function InstallationDocGate({ children }: { children: ReactNode 
     // Gate screen - Amazon/SimplySolutions branded
     return (
         <div className="min-h-screen bg-[#EAEDED] dark:bg-[#0F1111]">
-            {/* Top Banner */}
+            {/* Dark Header Banner with Orange Lock Icon */}
             <div className="bg-[#232F3E] border-b-4 border-[#FF9900]">
                 <div className="max-w-4xl mx-auto px-4 py-5 text-center">
                     <div className="flex items-center justify-center gap-3 mb-2">
@@ -82,13 +82,13 @@ export default function InstallationDocGate({ children }: { children: ReactNode 
                         </h1>
                     </div>
                     <p className="text-[#FF9900] text-sm font-medium">
-                        Exclusively for SimplySolutions Customers
+                        Verify your Amazon order to access step-by-step installation guides
                     </p>
                 </div>
             </div>
 
             <div className="max-w-xl mx-auto px-4 py-10">
-                {/* Main Verification Card */}
+                {/* Dark Card with Gradient Section Header */}
                 <div className="bg-white dark:bg-[#1A1A2E] rounded-xl shadow-xl border border-[#DDD] dark:border-[#333] overflow-hidden">
                     {/* Card Header */}
                     <div className="bg-gradient-to-r from-[#37475A] to-[#232F3E] px-6 py-4">
@@ -98,7 +98,7 @@ export default function InstallationDocGate({ children }: { children: ReactNode 
                             </div>
                             <div>
                                 <h2 className="text-lg font-bold text-white">Verify Your Purchase</h2>
-                                <p className="text-xs text-gray-300">Enter your Amazon Order ID to access the installation guide</p>
+                                <p className="text-xs text-gray-300">Quick verification to unlock your product&apos;s installation guide</p>
                             </div>
                         </div>
                     </div>
@@ -125,7 +125,7 @@ export default function InstallationDocGate({ children }: { children: ReactNode 
                                 </div>
                                 <p className="mt-2 text-xs text-[#565959] dark:text-gray-400 flex items-start gap-1.5">
                                     <HelpCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                                    Find your Order ID in Amazon → Your Orders → Order Details
+                                    Open Amazon → Your Orders → tap your order → copy the Order ID (format: 408-XXXXXXX-XXXXXXX)
                                 </p>
                             </div>
 
@@ -139,7 +139,7 @@ export default function InstallationDocGate({ children }: { children: ReactNode 
                                 </div>
                             )}
 
-                            {/* Submit Button - Amazon Yellow */}
+                            {/* Amazon-Yellow Gradient Button */}
                             <button
                                 type="submit"
                                 disabled={isLoading}
@@ -173,17 +173,17 @@ export default function InstallationDocGate({ children }: { children: ReactNode 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F7FEF7] dark:bg-green-950/20 border border-[#D5E8D5] dark:border-green-900/40">
                                 <CheckCircle className="w-5 h-5 text-[#067D62] flex-shrink-0" />
-                                <span className="text-xs text-[#0F1111] dark:text-gray-300">Prevents unauthorized access</span>
+                                <span className="text-xs text-[#0F1111] dark:text-gray-300">Exclusive guides for verified buyers</span>
                             </div>
                             <div className="flex items-center gap-3 p-3 rounded-lg bg-[#F7FEF7] dark:bg-green-950/20 border border-[#D5E8D5] dark:border-green-900/40">
                                 <Shield className="w-5 h-5 text-[#067D62] flex-shrink-0" />
-                                <span className="text-xs text-[#0F1111] dark:text-gray-300">Protects genuine customers</span>
+                                <span className="text-xs text-[#0F1111] dark:text-gray-300">One-time verification per session</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Support Link */}
+                {/* WhatsApp Support Link */}
                 <div className="mt-6 text-center">
                     <p className="text-sm text-[#565959] dark:text-gray-500">
                         Need help?{' '}
