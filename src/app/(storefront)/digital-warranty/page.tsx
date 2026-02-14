@@ -19,6 +19,7 @@ function DigitalWarrantyContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [existingStatus, setExistingStatus] = useState<string | null>(null);
+    const [failedAttempts, setFailedAttempts] = useState(0);
 
     // Resubmission state
     const [isResubmission, setIsResubmission] = useState(false);
@@ -152,7 +153,18 @@ function DigitalWarrantyContent() {
                 setExistingStatus(data.status);
                 toast.success(data.message);
             } else {
-                toast.error(data.error || 'Failed to submit warranty');
+                // Track failed attempts for order not found
+                if (data.orderNotFound) {
+                    const newAttempts = failedAttempts + 1;
+                    setFailedAttempts(newAttempts);
+                    if (newAttempts >= 3) {
+                        toast.error('⚠️ This Order ID does not belong to SimplySolutions. This product may have been sold by a fake seller who copies our listings. We recommend you REQUEST A REFUND immediately and give a 1-STAR RATING to warn other buyers.', { duration: 10000 });
+                    } else {
+                        toast.error(data.error || 'Order ID not found.');
+                    }
+                } else {
+                    toast.error(data.error || 'Failed to submit warranty');
+                }
             }
         } catch (error) {
             console.error('Warranty submission error:', error);
