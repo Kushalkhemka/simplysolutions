@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { ShoppingCart, CheckCircle, Loader2, AlertTriangle, Copy, Key, ExternalLink, Clock, Search, BookOpen, Mail, RefreshCw, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
+import { CrossSellBanner } from '@/components/CrossSellBanner';
 
 interface CompletedRequest {
     generatedEmail: string;
@@ -781,6 +782,9 @@ function Enterprise365Content() {
                             </div>
                         </div>
                     </a>
+
+                    {/* Cross-Sell Recommendations */}
+                    <CrossSellBanner currentProduct="365enterprise" />
                 </div>
             </div>
         </div>

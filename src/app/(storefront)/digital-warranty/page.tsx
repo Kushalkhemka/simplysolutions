@@ -5,6 +5,7 @@ import { Shield, Upload, CheckCircle, Loader2, X, Clock, XCircle, Search, Extern
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+import { CrossSellBanner } from '@/components/CrossSellBanner';
 
 function DigitalWarrantyContent() {
     const searchParams = useSearchParams();
@@ -606,6 +607,9 @@ function DigitalWarrantyContent() {
                             </p>
                         </div>
                     </div>
+
+                    {/* Cross-Sell Recommendations */}
+                    <CrossSellBanner currentProduct="all" title="Explore More Software Deals" />
 
                 </div>
             </div>

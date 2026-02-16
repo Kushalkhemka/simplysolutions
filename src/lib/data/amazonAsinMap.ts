@@ -44,6 +44,7 @@ export const amazonAsinMap: Record<string, string> = {
     // Mac Office
     'office-2024-mac': 'B0GFCWP2RS',
     'ms-home-2024-macos': 'B0GFDBZLPK',
+    'microsoft-home-2024': 'B0GFDBZLPK',
     'ms-home-suite-2024-macos': 'B0GFCXT8RG',
 
     // AutoCAD

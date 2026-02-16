@@ -114,14 +114,14 @@ export function ProductGallery({
 
             {/* Thumbnails */}
             {displayImages.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide max-w-full">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide max-w-full scroll-smooth snap-x snap-mandatory" style={{ WebkitOverflowScrolling: 'touch' }}>
                     {displayImages.map((img, idx) => (
                         <button
                             key={idx}
                             onClick={() => handleThumbnailClick(idx)}
                             className={cn(
-                                "relative w-20 h-20 flex-shrink-0 border rounded-md overflow-hidden hover:border-primary transition-colors",
-                                selectedIndex === idx ? "border-primary ring-1 ring-primary" : "border-transparent"
+                                "relative w-20 h-20 flex-shrink-0 border-2 rounded-md overflow-hidden hover:border-primary transition-all duration-200 snap-start",
+                                selectedIndex === idx ? "border-primary ring-1 ring-primary scale-105" : "border-transparent opacity-70 hover:opacity-100"
                             )}
                         >
                             <Image

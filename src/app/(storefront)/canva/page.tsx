@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Mail, Send, CheckCircle, Loader2, ShoppingCart, HelpCircle, Palette, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
+import { CrossSellBanner } from '@/components/CrossSellBanner';
 
 function CanvaContent() {
     const searchParams = useSearchParams();
@@ -398,6 +399,9 @@ function CanvaContent() {
                             </div>
                         </div>
                     </a>
+
+                    {/* Cross-Sell Recommendations */}
+                    <CrossSellBanner currentProduct="canva" />
                 </div>
             </div>
         </div>

@@ -82,6 +82,21 @@ export const SUBSCRIPTION_INSTRUCTIONS: Record<string, {
             'Re-login to complete activation'
         ]
     },
+    'AUTODESK-ALL': {
+        productName: 'Autodesk All Apps Collection',
+        downloadUrl: 'https://manage.autodesk.com/products',
+        steps: [
+            'Log on to the official website with your email address: <a href="https://manage.autodesk.com/products" style="color: #DC3E15; text-decoration: underline;">manage.autodesk.com/products</a>',
+            'Click "All Products and Services" in the left catalog bar of the interface',
+            'You will see all Autodesk apps (AutoCAD, Revit, 3DS Max, Maya, Fusion 360, and more) available for download',
+            'Download and install the apps you need'
+        ],
+        afterInstall: [
+            'Logout the account once',
+            'Re-login to complete activation',
+            'All Autodesk apps included in your plan are available under "All Products and Services"'
+        ]
+    },
     '365E5': {
         productName: 'Microsoft 365 E5 Subscription',
         downloadUrl: 'https://www.office.com',

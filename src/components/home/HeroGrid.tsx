@@ -39,8 +39,8 @@ export function HeroGrid() {
                         </p>
                         <div className="flex flex-wrap gap-4">
                             <Link href="/products/windows-11-pro-product-license-key-1-userpc-lifetime-validity-3264-bit-or-unlimited-reinstallations--off_17">
-                                <Button size="lg" className="font-bold text-lg px-8 bg-blue-600 hover:bg-blue-500 border-0 shadow-lg shadow-blue-900/20">
-                                    Buy Now - ₹499
+                                <Button size="lg" className="font-bold text-lg px-8 bg-[#FF9900] hover:bg-[#E68A00] text-white border-0 shadow-lg shadow-orange-900/30">
+                                    Buy Now - ₹699
                                 </Button>
                             </Link>
                             <Link href="/products?category=operating-systems">

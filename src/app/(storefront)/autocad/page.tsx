@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Mail, Send, CheckCircle, Loader2, ShoppingCart, HelpCircle, Package, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
+import { CrossSellBanner } from '@/components/CrossSellBanner';
 
 function AutoCADContent() {
     const searchParams = useSearchParams();
@@ -398,6 +399,9 @@ function AutoCADContent() {
                             </div>
                         </div>
                     </a>
+
+                    {/* Cross-Sell Recommendations */}
+                    <CrossSellBanner currentProduct="autocad" />
                 </div>
             </div>
         </div>

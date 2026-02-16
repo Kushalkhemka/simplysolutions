@@ -302,7 +302,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
                                             alt="Amazon"
                                             width={70}
                                             height={21}
-                                            className="object-contain translate-y-0.5"
+                                            className="object-contain translate-y-0.5 dark:hidden"
+                                        />
+                                        <Image
+                                            src="/logos/Amazon-Logo-White-Transparent.png"
+                                            alt="Amazon"
+                                            width={70}
+                                            height={21}
+                                            className="object-contain translate-y-0.5 hidden dark:block"
                                         />
                                     </Button>
                                 </a>
@@ -325,6 +332,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                                     ? `⚠ Only ${product.stock_quantity} left`
                                     : '✕ Out of Stock'}
                         </p>
+
 
                         {/* Installation Guide Download */}
                         {product.installation_guide_url && (

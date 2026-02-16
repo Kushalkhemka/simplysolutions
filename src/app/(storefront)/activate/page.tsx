@@ -28,6 +28,7 @@ import { getSubscriptionConfig } from '@/lib/amazon/subscription-products';
 import { isComboProduct, getComponentFSNs } from '@/lib/amazon/combo-products';
 import ReplacementKeySteps from '@/components/ReplacementKeySteps';
 import { CustomerPushAutoPrompt } from '@/components/notifications/CustomerPushOptIn';
+import { CrossSellBanner } from '@/components/CrossSellBanner';
 
 interface ProductInfo {
     productName: string | null;
@@ -1793,6 +1794,9 @@ function ActivatePageContent() {
                                             </div>
                                         </a>
 
+                                        {/* Cross-Sell Recommendations */}
+                                        <CrossSellBanner currentProduct="office" />
+
                                         {/* Dynamic Installation Guide(s) */}
                                         <div ref={installationGuideRef} className="pt-6 border-t border-[#DDD] space-y-4">
                                             {activationResult.licenses && activationResult.licenses.length > 1 ? (
@@ -1899,6 +1903,11 @@ function ActivatePageContent() {
                                 </div>
                             </div>
                         </a>
+                    )}
+
+                    {/* Cross-Sell Recommendations - Pre-activation */}
+                    {!activationResult?.success && (
+                        <CrossSellBanner currentProduct="office" />
                     )}
 
                     {/* Help Section - Amazon style info box - Only show before activation */}
