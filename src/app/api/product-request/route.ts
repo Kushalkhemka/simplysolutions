@@ -174,9 +174,10 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // For autocad requests, validate the order FSN starts with AUTOCAD
+        // For autocad requests, validate the order FSN starts with AUTOCAD or AUTODESK
         if (requestType === 'autocad') {
-            if (!order.fsn || !order.fsn.toUpperCase().startsWith('AUTOCAD')) {
+            const fsnUpper = order.fsn?.toUpperCase() || '';
+            if (!fsnUpper.startsWith('AUTOCAD') && !fsnUpper.startsWith('AUTODESK')) {
                 return NextResponse.json(
                     { error: 'This order is not for AutoCAD. Please use the correct activation page for your product.' },
                     { status: 400 }

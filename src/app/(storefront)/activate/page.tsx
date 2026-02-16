@@ -251,8 +251,8 @@ function ActivatePageContent() {
                     return;
                 }
 
-                // Redirect AUTOCAD products to /autocad page
-                if (fsnUpper.startsWith('AUTOCAD')) {
+                // Redirect AUTOCAD / AUTODESK products to /autocad page
+                if (fsnUpper.startsWith('AUTOCAD') || fsnUpper.startsWith('AUTODESK')) {
                     toast.info('Redirecting to AutoCAD activation page...');
                     router.push(`/autocad?orderId=${encodeURIComponent(secretCode.trim())}`);
                     return;

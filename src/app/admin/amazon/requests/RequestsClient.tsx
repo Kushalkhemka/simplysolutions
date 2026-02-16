@@ -162,12 +162,16 @@ Username - ${request.username_prefix || '-'}`;
             }
             return data;
         } else if (requestType === 'autocad') {
-            // Determine if 1 year or 3 year based on FSN
-            let duration = '1 YEAR';
-            if (request.fsn?.toLowerCase().includes('3year')) {
-                duration = '3 YEAR';
+            // Determine product name from FSN
+            let productLabel = 'AUTOCAD 1 YEAR';
+            const fsnUpper = request.fsn?.toUpperCase() || '';
+            if (fsnUpper.startsWith('AUTODESK-ALL')) {
+                const dur = fsnUpper.includes('3YEAR') ? '3 YEAR' : '1 YEAR';
+                productLabel = `AUTODESK ALL APPS ${dur}`;
+            } else if (fsnUpper.includes('3YEAR')) {
+                productLabel = 'AUTOCAD 3 YEAR';
             }
-            return `Product Name - AUTOCAD ${duration}
+            return `Product Name - ${productLabel}
 Email - ${request.email || '-'}`;
         } else if (requestType === 'canva') {
             // For Canva, only copy the email

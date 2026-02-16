@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
     Search, Plus, Pencil, Trash2, Save, X, Loader2, RefreshCw,
-    Package, Link2, Image as ImageIcon, FileText, Copy, Check, ExternalLink, Upload
+    Package, Link2, Image as ImageIcon, FileText, Copy, Check, ExternalLink, Upload,
+    ArrowRightLeft, CheckSquare, Square
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -24,6 +25,14 @@ interface AsinMapping {
     asin: string;
     fsn: string;
     product_title: string | null;
+}
+
+interface OrderSearchResult {
+    order_id: string;
+    fsn: string | null;
+    order_date: string | null;
+    buyer_email: string | null;
+    fulfillment_type: string | null;
 }
 
 type Tab = 'products' | 'asin';
@@ -58,29 +67,36 @@ export default function ProductManagementPage() {
 
     const [copied, setCopied] = useState<string | null>(null);
 
+    // -- Order Remap state --
+    const [showRemapOrders, setShowRemapOrders] = useState(false);
+    const [remapFsn, setRemapFsn] = useState('');
+    const [orderSearch, setOrderSearch] = useState('');
+    const [orderResults, setOrderResults] = useState<OrderSearchResult[]>([]);
+    const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+    const [searchingOrders, setSearchingOrders] = useState(false);
+    const [remappingOrders, setRemappingOrders] = useState(false);
+
     // ─── Image Upload ──────────────────────────────────────────────
 
     const handleImageUpload = async (file: File, target: 'new' | 'edit') => {
         setUploadingImage(true);
         try {
-            const ext = file.name.split('.').pop() || 'png';
-            const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-            const filePath = `product-images/${fileName}`;
+            const formData = new FormData();
+            formData.append('file', file);
 
-            const { error: uploadError } = await supabase.storage
-                .from('product-assets')
-                .upload(filePath, file, { upsert: true });
+            const res = await fetch('/api/admin/upload-product-image', {
+                method: 'POST',
+                body: formData,
+            });
 
-            if (uploadError) {
-                toast.error('Upload failed: ' + uploadError.message);
+            const result = await res.json();
+
+            if (!res.ok || !result.success) {
+                toast.error('Upload failed: ' + (result.error || 'Unknown error'));
                 return;
             }
 
-            const { data: urlData } = supabase.storage
-                .from('product-assets')
-                .getPublicUrl(filePath);
-
-            const publicUrl = urlData.publicUrl;
+            const publicUrl = result.data.url;
             if (target === 'new') {
                 setNewProduct(prev => ({ ...prev, product_image: publicUrl }));
             } else {
@@ -98,37 +114,37 @@ export default function ProductManagementPage() {
 
     const fetchProducts = useCallback(async () => {
         setProductsLoading(true);
-        const { data, error } = await supabase
-            .from('products_data')
-            .select('*')
-            .order('product_title', { ascending: true });
-
-        if (error) {
+        try {
+            const res = await fetch('/api/admin/products-data');
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error('Failed to load products');
+            } else {
+                setProducts(result.data || []);
+            }
+        } catch {
             toast.error('Failed to load products');
-            console.error(error);
-        } else {
-            setProducts(data || []);
         }
         setProductsLoading(false);
-    }, [supabase]);
+    }, []);
 
     // ─── Fetch ASIN Mappings ───────────────────────────────────────
 
     const fetchMappings = useCallback(async () => {
         setMappingsLoading(true);
-        const { data, error } = await supabase
-            .from('amazon_asin_mapping')
-            .select('*')
-            .order('fsn', { ascending: true });
-
-        if (error) {
+        try {
+            const res = await fetch('/api/admin/asin-mappings');
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error('Failed to load ASIN mappings');
+            } else {
+                setMappings(result.data || []);
+            }
+        } catch {
             toast.error('Failed to load ASIN mappings');
-            console.error(error);
-        } else {
-            setMappings(data || []);
         }
         setMappingsLoading(false);
-    }, [supabase]);
+    }, []);
 
     useEffect(() => {
         fetchProducts();
@@ -143,64 +159,90 @@ export default function ProductManagementPage() {
             return;
         }
         setSavingProduct(true);
-        const { data, error } = await supabase
-            .from('products_data')
-            .insert({
-                fsn: newProduct.fsn.trim(),
-                product_title: newProduct.product_title.trim(),
-                download_link: newProduct.download_link?.trim() || null,
-                product_image: newProduct.product_image?.trim() || null,
-                installation_doc: newProduct.installation_doc?.trim() || null,
-            })
-            .select()
-            .single();
-
-        if (error) {
-            toast.error(error.message || 'Failed to add product');
-        } else {
-            toast.success('Product added');
-            setProducts(prev => [...prev, data]);
-            setShowAddProduct(false);
-            setNewProduct({ fsn: '', product_title: '', download_link: '', product_image: '', installation_doc: '' });
+        try {
+            const res = await fetch('/api/admin/products-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fsn: newProduct.fsn.trim(),
+                    product_title: newProduct.product_title.trim(),
+                    download_link: newProduct.download_link?.trim() || null,
+                    product_image: newProduct.product_image?.trim() || null,
+                    installation_doc: newProduct.installation_doc?.trim() || null,
+                }),
+            });
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error(result.error || 'Failed to add product');
+            } else {
+                toast.success('Product added');
+                setProducts(prev => [...prev, result.data]);
+                setShowAddProduct(false);
+                setNewProduct({ fsn: '', product_title: '', download_link: '', product_image: '', installation_doc: '' });
+            }
+        } catch {
+            toast.error('Failed to add product');
         }
         setSavingProduct(false);
     };
 
     const handleSaveProduct = async (id: string) => {
         setSavingProduct(true);
-        const { error } = await supabase
-            .from('products_data')
-            .update({
-                fsn: editForm.fsn,
-                product_title: editForm.product_title,
-                download_link: editForm.download_link || null,
-                product_image: editForm.product_image || null,
-                installation_doc: editForm.installation_doc || null,
-            })
-            .eq('id', id);
-
-        if (error) {
-            toast.error(error.message || 'Failed to update product');
-        } else {
-            toast.success('Product updated');
-            setProducts(prev => prev.map(p => p.id === id ? { ...p, ...editForm } as ProductData : p));
-            setEditingProduct(null);
+        try {
+            const res = await fetch('/api/admin/products-data', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id,
+                    fsn: editForm.fsn,
+                    product_title: editForm.product_title,
+                    download_link: editForm.download_link || null,
+                    product_image: editForm.product_image || null,
+                    installation_doc: editForm.installation_doc || null,
+                }),
+            });
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error(result.error || 'Failed to update product');
+            } else {
+                toast.success('Product updated');
+                setProducts(prev => prev.map(p => p.id === id ? { ...p, ...editForm } as ProductData : p));
+                setEditingProduct(null);
+            }
+        } catch {
+            toast.error('Failed to update product');
         }
         setSavingProduct(false);
     };
 
     const handleDeleteProduct = async (product: ProductData) => {
         if (!confirm(`Delete product "${product.product_title}" (${product.fsn})?`)) return;
-        const { error } = await supabase.from('products_data').delete().eq('id', product.id);
-        if (error) {
+        try {
+            const res = await fetch(`/api/admin/products-data?id=${product.id}`, { method: 'DELETE' });
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error('Failed to delete product');
+            } else {
+                toast.success('Product deleted');
+                setProducts(prev => prev.filter(p => p.id !== product.id));
+            }
+        } catch {
             toast.error('Failed to delete product');
-        } else {
-            toast.success('Product deleted');
-            setProducts(prev => prev.filter(p => p.id !== product.id));
         }
     };
 
     // ─── ASIN Mapping CRUD ─────────────────────────────────────────
+
+    // Auto-resolve product title from products state when FSN changes
+    const resolveProductTitle = (fsn: string) => {
+        const match = products.find(p => p.fsn.toLowerCase() === fsn.trim().toLowerCase());
+        return match?.product_title || '';
+    };
+
+    const handleMappingFsnChange = (fsn: string) => {
+        const title = resolveProductTitle(fsn);
+        setNewMapping(prev => ({ ...prev, fsn, product_title: title }));
+    };
 
     const handleAddMapping = async () => {
         if (!newMapping.asin?.trim() || !newMapping.fsn?.trim()) {
@@ -208,56 +250,144 @@ export default function ProductManagementPage() {
             return;
         }
         setSavingMapping(true);
-        const { data, error } = await supabase
-            .from('amazon_asin_mapping')
-            .insert({
-                asin: newMapping.asin.trim(),
-                fsn: newMapping.fsn.trim(),
-                product_title: newMapping.product_title?.trim() || null,
-            })
-            .select()
-            .single();
-
-        if (error) {
-            toast.error(error.message || 'Failed to add mapping');
-        } else {
-            toast.success('ASIN mapping added');
-            setMappings(prev => [...prev, data]);
-            setShowAddMapping(false);
-            setNewMapping({ asin: '', fsn: '', product_title: '' });
+        try {
+            const res = await fetch('/api/admin/asin-mappings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    asin: newMapping.asin.trim(),
+                    fsn: newMapping.fsn.trim(),
+                    product_title: newMapping.product_title?.trim() || null,
+                }),
+            });
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error(result.error || 'Failed to add mapping');
+            } else {
+                toast.success('ASIN mapping added');
+                setMappings(prev => [...prev, result.data]);
+                setShowAddMapping(false);
+                setNewMapping({ asin: '', fsn: '', product_title: '' });
+            }
+        } catch {
+            toast.error('Failed to add mapping');
         }
         setSavingMapping(false);
     };
 
     const handleSaveMapping = async (id: string) => {
         setSavingMapping(true);
-        const { error } = await supabase
-            .from('amazon_asin_mapping')
-            .update({
-                asin: editMappingForm.asin,
-                fsn: editMappingForm.fsn,
-                product_title: editMappingForm.product_title || null,
-            })
-            .eq('id', id);
-
-        if (error) {
-            toast.error(error.message || 'Failed to update mapping');
-        } else {
-            toast.success('Mapping updated');
-            setMappings(prev => prev.map(m => m.id === id ? { ...m, ...editMappingForm } as AsinMapping : m));
-            setEditingMapping(null);
+        try {
+            const res = await fetch('/api/admin/asin-mappings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id,
+                    asin: editMappingForm.asin,
+                    fsn: editMappingForm.fsn,
+                    product_title: editMappingForm.product_title || null,
+                }),
+            });
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error(result.error || 'Failed to update mapping');
+            } else {
+                toast.success('Mapping updated');
+                setMappings(prev => prev.map(m => m.id === id ? { ...m, ...editMappingForm } as AsinMapping : m));
+                setEditingMapping(null);
+            }
+        } catch {
+            toast.error('Failed to update mapping');
         }
         setSavingMapping(false);
     };
 
     const handleDeleteMapping = async (mapping: AsinMapping) => {
         if (!confirm(`Delete ASIN mapping "${mapping.asin}" → ${mapping.fsn}?`)) return;
-        const { error } = await supabase.from('amazon_asin_mapping').delete().eq('id', mapping.id);
-        if (error) {
+        try {
+            const res = await fetch(`/api/admin/asin-mappings?id=${mapping.id}`, { method: 'DELETE' });
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error('Failed to delete mapping');
+            } else {
+                toast.success('Mapping deleted');
+                setMappings(prev => prev.filter(m => m.id !== mapping.id));
+            }
+        } catch {
             toast.error('Failed to delete mapping');
+        }
+    };
+
+    // ─── Order Remap ───────────────────────────────────────────────
+
+    const searchOrders = async () => {
+        if (!orderSearch.trim() || orderSearch.trim().length < 2) {
+            toast.error('Enter at least 2 characters to search');
+            return;
+        }
+        setSearchingOrders(true);
+        try {
+            const res = await fetch(`/api/admin/products/remap-orders?search=${encodeURIComponent(orderSearch.trim())}`);
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error(result.error || 'Search failed');
+                return;
+            }
+            setOrderResults(result.data);
+            setSelectedOrderIds(new Set());
+        } catch {
+            toast.error('Failed to search orders');
+        } finally {
+            setSearchingOrders(false);
+        }
+    };
+
+    const toggleOrderSelection = (orderId: string) => {
+        setSelectedOrderIds(prev => {
+            const next = new Set(prev);
+            if (next.has(orderId)) next.delete(orderId);
+            else next.add(orderId);
+            return next;
+        });
+    };
+
+    const selectAllOrders = () => {
+        if (selectedOrderIds.size === orderResults.length) {
+            setSelectedOrderIds(new Set());
         } else {
-            toast.success('Mapping deleted');
-            setMappings(prev => prev.filter(m => m.id !== mapping.id));
+            setSelectedOrderIds(new Set(orderResults.map(o => o.order_id)));
+        }
+    };
+
+    const handleRemapOrders = async () => {
+        if (!remapFsn.trim()) {
+            toast.error('Enter the target FSN');
+            return;
+        }
+        if (selectedOrderIds.size === 0) {
+            toast.error('Select at least one order');
+            return;
+        }
+        setRemappingOrders(true);
+        try {
+            const res = await fetch('/api/admin/products/remap-orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fsn: remapFsn.trim(), orderIds: Array.from(selectedOrderIds) }),
+            });
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                toast.error(result.error || 'Remap failed');
+                return;
+            }
+            toast.success(`${result.data.updatedCount} order(s) remapped to FSN: ${remapFsn.trim()}`);
+            // Refresh search results to show updated FSN
+            setOrderResults(prev => prev.map(o => selectedOrderIds.has(o.order_id) ? { ...o, fsn: remapFsn.trim() } : o));
+            setSelectedOrderIds(new Set());
+        } catch {
+            toast.error('Failed to remap orders');
+        } finally {
+            setRemappingOrders(false);
         }
     };
 
@@ -381,6 +511,122 @@ export default function ProductManagementPage() {
                             </div>
                         </div>
                     )}
+
+                    {/* ── Remap Orders to FSN ────────────────── */}
+                    <div className="bg-card border rounded-xl p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold flex items-center gap-2">
+                                <ArrowRightLeft className="h-5 w-5 text-primary" />
+                                Remap Orders to FSN
+                            </h3>
+                            <button onClick={() => setShowRemapOrders(!showRemapOrders)} className="px-3 py-1.5 text-sm border rounded-lg hover:bg-accent">
+                                {showRemapOrders ? 'Hide' : 'Show'}
+                            </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Map existing Amazon orders (that fell back to SKU) to the correct FSN.</p>
+
+                        {showRemapOrders && (
+                            <div className="space-y-4">
+                                {/* Target FSN */}
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-muted-foreground">Target FSN *</label>
+                                    <input
+                                        value={remapFsn}
+                                        onChange={e => setRemapFsn(e.target.value)}
+                                        className="w-full md:w-1/2 px-3 py-2 rounded-lg border bg-background text-sm font-mono"
+                                        placeholder="e.g. OFFICE2024"
+                                    />
+                                </div>
+
+                                {/* Search Orders */}
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-muted-foreground">Search Orders (by Order ID or current FSN/SKU)</label>
+                                    <div className="flex items-center gap-2">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <input
+                                                value={orderSearch}
+                                                onChange={e => setOrderSearch(e.target.value)}
+                                                onKeyDown={e => e.key === 'Enter' && searchOrders()}
+                                                className="w-full pl-10 pr-4 py-2 rounded-lg border bg-background text-sm"
+                                                placeholder="e.g. OFF_O2024 or 408-123..."
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={searchOrders}
+                                            disabled={searchingOrders}
+                                            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
+                                        >
+                                            {searchingOrders ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                                            Search
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Results */}
+                                {orderResults.length > 0 && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-xs text-muted-foreground">{orderResults.length} order(s) found · {selectedOrderIds.size} selected</p>
+                                            <button onClick={selectAllOrders} className="text-xs text-primary hover:underline">
+                                                {selectedOrderIds.size === orderResults.length ? 'Deselect All' : 'Select All'}
+                                            </button>
+                                        </div>
+                                        <div className="border rounded-lg overflow-hidden max-h-64 overflow-y-auto">
+                                            <table className="w-full text-sm">
+                                                <thead className="bg-muted/50 border-b sticky top-0">
+                                                    <tr>
+                                                        <th className="px-3 py-2 text-left w-8">
+                                                            <button onClick={selectAllOrders} className="opacity-70 hover:opacity-100">
+                                                                {selectedOrderIds.size === orderResults.length ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                                                            </button>
+                                                        </th>
+                                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground">Order ID</th>
+                                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground">Current FSN</th>
+                                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground">Date</th>
+                                                        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground">Email</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y">
+                                                    {orderResults.map(order => (
+                                                        <tr
+                                                            key={order.order_id}
+                                                            onClick={() => toggleOrderSelection(order.order_id)}
+                                                            className={`cursor-pointer transition-colors ${selectedOrderIds.has(order.order_id) ? 'bg-primary/10' : 'hover:bg-muted/50'}`}
+                                                        >
+                                                            <td className="px-3 py-2">
+                                                                {selectedOrderIds.has(order.order_id) ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4 text-muted-foreground" />}
+                                                            </td>
+                                                            <td className="px-3 py-2 font-mono text-xs">{order.order_id}</td>
+                                                            <td className="px-3 py-2">
+                                                                <span className="px-2 py-0.5 rounded text-xs font-mono bg-muted">{order.fsn || '—'}</span>
+                                                            </td>
+                                                            <td className="px-3 py-2 text-xs text-muted-foreground">
+                                                                {order.order_date ? new Date(order.order_date).toLocaleDateString() : '—'}
+                                                            </td>
+                                                            <td className="px-3 py-2 text-xs text-muted-foreground truncate max-w-[160px]">{order.buyer_email || '—'}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {/* Remap Button */}
+                                        <div className="flex items-center gap-3 pt-1">
+                                            <button
+                                                onClick={handleRemapOrders}
+                                                disabled={remappingOrders || selectedOrderIds.size === 0 || !remapFsn.trim()}
+                                                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
+                                            >
+                                                {remappingOrders ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRightLeft className="h-4 w-4" />}
+                                                Remap {selectedOrderIds.size} Order(s) → {remapFsn || '...'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
 
                     {/* Products Table */}
                     <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
@@ -563,11 +809,11 @@ export default function ProductManagementPage() {
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium text-muted-foreground">FSN *</label>
-                                    <input value={newMapping.fsn || ''} onChange={e => setNewMapping({ ...newMapping, fsn: e.target.value })} className="w-full px-3 py-2 rounded-lg border bg-background text-sm font-mono" placeholder="e.g. 365E5" />
+                                    <input value={newMapping.fsn || ''} onChange={e => handleMappingFsnChange(e.target.value)} className="w-full px-3 py-2 rounded-lg border bg-background text-sm font-mono" placeholder="e.g. 365E5" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-muted-foreground">Product Title</label>
-                                    <input value={newMapping.product_title || ''} onChange={e => setNewMapping({ ...newMapping, product_title: e.target.value })} className="w-full px-3 py-2 rounded-lg border bg-background text-sm" placeholder="e.g. Microsoft 365 E5" />
+                                    <label className="text-xs font-medium text-muted-foreground">Product Title <span className="text-muted-foreground/60">(auto-filled)</span></label>
+                                    <input value={newMapping.product_title || ''} onChange={e => setNewMapping({ ...newMapping, product_title: e.target.value })} className="w-full px-3 py-2 rounded-lg border bg-background text-sm" placeholder="Auto-filled from FSN" readOnly={!!newMapping.product_title && !!resolveProductTitle(newMapping.fsn || '')} />
                                 </div>
                             </div>
                             <div className="flex justify-end gap-2 pt-2">
