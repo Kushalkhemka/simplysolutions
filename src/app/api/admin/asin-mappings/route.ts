@@ -11,7 +11,7 @@ async function checkAdmin() {
         .select('role')
         .eq('id', user.id)
         .single();
-    return profile?.role === 'admin';
+    return profile?.role === 'admin' || profile?.role === 'super_admin';
 }
 
 // GET - fetch all ASIN mappings
