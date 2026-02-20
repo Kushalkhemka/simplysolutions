@@ -45,6 +45,7 @@ export default function CheckoutPage() {
     const { user, isAuthenticated, fetchUser } = useAuthStore();
     const [isProcessing, setIsProcessing] = useState(false);
     const [couponApplied, setCouponApplied] = useState<{ code: string; discount: number } | null>(null);
+    const [couponLoading, setCouponLoading] = useState(false);
     const [loyaltyPoints, setLoyaltyPoints] = useState(0);
     const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
     const [isGift, setIsGift] = useState(false);
@@ -142,6 +143,40 @@ export default function CheckoutPage() {
     const handleLoyaltyPointsChange = (points: number, discount: number) => {
         setLoyaltyPoints(points);
         setLoyaltyDiscount(discount);
+    };
+
+    const handleApplyCoupon = async () => {
+        const couponCode = (document.getElementById('couponCodeInput') as HTMLInputElement)?.value?.trim();
+        if (!couponCode) {
+            toast.error('Please enter a coupon code');
+            return;
+        }
+        setCouponLoading(true);
+        try {
+            const res = await fetch('/api/coupons/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: couponCode, subtotal, itemCount: items.length }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCouponApplied({ code: data.data.coupon.code, discount: data.data.discountAmount });
+                setValue('couponCode', data.data.coupon.code);
+                toast.success(`Coupon applied! You save ₹${Math.round(data.data.discountAmount).toLocaleString('en-IN')}`);
+            } else {
+                toast.error(data.error || 'Invalid coupon code');
+            }
+        } catch (error) {
+            toast.error('Failed to validate coupon. Please try again.');
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        setCouponApplied(null);
+        setValue('couponCode', '');
+        toast.info('Coupon removed');
     };
 
     const onSubmit = async (data: CheckoutForm) => {
@@ -399,15 +434,29 @@ export default function CheckoutPage() {
 
                         <div className="border rounded-lg p-6">
                             <h2 className="text-lg font-semibold mb-4">Have a Coupon?</h2>
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder="Enter coupon code"
-                                    {...register('couponCode')}
-                                />
-                                <Button type="button" variant="outline">
-                                    Apply
-                                </Button>
-                            </div>
+                            {couponApplied ? (
+                                <div className="flex items-center justify-between bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                                    <div>
+                                        <span className="font-semibold text-green-700 dark:text-green-400">{couponApplied.code}</span>
+                                        <span className="text-sm text-green-600 dark:text-green-500 ml-2">-₹{Math.round(couponApplied.discount).toLocaleString('en-IN')} off</span>
+                                    </div>
+                                    <Button type="button" variant="ghost" size="sm" onClick={handleRemoveCoupon} className="text-red-500 hover:text-red-700">
+                                        Remove
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="couponCodeInput"
+                                        placeholder="Enter coupon code"
+                                        {...register('couponCode')}
+                                        className="uppercase"
+                                    />
+                                    <Button type="button" variant="outline" onClick={handleApplyCoupon} disabled={couponLoading}>
+                                        {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
 
                         <LoyaltyWidget
