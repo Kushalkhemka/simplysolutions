@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
             loyaltyDiscount = pointsToRedeem; // 1 point = ₹1
         }
 
-        // Handle user offers (50% OFF, BOGO)
+        // Handle user offers (price_slash, BOGO) - uses discount_value from user_offers table
         let offerDiscount = 0;
         let appliedOfferId: string | null = null;
         let appliedOfferType: string | null = null;
@@ -149,16 +149,17 @@ export async function POST(request: NextRequest) {
             // Check for BOGO first (higher value typically)
             const bogoOffer = userOffers.find(o => o.offer_type === 'bogo');
             if (bogoOffer && validItems.length >= 2) {
-                // BOGO: Cheapest item is FREE (capped at ₹1000)
-                offerDiscount = Math.min(itemPrices[0], 1000);
+                // BOGO: Cheapest item is FREE (capped at discount_value from DB, default ₹1000)
+                const bogoCap = bogoOffer.discount_value || 1000;
+                offerDiscount = Math.min(itemPrices[0], bogoCap);
                 appliedOfferId = bogoOffer.id;
                 appliedOfferType = 'bogo';
             } else {
-                // Check for 50% off (priceSlash)
+                // Check for price_slash (percentage off cheapest item)
                 const priceSlashOffer = userOffers.find(o => o.offer_type === 'price_slash');
-                if (priceSlashOffer) {
-                    // 50% OFF the cheapest item
-                    offerDiscount = itemPrices[0] * 0.5;
+                if (priceSlashOffer && priceSlashOffer.discount_value) {
+                    // Use discount_value as percentage (e.g. 20 = 20% off)
+                    offerDiscount = itemPrices[0] * (priceSlashOffer.discount_value / 100);
                     appliedOfferId = priceSlashOffer.id;
                     appliedOfferType = 'price_slash';
                 }

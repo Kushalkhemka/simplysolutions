@@ -96,7 +96,7 @@ export default function CheckoutPage() {
         };
     }, []);
 
-    // Calculate offer discount (Flash Deal, BOGO, or 50% OFF)
+    // Calculate offer discount (Flash Deal, BOGO, or price_slash)
     const calculateOfferDiscount = () => {
         if (!activeOffers || items.length === 0) return { type: null, discount: 0, productId: null };
 
@@ -117,15 +117,17 @@ export default function CheckoutPage() {
             .map(item => item.product?.price || 0)
             .sort((a, b) => a - b);
 
-        // BOGO requires 2+ items - cheapest item is FREE (capped at ₹1000)
+        // BOGO requires 2+ items - cheapest item is FREE (capped at discount_value from DB)
         if (activeOffers.bogo && items.length >= 2) {
-            const bogoDiscount = Math.min(itemPrices[0], 1000); // Cap at ₹1000
+            const bogoCap = activeOffers.bogo.discount_value || 1000;
+            const bogoDiscount = Math.min(itemPrices[0], bogoCap);
             return { type: 'bogo', discount: bogoDiscount, productId: null };
         }
 
-        // 20% OFF the cheapest item
-        if (activeOffers.priceSlash) {
-            return { type: 'price_slash', discount: itemPrices[0] * 0.2, productId: null };
+        // price_slash: percentage off cheapest item (discount_value from DB)
+        if (activeOffers.priceSlash && activeOffers.priceSlash.discount_value) {
+            const pct = activeOffers.priceSlash.discount_value / 100;
+            return { type: 'price_slash', discount: itemPrices[0] * pct, productId: null };
         }
 
         return { type: null, discount: 0, productId: null };
@@ -502,7 +504,7 @@ export default function CheckoutPage() {
                                         ) : offerType === 'bogo' ? (
                                             <><Gift className="h-3.5 w-3.5" /> BOGO - Free Item!</>
                                         ) : (
-                                            <><Percent className="h-3.5 w-3.5" /> 20% OFF First Purchase!</>
+                                            <><Percent className="h-3.5 w-3.5" /> {activeOffers?.priceSlash?.discount_value || 20}% OFF Applied!</>
                                         )}
                                     </span>
                                     <span>-₹{Math.round(offerDiscount).toLocaleString('en-IN')}</span>

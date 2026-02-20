@@ -131,6 +131,9 @@ function ActivatePageContent() {
     const [countdownSeconds, setCountdownSeconds] = useState(5);
     const [preactivatedFsn, setPreactivatedFsn] = useState<string | null>(null);
 
+    // Fresh install upgrade key reveal state
+    const [showFreshUpgradeKey, setShowFreshUpgradeKey] = useState(false);
+
     // Early delivery appeal state
     const [canAppeal, setCanAppeal] = useState(false);
     const [showAppealModal, setShowAppealModal] = useState(false);
@@ -1113,6 +1116,42 @@ function ActivatePageContent() {
                                                         <p className="text-[#565959] mt-1">This is an official Microsoft upgrade key. It switches your edition from Home to Pro but does NOT activate Windows. You must complete Step 2 for activation.</p>
                                                     </div>
                                                 </div>
+                                            </div>
+                                        )}
+
+                                        {/* Generic Upgrade Key Button for Fresh Install path */}
+                                        {activationResult.windowsInstallType === 'fresh' && (
+                                            <div className="border-2 border-[#FF9900] rounded-lg overflow-hidden">
+                                                <button
+                                                    onClick={() => setShowFreshUpgradeKey(!showFreshUpgradeKey)}
+                                                    className="w-full bg-[#FF9900] hover:bg-[#E68A00] text-white px-4 py-3 flex items-center justify-center gap-2 transition-colors"
+                                                >
+                                                    <AlertTriangle className="w-5 h-5" />
+                                                    <span className="font-bold text-sm sm:text-base">Facing Error 0xc004f050 or Have Windows Home Edition? Click Here</span>
+                                                </button>
+                                                {showFreshUpgradeKey && (
+                                                    <div className="p-4 bg-[#FFF8F0]">
+                                                        <p className="text-sm text-[#565959] mb-3">
+                                                            If you encounter error code <strong className="text-[#B12704]">0xc004f050</strong> while activating, or your current Windows variant is <strong>Home Edition</strong>, enter this generic upgrade key <strong>first</strong> and then apply your activation key below.
+                                                        </p>
+                                                        <div className="flex items-center gap-3 p-3 bg-white rounded border border-[#DDD]">
+                                                            <code className="font-mono font-bold text-lg text-[#0F1111]">P6782-D2NFT-8WMXK-HC8CP-Q3WXG</code>
+                                                            <button
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText('P6782-D2NFT-8WMXK-HC8CP-Q3WXG');
+                                                                    toast.success('Generic upgrade key copied!');
+                                                                }}
+                                                                className="p-2 hover:bg-[#FF9900]/10 rounded"
+                                                            >
+                                                                <Copy className="w-5 h-5 text-[#FF9900]" />
+                                                            </button>
+                                                        </div>
+                                                        <div className="mt-3 p-3 bg-[#FFF4E5] border border-[#FF9900] rounded text-sm">
+                                                            <p className="text-[#B12704] font-medium">⚠️ Important:</p>
+                                                            <p className="text-[#565959] mt-1">This key switches your edition from Home to Pro. After entering this key, apply your activation key (shown below) to complete the activation.</p>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 

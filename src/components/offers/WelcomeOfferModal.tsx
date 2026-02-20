@@ -196,7 +196,7 @@ export function WelcomeOfferModal({ isOpen, onClose, offers, isFirstLogin }: Wel
                                     </motion.div>
                                 )}
 
-                                {/* 50% OFF */}
+                                {/* Price Slash - Percentage OFF */}
                                 {offers.priceSlash && (
                                     <motion.div
                                         initial={{ x: -20, opacity: 0 }}
@@ -209,7 +209,7 @@ export function WelcomeOfferModal({ isOpen, onClose, offers, isFirstLogin }: Wel
                                                 <Percent className="h-5 w-5 text-primary" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-semibold text-foreground">50% OFF - Any Product!</p>
+                                                <p className="font-semibold text-foreground">{offers.priceSlash.discount_value || 20}% OFF - Any Product!</p>
                                                 <p className="text-xs text-muted-foreground mt-0.5">One-time use • Valid for 12 hours</p>
                                             </div>
                                             <Button
@@ -239,7 +239,7 @@ export function WelcomeOfferModal({ isOpen, onClose, offers, isFirstLogin }: Wel
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-semibold text-foreground">Buy 1 Get 1 FREE!</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">Add 2 items • Max discount ₹1,000</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Add 2 items • Max discount ₹{(offers.bogo.discount_value || 1000).toLocaleString('en-IN')}</p>
                                             </div>
                                             <Button
                                                 onClick={() => handleNavigate('/products')}
