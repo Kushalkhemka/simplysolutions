@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Package, Key, Hash, Loader2, CheckCircle, AlertCircle, Upload, X } from 'lucide-react';
+import { Package, Key, Hash, Loader2, CheckCircle, AlertCircle, Upload, X, Shuffle, Plus, Minus, Layers } from 'lucide-react';
 
 interface FsnMapping {
     fsn: string;
@@ -24,9 +24,18 @@ export default function ManualOrderClient() {
     const [selectedFsn, setSelectedFsn] = useState('');
     const [selectedKeyId, setSelectedKeyId] = useState('');
     const [productName, setProductName] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+    // Bulk order state
+    const [bulkCount, setBulkCount] = useState(5);
+    const [bulkFsn, setBulkFsn] = useState('');
+    const [bulkProductName, setBulkProductName] = useState('');
+    const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
+    const [bulkMessage, setBulkMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [bulkProgress, setBulkProgress] = useState('');
 
     // CSV upload state
     const [showCsvModal, setShowCsvModal] = useState(false);
@@ -79,6 +88,13 @@ export default function ManualOrderClient() {
         setProductName(mapping?.product_title || '');
     };
 
+    // Update bulk product name when FSN changes
+    const handleBulkFsnChange = (fsn: string) => {
+        setBulkFsn(fsn);
+        const mapping = fsnMappings.find(m => m.fsn === fsn);
+        setBulkProductName(mapping?.product_title || '');
+    };
+
     // Validate Order ID format (Amazon format: XXX-XXXXXXX-XXXXXXX)
     const validateOrderId = (id: string) => {
         const amazonPattern = /^\d{3}-\d{7}-\d{7}$/;
@@ -88,6 +104,43 @@ export default function ManualOrderClient() {
     // Validate Secret Code (15 digits)
     const validateSecretCode = (code: string) => {
         return /^\d{15}$/.test(code);
+    };
+
+    // Generate a unique 15-digit secret code (never starts with 0, checked against DB)
+    const generateUniqueSecretCode = async (): Promise<string> => {
+        const maxAttempts = 10;
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            // First digit: 1-9, remaining 14 digits: 0-9
+            const firstDigit = Math.floor(Math.random() * 9) + 1;
+            const rest = Array.from({ length: 14 }, () => Math.floor(Math.random() * 10)).join('');
+            const code = `${firstDigit}${rest}`;
+
+            // Check if this code already exists in the database
+            const { data: existing } = await supabase
+                .from('amazon_orders')
+                .select('id')
+                .eq('order_id', code)
+                .single();
+
+            if (!existing) {
+                return code;
+            }
+        }
+        throw new Error('Could not generate a unique code after multiple attempts. Please try again.');
+    };
+
+    // Handle Generate button click
+    const handleGenerateCode = async () => {
+        setIsGenerating(true);
+        setMessage(null);
+        try {
+            const code = await generateUniqueSecretCode();
+            setSecretCode(code);
+            setOrderId('');
+        } catch (error: any) {
+            setMessage({ type: 'error', text: error.message });
+        }
+        setIsGenerating(false);
     };
 
     // Handle form submission
@@ -151,6 +204,51 @@ export default function ManualOrderClient() {
         }
 
         setIsSubmitting(false);
+    };
+
+    // Handle bulk order creation
+    const handleBulkSubmit = async () => {
+        setBulkMessage(null);
+        setBulkProgress('');
+
+        if (!bulkFsn) {
+            setBulkMessage({ type: 'error', text: 'Please select a product FSN' });
+            return;
+        }
+
+        if (bulkCount < 1 || bulkCount > 100) {
+            setBulkMessage({ type: 'error', text: 'Count must be between 1 and 100' });
+            return;
+        }
+
+        setIsBulkSubmitting(true);
+
+        try {
+            const response = await fetch('/api/admin/amazon-orders/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    count: bulkCount,
+                    fsn: bulkFsn,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create bulk orders');
+            }
+
+            setBulkMessage({
+                type: 'success',
+                text: `Successfully created ${data.created} orders! (${data.created} unique secret codes generated)`
+            });
+            setBulkProgress('');
+        } catch (error: any) {
+            setBulkMessage({ type: 'error', text: error.message || 'Failed to create bulk orders' });
+        }
+
+        setIsBulkSubmitting(false);
     };
 
     // Handle CSV upload
@@ -302,19 +400,35 @@ export default function ManualOrderClient() {
                         {/* Secret Code */}
                         <div>
                             <label className="block text-sm font-medium mb-1">OR Secret Code (15 digits)</label>
-                            <div className="relative">
-                                <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <input
-                                    type="text"
-                                    value={secretCode}
-                                    onChange={(e) => { setSecretCode(e.target.value.replace(/\D/g, '').slice(0, 15)); setOrderId(''); }}
-                                    placeholder="123456789012345"
-                                    className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background font-mono"
-                                    disabled={!!orderId}
-                                    maxLength={15}
-                                />
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        value={secretCode}
+                                        onChange={(e) => { setSecretCode(e.target.value.replace(/\D/g, '').slice(0, 15)); setOrderId(''); }}
+                                        placeholder="123456789012345"
+                                        className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background font-mono"
+                                        disabled={!!orderId}
+                                        maxLength={15}
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleGenerateCode}
+                                    disabled={!!orderId || isGenerating}
+                                    className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center gap-1.5 text-sm font-medium whitespace-nowrap"
+                                    title="Generate unique random 15-digit code"
+                                >
+                                    {isGenerating ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Shuffle className="h-4 w-4" />
+                                    )}
+                                    Generate
+                                </button>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">15-digit code for digital delivery</p>
+                            <p className="text-xs text-muted-foreground mt-1">15-digit code for digital delivery (auto-checked for uniqueness)</p>
                         </div>
                     </div>
 
@@ -394,6 +508,138 @@ export default function ManualOrderClient() {
                         </button>
                     </div>
                 </form>
+            </div>
+
+            {/* Bulk Order Creation */}
+            <div className="bg-card border rounded-lg p-6">
+                <h2 className="text-lg font-semibold mb-1 flex items-center gap-2">
+                    <Layers className="h-5 w-5" />
+                    Bulk Order Creation
+                </h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                    Generate multiple orders at once with auto-generated unique secret codes
+                </p>
+
+                {/* Bulk Message Display */}
+                {bulkMessage && (
+                    <div className={`p-4 rounded-lg flex items-center gap-3 mb-4 ${bulkMessage.type === 'success'
+                        ? 'bg-green-50 border border-green-200 text-green-800'
+                        : 'bg-red-50 border border-red-200 text-red-800'
+                        }`}>
+                        {bulkMessage.type === 'success' ? (
+                            <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                        ) : (
+                            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                        )}
+                        <span>{bulkMessage.text}</span>
+                    </div>
+                )}
+
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Number of Orders */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Number of Orders *</label>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setBulkCount(prev => Math.max(1, prev - 1))}
+                                    className="p-2 border rounded-lg hover:bg-accent disabled:opacity-50"
+                                    disabled={bulkCount <= 1 || isBulkSubmitting}
+                                >
+                                    <Minus className="h-4 w-4" />
+                                </button>
+                                <input
+                                    type="number"
+                                    value={bulkCount}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value) || 1;
+                                        setBulkCount(Math.min(100, Math.max(1, val)));
+                                    }}
+                                    className="w-24 text-center px-4 py-2 border rounded-lg bg-background font-mono text-lg"
+                                    min={1}
+                                    max={100}
+                                    disabled={isBulkSubmitting}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setBulkCount(prev => Math.min(100, prev + 1))}
+                                    className="p-2 border rounded-lg hover:bg-accent disabled:opacity-50"
+                                    disabled={bulkCount >= 100 || isBulkSubmitting}
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </button>
+                                {/* Quick select buttons */}
+                                <div className="flex gap-1 ml-2">
+                                    {[5, 10, 25, 50].map(n => (
+                                        <button
+                                            key={n}
+                                            type="button"
+                                            onClick={() => setBulkCount(n)}
+                                            disabled={isBulkSubmitting}
+                                            className={`px-2.5 py-1.5 text-xs rounded-md border transition-colors ${bulkCount === n
+                                                ? 'bg-primary text-primary-foreground border-primary'
+                                                : 'hover:bg-accent disabled:opacity-50'
+                                                }`}
+                                        >
+                                            {n}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">Max 100 orders per batch</p>
+                        </div>
+
+                        {/* FSN Selection for Bulk */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Product FSN *</label>
+                            <select
+                                value={bulkFsn}
+                                onChange={(e) => handleBulkFsnChange(e.target.value)}
+                                className="w-full px-4 py-2 border rounded-lg bg-background"
+                                disabled={isBulkSubmitting}
+                            >
+                                <option value="">Select Product FSN</option>
+                                {fsnMappings.map(m => (
+                                    <option key={m.fsn} value={m.fsn}>{m.fsn} - {m.product_title.substring(0, 50)}...</option>
+                                ))}
+                            </select>
+                            {bulkProductName && (
+                                <p className="text-xs text-muted-foreground mt-1 truncate">
+                                    {bulkProductName}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {bulkProgress && (
+                        <div className="p-3 bg-muted/30 rounded-lg text-sm flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+                            {bulkProgress}
+                        </div>
+                    )}
+
+                    <div className="pt-2">
+                        <button
+                            type="button"
+                            onClick={handleBulkSubmit}
+                            disabled={isBulkSubmitting || !bulkFsn || bulkCount < 1}
+                            className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {isBulkSubmitting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Creating {bulkCount} Orders...
+                                </>
+                            ) : (
+                                <>
+                                    <Layers className="h-4 w-4" />
+                                    Create {bulkCount} Orders
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* CSV Upload Modal */}

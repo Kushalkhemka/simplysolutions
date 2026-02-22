@@ -496,8 +496,8 @@ export default function AmazonOrdersClient() {
             </div>
 
             {/* Search and Filter */}
-            <form onSubmit={handleSearch} className="flex flex-wrap gap-4">
-                <div className="relative flex-1 min-w-[200px] max-w-md">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:flex-wrap">
+                <div className="relative flex-1 min-w-0 sm:min-w-[200px] sm:max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                         type="text"
@@ -507,17 +507,19 @@ export default function AmazonOrdersClient() {
                         className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background"
                     />
                 </div>
-                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
-                    Search
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-accent ${showFilters ? 'bg-accent' : ''}`}
-                >
-                    <Filter className="h-4 w-4" />
-                    Filter
-                </button>
+                <div className="flex gap-2">
+                    <button type="submit" className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+                        Search
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 border rounded-lg hover:bg-accent ${showFilters ? 'bg-accent' : ''}`}
+                    >
+                        <Filter className="h-4 w-4" />
+                        Filter
+                    </button>
+                </div>
                 {(filterFsn !== 'all' || filterType !== 'all' || filterGetcid !== 'all' || filterWarranty !== 'all' || filterRedeemed !== 'all' || filterRefunded !== 'all') && (
                     <button
                         type="button"
@@ -539,13 +541,13 @@ export default function AmazonOrdersClient() {
 
             {/* Filter Dropdowns */}
             {showFilters && (
-                <div className="flex flex-wrap gap-4 p-4 bg-muted/30 rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 p-4 bg-muted/30 rounded-lg">
                     <div>
                         <label className="block text-sm font-medium mb-1">FSN</label>
                         <select
                             value={filterFsn}
                             onChange={(e) => { setFilterFsn(e.target.value); setCurrentPage(1); }}
-                            className="px-3 py-2 border rounded-lg bg-background min-w-[200px]"
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
                         >
                             <option value="all">All FSNs</option>
                             {uniqueFsns.map(fsn => (
@@ -558,7 +560,7 @@ export default function AmazonOrdersClient() {
                         <select
                             value={filterType}
                             onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}
-                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
                         >
                             <option value="all">All Types</option>
                             <option value="amazon_fba">FBA</option>
@@ -570,7 +572,7 @@ export default function AmazonOrdersClient() {
                         <select
                             value={filterGetcid}
                             onChange={(e) => { setFilterGetcid(e.target.value); setCurrentPage(1); }}
-                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
                         >
                             <option value="all">All</option>
                             <option value="used">Used</option>
@@ -582,7 +584,7 @@ export default function AmazonOrdersClient() {
                         <select
                             value={filterWarranty}
                             onChange={(e) => { setFilterWarranty(e.target.value); setCurrentPage(1); }}
-                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
                         >
                             <option value="all">All</option>
                             <option value="active">Active</option>
@@ -595,7 +597,7 @@ export default function AmazonOrdersClient() {
                         <select
                             value={filterRedeemed}
                             onChange={(e) => { setFilterRedeemed(e.target.value); setCurrentPage(1); }}
-                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
                         >
                             <option value="all">All Orders</option>
                             <option value="yes">Redeemed Only</option>
@@ -607,7 +609,7 @@ export default function AmazonOrdersClient() {
                         <select
                             value={filterRefunded}
                             onChange={(e) => { setFilterRefunded(e.target.value); setCurrentPage(1); }}
-                            className="px-3 py-2 border rounded-lg bg-background min-w-[150px]"
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
                         >
                             <option value="all">All Orders</option>
                             <option value="yes">Refunded Only</option>
@@ -767,9 +769,9 @@ export default function AmazonOrdersClient() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <p className="text-sm text-muted-foreground">
-                        Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()} orders
+                        Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {totalCount.toLocaleString()}
                     </p>
                     <div className="flex items-center gap-2">
                         <button
@@ -797,9 +799,9 @@ export default function AmazonOrdersClient() {
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/50" onClick={closeModal} />
-                    <div className="relative bg-card border rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
-                        <div className="sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between">
-                            <h2 className="text-xl font-bold">Order Details</h2>
+                    <div className="relative bg-card border rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-2 sm:m-4">
+                        <div className="sticky top-0 bg-card border-b px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2">
+                            <h2 className="text-lg sm:text-xl font-bold truncate">Order Details</h2>
                             <div className="flex items-center gap-2">
                                 {!isEditingOrder ? (
                                     <button

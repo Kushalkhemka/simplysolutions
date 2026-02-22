@@ -203,18 +203,18 @@ export default function WhatsAppLogsClient() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <MessageSquare className="h-6 w-6 text-green-500" />
-                        WhatsApp Message Logs
+                    <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
+                        WhatsApp Logs
                     </h1>
-                    <p className="text-muted-foreground">View all WhatsApp messages sent from the system</p>
+                    <p className="text-sm text-muted-foreground">View all WhatsApp messages sent from the system</p>
                 </div>
                 <button
                     onClick={fetchLogs}
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 w-full sm:w-auto"
                 >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                     Refresh
@@ -222,8 +222,8 @@ export default function WhatsAppLogsClient() {
             </div>
 
             {/* Search */}
-            <form onSubmit={handleSearch} className="flex gap-4">
-                <div className="relative flex-1 max-w-md">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1 sm:max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                         type="text"
@@ -233,18 +233,20 @@ export default function WhatsAppLogsClient() {
                         className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background"
                     />
                 </div>
-                <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
-                    Search
-                </button>
-                {searchQuery && (
-                    <button
-                        type="button"
-                        onClick={() => { setSearchQuery(''); }}
-                        className="px-4 py-2 border rounded-lg hover:bg-accent"
-                    >
-                        Clear
+                <div className="flex gap-2">
+                    <button type="submit" className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+                        Search
                     </button>
-                )}
+                    {searchQuery && (
+                        <button
+                            type="button"
+                            onClick={() => { setSearchQuery(''); }}
+                            className="flex-1 sm:flex-none px-4 py-2 border rounded-lg hover:bg-accent"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
             </form>
 
             {/* Stats Summary */}
@@ -293,8 +295,71 @@ export default function WhatsAppLogsClient() {
                 </div>
             )}
 
-            {/* Logs Table */}
-            <div className="bg-card border rounded-lg overflow-hidden">
+            {/* Logs - Mobile Card View */}
+            <div className="lg:hidden space-y-3">
+                {isLoading ? (
+                    <div className="p-8 text-center bg-card border rounded-lg">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                        <p className="mt-2 text-muted-foreground">Loading logs...</p>
+                    </div>
+                ) : logs.length === 0 ? (
+                    <div className="p-8 text-center text-muted-foreground bg-card border rounded-lg">
+                        <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No WhatsApp messages found</p>
+                    </div>
+                ) : (
+                    logs.map((log) => (
+                        <div key={log.id} className={`bg-card border rounded-lg p-4 ${selectedIds.has(log.id) ? 'ring-2 ring-primary' : ''}`}>
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-3 flex-1 min-w-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedIds.has(log.id)}
+                                        onChange={() => toggleSelection(log.id)}
+                                        className="w-4 h-4 mt-1 rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            {log.status === 'success' ? (
+                                                <span className="flex items-center gap-1 text-green-600 text-xs"><CheckCircle className="h-3 w-3" /> Sent</span>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-red-600 text-xs"><XCircle className="h-3 w-3" /> Failed</span>
+                                            )}
+                                            {getContextBadge(log.context)}
+                                        </div>
+                                        <p className="font-mono text-sm font-medium mt-1 truncate">{log.order_id}</p>
+                                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                            <Phone className="h-3 w-3" /> {log.phone}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">{formatDate(log.created_at)}</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-1.5 shrink-0">
+                                    <button
+                                        onClick={() => handleResend(log)}
+                                        disabled={isResending === log.id || isDeleting === log.id}
+                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 disabled:opacity-50"
+                                    >
+                                        {isResending === log.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                                        Resend
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(log)}
+                                        disabled={isResending === log.id || isDeleting === log.id}
+                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 disabled:opacity-50"
+                                    >
+                                        {isDeleting === log.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Logs Table - Desktop View */}
+            <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                 {isLoading ? (
                     <div className="p-8 text-center">
                         <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />

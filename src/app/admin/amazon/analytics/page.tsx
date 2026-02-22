@@ -9,6 +9,7 @@ import {
     ShoppingBag,
     Truck
 } from 'lucide-react';
+import OrdersChart from '@/components/admin/OrdersChart';
 
 export default async function AmazonAnalyticsPage() {
     const supabase = await createClient();
@@ -213,6 +214,9 @@ export default async function AmazonAnalyticsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Orders Chart */}
+            <OrdersChart />
 
             {/* Weekly & Monthly Metrics */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -96,18 +96,18 @@ export default function ListingAlertsClient() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Shield className="h-6 w-6 text-orange-500" />
-                        Listing Keyword Monitor
+                    <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                        <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+                        Listing Monitor
                     </h1>
-                    <p className="text-muted-foreground">Monitor Amazon listings for flagged keywords (competitor sabotage detection)</p>
+                    <p className="text-sm text-muted-foreground">Monitor Amazon listings for flagged keywords</p>
                 </div>
                 <button
                     onClick={runScan}
                     disabled={isScanning}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 w-full sm:w-auto"
                 >
                     {isScanning ? (
                         <>
@@ -147,7 +147,7 @@ export default function ListingAlertsClient() {
             {lastScan && (
                 <>
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                         <div className="bg-card border rounded-lg p-4">
                             <p className="text-2xl font-bold">{lastScan.productsScanned}</p>
                             <p className="text-sm text-muted-foreground">Products Scanned</p>
@@ -223,9 +223,60 @@ export default function ListingAlertsClient() {
                         </div>
                     )}
 
-                    {/* All Flagged Products (Including Baseline) */}
+                    {/* All Flagged Products - Mobile Card View */}
                     {lastScan.allFlaggedProducts.length > 0 && (
-                        <div className="bg-card border rounded-lg overflow-hidden">
+                        <div className="lg:hidden space-y-3">
+                            <div className="bg-muted/50 px-4 py-3 border rounded-lg">
+                                <h3 className="font-medium">All Flagged Products</h3>
+                            </div>
+                            {lastScan.allFlaggedProducts.map((product) => (
+                                <div key={`mobile-${product.asin}`} className={`border rounded-lg p-4 ${getStatusColor(product)}`}>
+                                    <div className="flex items-start gap-3">
+                                        {product.imageUrl ? (
+                                            <img
+                                                src={product.imageUrl}
+                                                alt={product.title}
+                                                className="w-12 h-12 object-contain rounded border shrink-0"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-xs text-muted-foreground shrink-0">N/A</div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                {product.isNew ? (
+                                                    <span className="px-2 py-0.5 text-xs bg-red-500 text-white rounded-full font-bold">NEW</span>
+                                                ) : (
+                                                    <span className="px-2 py-0.5 text-xs bg-yellow-500 text-white rounded-full">Baseline</span>
+                                                )}
+                                                <a
+                                                    href={product.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="font-mono text-sm text-blue-600 hover:underline flex items-center gap-1"
+                                                >
+                                                    {product.asin}
+                                                    <ExternalLink className="h-3 w-3" />
+                                                </a>
+                                            </div>
+                                            <p className="text-sm mt-1 line-clamp-2">{product.title}</p>
+                                            <div className="flex flex-wrap gap-1 mt-2">
+                                                {product.flaggedKeywords.map(k => (
+                                                    <span key={k} className="px-2 py-0.5 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded">
+                                                        {k}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">Found in: {product.locations.join(', ')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* All Flagged Products - Desktop Table View */}
+                    {lastScan.allFlaggedProducts.length > 0 && (
+                        <div className="hidden lg:block bg-card border rounded-lg overflow-hidden">
                             <div className="bg-muted/50 px-4 py-3 border-b">
                                 <h3 className="font-medium">All Flagged Products</h3>
                             </div>
