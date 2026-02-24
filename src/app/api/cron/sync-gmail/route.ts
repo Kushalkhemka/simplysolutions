@@ -15,7 +15,7 @@ import { createClient } from '@supabase/supabase-js';
 import { fetchOrderEnquiries, GmailCredentials } from '@/lib/gmail';
 import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDycY1_oS7nIu4Qv2QW3_xlB7e-OPx0xHI';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 
 const TEMPLATES: Record<string, string> = {
     tech_support: `Dear [BUYER_NAME],

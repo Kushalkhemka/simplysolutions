@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-const GEMINI_API_KEY = 'AIzaSyDycY1_oS7nIu4Qv2QW3_xlB7e-OPx0xHI';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 
 const TEMPLATES = {
     tech_support: `Dear [BUYER_NAME],
