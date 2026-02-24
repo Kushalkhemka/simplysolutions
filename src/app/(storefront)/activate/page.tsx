@@ -19,7 +19,8 @@ import {
     Clock,
     XCircle,
     Shield,
-    Star
+    Star,
+    Pencil
 } from 'lucide-react';
 import { toast } from 'sonner';
 import InstallationGuide from '@/components/InstallationGuide';
@@ -143,6 +144,35 @@ function ActivatePageContent() {
     const [appealEmail, setAppealEmail] = useState('');
     const [appealWhatsApp, setAppealWhatsApp] = useState('');
 
+    // Office365 Username Customization state
+    const [customizationStatus, setCustomizationStatus] = useState<{
+        canCustomize: boolean;
+        alreadySubmitted?: boolean;
+        alreadyCustomized?: boolean;
+        usernamePrefix?: string;
+        generatedEmail?: string;
+    } | null>(null);
+    const [warrantyNeeded, setWarrantyNeeded] = useState(false);
+    const [warrantySubmittedInline, setWarrantySubmittedInline] = useState(false);
+    const [wEmail, setWEmail] = useState('');
+    const [wSellerFeedback, setWSellerFeedback] = useState<File | null>(null);
+    const [wProductReview, setWProductReview] = useState<File | null>(null);
+    const [wSellerPreview, setWSellerPreview] = useState<string | null>(null);
+    const [wReviewPreview, setWReviewPreview] = useState<string | null>(null);
+    const [wSubmitting, setWSubmitting] = useState(false);
+    const wSellerRef = useRef<HTMLInputElement>(null);
+    const wReviewRef = useRef<HTMLInputElement>(null);
+    const [showCustomizationForm, setShowCustomizationForm] = useState(false);
+    const [custUsername, setCustUsername] = useState('');
+    const [custFirstName, setCustFirstName] = useState('');
+    const [custLastName, setCustLastName] = useState('');
+    const [custUsernameAvailable, setCustUsernameAvailable] = useState<boolean | null>(null);
+    const [custCheckingUsername, setCustCheckingUsername] = useState(false);
+    const [custSubmitting, setCustSubmitting] = useState(false);
+    const [custSubmitted, setCustSubmitted] = useState(false);
+    const [custSubmittedUsername, setCustSubmittedUsername] = useState('');
+    const custUsernameDebounce = useRef<NodeJS.Timeout | null>(null);
+
     // Contact info modal state (for when keys are not available)
     const [showContactModal, setShowContactModal] = useState(false);
     const [contactEmail, setContactEmail] = useState('');
@@ -163,6 +193,137 @@ function ActivatePageContent() {
         } catch (error) {
             console.error('Error checking replacement status:', error);
         }
+    };
+
+    // Check Office365 customization status
+    const checkCustomizationStatus = async (orderId: string) => {
+        try {
+            const res = await fetch(`/api/request-customization?orderId=${encodeURIComponent(orderId)}`);
+            const data = await res.json();
+            if (data.valid && data.warrantyVerified) {
+                setCustomizationStatus({ canCustomize: true });
+                setWarrantyNeeded(false);
+            } else if (data.alreadySubmitted) {
+                setCustomizationStatus({ canCustomize: false, alreadySubmitted: true, usernamePrefix: data.usernamePrefix });
+                setWarrantyNeeded(false);
+            } else if (data.alreadyCustomized) {
+                setCustomizationStatus({ canCustomize: false, alreadyCustomized: true, generatedEmail: data.generatedEmail });
+                setWarrantyNeeded(false);
+            } else if (data.warrantyRequired) {
+                setWarrantyNeeded(true);
+                setCustomizationStatus(null);
+                if (data.buyerEmail) setWEmail(data.buyerEmail);
+            } else {
+                setCustomizationStatus(null);
+                setWarrantyNeeded(false);
+            }
+        } catch (err) {
+            console.error('Error checking customization status:', err);
+        }
+    };
+
+    // Check username availability for customization
+    const checkCustUsername = async (prefix: string) => {
+        if (prefix.length < 3) { setCustUsernameAvailable(null); return; }
+        setCustCheckingUsername(true);
+        try {
+            const res = await fetch(`/api/request-customization?checkUsername=${encodeURIComponent(prefix)}`);
+            const data = await res.json();
+            setCustUsernameAvailable(data.available);
+        } catch { setCustUsernameAvailable(null); }
+        finally { setCustCheckingUsername(false); }
+    };
+
+    const handleCustUsernameChange = (value: string) => {
+        const sanitized = value.toLowerCase().replace(/[^a-z0-9._-]/g, '');
+        setCustUsername(sanitized);
+        setCustUsernameAvailable(null);
+        if (custUsernameDebounce.current) clearTimeout(custUsernameDebounce.current);
+        if (sanitized.length >= 3) {
+            custUsernameDebounce.current = setTimeout(() => checkCustUsername(sanitized), 500);
+        }
+    };
+
+    // Inline warranty submission handler
+    const handleInlineWarrantySubmit = async () => {
+        if (!wEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(wEmail.trim())) {
+            toast.error('Please enter a valid email address');
+            return;
+        }
+        if (!wSellerFeedback || !wProductReview) {
+            toast.error('Please upload both screenshots');
+            return;
+        }
+        if (wSellerFeedback.name === wProductReview.name) {
+            toast.error('Please upload two different screenshots');
+            return;
+        }
+
+        setWSubmitting(true);
+        try {
+            const formData = new FormData();
+            formData.append('orderId', secretCode.trim());
+            formData.append('customerEmail', wEmail.trim());
+            formData.append('isResubmission', 'false');
+            formData.append('screenshotSellerFeedback', wSellerFeedback);
+            formData.append('screenshotProductReview', wProductReview);
+
+            const res = await fetch('/api/warranty', { method: 'POST', body: formData });
+            const data = await res.json();
+
+            if (data.success) {
+                toast.success('Warranty registered! Now you can customize your username.');
+                setWarrantySubmittedInline(true);
+                setWarrantyNeeded(false);
+                // Re-check customization status — warranty is now submitted
+                await checkCustomizationStatus(secretCode.trim());
+            } else {
+                toast.error(data.error || 'Failed to submit warranty');
+            }
+        } catch {
+            toast.error('Network error. Please try again.');
+        } finally {
+            setWSubmitting(false);
+        }
+    };
+
+    const handleCustSubmit = async () => {
+        if (!custUsername.trim() || custUsername.length < 3 || !custFirstName.trim() || !custLastName.trim()) {
+            toast.error('Please fill in all fields (username must be at least 3 characters)');
+            return;
+        }
+        if (!/^[a-z][a-z0-9._-]*$/.test(custUsername)) {
+            toast.error('Username must start with a letter');
+            return;
+        }
+        if (custUsernameAvailable === false) {
+            toast.error('This username is already taken');
+            return;
+        }
+        setCustSubmitting(true);
+        try {
+            const res = await fetch('/api/request-customization', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: secretCode.trim(),
+                    usernamePrefix: custUsername.trim(),
+                    firstName: custFirstName.trim(),
+                    lastName: custLastName.trim(),
+                    customerEmail: wEmail.trim() || contactEmail.trim() || 'customer@simplysolutions.co.in',
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCustSubmitted(true);
+                setCustSubmittedUsername(data.requestedUsername);
+                setShowCustomizationForm(false);
+                toast.success('Username customization request submitted!');
+            } else {
+                toast.error(data.error || 'Failed to submit');
+            }
+        } catch { toast.error('Network error'); }
+        finally { setCustSubmitting(false); }
     };
 
     // Handle replacement screenshot change
@@ -205,6 +366,11 @@ function ActivatePageContent() {
                 setShowReplacementForm(false);
                 // Refresh status
                 await checkReplacementStatus(secretCode.trim());
+                // Check customization status for OFFICE365 orders
+                if (activationResult?.productInfo?.sku?.toUpperCase().startsWith('OFFICE365') ||
+                    activationResult?.licenses?.some(l => l.fsn?.toUpperCase().startsWith('OFFICE365'))) {
+                    checkCustomizationStatus(secretCode.trim());
+                }
             } else {
                 toast.error(data.error || 'Failed to submit replacement request');
             }
@@ -452,6 +618,10 @@ function ActivatePageContent() {
 
             // Check for any existing replacement requests
             await checkReplacementStatus(secretCode.trim());
+            // Check customization status for OFFICE365 orders
+            if (data.fsn?.toUpperCase().startsWith('OFFICE365') || data.licenses?.some((l: any) => l.fsn?.toUpperCase().startsWith('OFFICE365'))) {
+                checkCustomizationStatus(secretCode.trim());
+            }
 
         } catch (err) {
             console.error('Error generating key:', err);
@@ -1339,6 +1509,271 @@ function ActivatePageContent() {
                                                 </div>
                                             )}
 
+                                        {/* Office365 Username Customization Section */}
+                                        {(activationResult?.licenses?.some(l => l.fsn?.toUpperCase().startsWith('OFFICE365')) ||
+                                            activationResult?.productInfo?.sku?.toUpperCase().startsWith('OFFICE365')) && (
+                                                <div className="border-2 border-[#0078D4] rounded-xl overflow-hidden shadow-md">
+                                                    {/* Header */}
+                                                    <div className="bg-gradient-to-r from-[#0078D4] to-[#005A9E] text-white px-4 py-3 flex items-center gap-3">
+                                                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                                                            <Pencil className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="font-bold text-sm">Customize Your Username</h3>
+                                                            <p className="text-xs opacity-90">Get a personalized email instead of the default numbered one</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-4">
+                                                        {/* Already submitted */}
+                                                        {customizationStatus?.alreadySubmitted && (
+                                                            <div className="flex items-start gap-3 p-3 bg-[#FFFBEB] border border-[#FCD34D] rounded-lg">
+                                                                <Clock className="w-5 h-5 text-[#D97706] flex-shrink-0 mt-0.5" />
+                                                                <div>
+                                                                    <p className="font-bold text-sm text-[#92400E]">Request Already Submitted</p>
+                                                                    <p className="text-xs text-[#565959] mt-1">
+                                                                        Username <strong className="font-mono">{customizationStatus.usernamePrefix}@ms365.pro</strong> requested. You will be notified once it is ready.
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Already customized */}
+                                                        {customizationStatus?.alreadyCustomized && (
+                                                            <div className="flex items-start gap-3 p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg">
+                                                                <CheckCircle className="w-5 h-5 text-[#067D62] flex-shrink-0 mt-0.5" />
+                                                                <div>
+                                                                    <p className="font-bold text-sm text-[#067D62]">Username Customized!</p>
+                                                                    <p className="text-xs text-[#565959] mt-1">
+                                                                        Your custom username is <strong className="font-mono text-[#0078D4]">{customizationStatus.generatedEmail}</strong>
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Submitted just now */}
+                                                        {custSubmitted && (
+                                                            <div className="flex items-start gap-3 p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg">
+                                                                <CheckCircle className="w-5 h-5 text-[#067D62] flex-shrink-0 mt-0.5" />
+                                                                <div>
+                                                                    <p className="font-bold text-sm text-[#067D62]">Request Submitted!</p>
+                                                                    <p className="text-xs text-[#565959] mt-1">
+                                                                        Username <strong className="font-mono text-[#0078D4]">{custSubmittedUsername}</strong> requested. We will notify you within 24-48 hours.
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Can customize - show CTA or form */}
+                                                        {customizationStatus?.canCustomize && !custSubmitted && (
+                                                            <>
+                                                                {!showCustomizationForm ? (
+                                                                    <div className="text-center">
+                                                                        <p className="text-sm text-[#565959] mb-3">
+                                                                            Replace your default numbered email with a custom one like <strong className="font-mono text-[#0078D4]">yourname@ms365.pro</strong>
+                                                                        </p>
+                                                                        <button
+                                                                            onClick={() => setShowCustomizationForm(true)}
+                                                                            className="px-6 py-2.5 bg-gradient-to-b from-[#0078D4] to-[#005A9E] text-white font-bold text-sm rounded-lg hover:from-[#006CBD] hover:to-[#004E8C] transition-all shadow-sm"
+                                                                        >
+                                                                            ✨ Customize My Username
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="space-y-3">
+                                                                        {/* Username Input */}
+                                                                        <div>
+                                                                            <label className="block text-xs font-medium text-[#0F1111] mb-1">Username <span className="text-[#CC0C39]">*</span></label>
+                                                                            <div className="flex">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={custUsername}
+                                                                                    onChange={(e) => handleCustUsernameChange(e.target.value)}
+                                                                                    placeholder="johndoe"
+                                                                                    className={`flex-1 px-3 py-2 border rounded-l text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-[#0078D4] text-[#0F1111] ${custUsernameAvailable === false ? 'border-[#CC0C39] bg-red-50' : custUsernameAvailable === true ? 'border-[#067D62] bg-green-50' : 'border-[#888C8C]'
+                                                                                        }`}
+                                                                                />
+                                                                                <span className="inline-flex items-center px-3 border border-l-0 border-[#888C8C] rounded-r bg-[#F0F2F2] text-[#565959] text-sm font-mono">
+                                                                                    @ms365.pro
+                                                                                </span>
+                                                                            </div>
+                                                                            {custCheckingUsername && <p className="text-xs text-[#565959] mt-1">Checking availability...</p>}
+                                                                            {!custCheckingUsername && custUsernameAvailable === true && custUsername.length >= 3 && (
+                                                                                <p className="text-xs text-[#067D62] mt-1 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> {custUsername}@ms365.pro is available!</p>
+                                                                            )}
+                                                                            {!custCheckingUsername && custUsernameAvailable === false && (
+                                                                                <p className="text-xs text-[#CC0C39] mt-1">This username is already taken</p>
+                                                                            )}
+                                                                            <p className="text-[10px] text-[#565959] mt-1">Lowercase letters, numbers, dots, hyphens. Must start with a letter.</p>
+                                                                        </div>
+
+                                                                        {/* Name Row */}
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            <div>
+                                                                                <label className="block text-xs font-medium text-[#0F1111] mb-1">First Name <span className="text-[#CC0C39]">*</span></label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={custFirstName}
+                                                                                    onChange={(e) => setCustFirstName(e.target.value)}
+                                                                                    placeholder="John"
+                                                                                    className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white text-[#0F1111] focus:outline-none focus:ring-2 focus:ring-[#0078D4]"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <label className="block text-xs font-medium text-[#0F1111] mb-1">Last Name <span className="text-[#CC0C39]">*</span></label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={custLastName}
+                                                                                    onChange={(e) => setCustLastName(e.target.value)}
+                                                                                    placeholder="Doe"
+                                                                                    className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white text-[#0F1111] focus:outline-none focus:ring-2 focus:ring-[#0078D4]"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Preview */}
+                                                                        {custUsername.length >= 3 && (
+                                                                            <div className="p-2 bg-[#F0F8FF] border border-[#0078D4]/30 rounded text-center">
+                                                                                <p className="text-xs text-[#565959]">Your new email will be</p>
+                                                                                <p className="font-mono font-bold text-[#0078D4]">{custUsername}@ms365.pro</p>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {/* Submit */}
+                                                                        <div className="flex gap-2">
+                                                                            <button
+                                                                                onClick={() => setShowCustomizationForm(false)}
+                                                                                className="px-4 py-2 border border-[#888C8C] rounded text-sm text-[#565959] hover:bg-[#F0F2F2] transition-colors"
+                                                                            >
+                                                                                Cancel
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={handleCustSubmit}
+                                                                                disabled={custSubmitting || custCheckingUsername || custUsernameAvailable === false || custUsername.length < 3}
+                                                                                className="flex-1 py-2 bg-gradient-to-b from-[#0078D4] to-[#005A9E] text-white font-bold text-sm rounded hover:from-[#006CBD] hover:to-[#004E8C] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                                                            >
+                                                                                {custSubmitting ? (
+                                                                                    <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
+                                                                                ) : (
+                                                                                    'Submit Request'
+                                                                                )}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        )}
+
+                                                        {/* Warranty not done yet — inline form */}
+                                                        {warrantyNeeded && !custSubmitted && (
+                                                            <div className="space-y-3">
+                                                                <div className="p-3 bg-[#FEF2F2] border-2 border-[#CC0C39] rounded-lg">
+                                                                    <p className="text-xs text-[#CC0C39] font-bold flex items-center gap-1.5 mb-1">
+                                                                        ⚠️ Warranty Registration Required
+                                                                    </p>
+                                                                    <p className="text-[10px] text-[#565959]">
+                                                                        You must complete your <strong className="text-[#CC0C39]">warranty registration</strong> below before you can unlock username customization.
+                                                                    </p>
+                                                                </div>
+
+                                                                {/* Email */}
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-[#0F1111] mb-1">Email Address <span className="text-[#565959] font-normal">(for warranty status updates)</span> <span className="text-[#CC0C39]">*</span></label>
+                                                                    <input
+                                                                        type="email"
+                                                                        value={wEmail}
+                                                                        onChange={(e) => setWEmail(e.target.value)}
+                                                                        placeholder="your.email@example.com"
+                                                                        className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white text-[#0F1111] focus:outline-none focus:ring-2 focus:ring-[#0078D4]"
+                                                                    />
+                                                                </div>
+
+                                                                {/* Seller Feedback Screenshot */}
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-[#0F1111] mb-1">
+                                                                        Seller Feedback Screenshot <span className="text-[#CC0C39]">*</span>
+                                                                    </label>
+                                                                    <p className="text-[10px] text-[#565959] mb-1.5">
+                                                                        <a href="https://www.amazon.in/hz/feedback" target="_blank" rel="noopener noreferrer" className="text-[#0078D4] underline font-medium">Rate Seller on Amazon</a> → Give <strong>5★ rating</strong> → Screenshot it
+                                                                    </p>
+                                                                    {wSellerPreview ? (
+                                                                        <div className="relative border border-[#BBF7D0] bg-[#F0FDF4] rounded-lg p-2 flex items-center gap-2">
+                                                                            <img src={wSellerPreview} alt="Seller feedback" className="w-12 h-12 object-cover rounded" />
+                                                                            <span className="text-xs text-[#067D62] flex-1 truncate">{wSellerFeedback?.name}</span>
+                                                                            <button onClick={() => { setWSellerFeedback(null); setWSellerPreview(null); if (wSellerRef.current) wSellerRef.current.value = ''; }} className="text-[#CC0C39]">
+                                                                                <X className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <label className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-[#888C8C] rounded-lg cursor-pointer hover:border-[#0078D4] hover:bg-[#F5FAFF] transition-colors">
+                                                                            <Upload className="w-4 h-4 text-[#565959]" />
+                                                                            <span className="text-xs text-[#565959]">Upload Screenshot</span>
+                                                                            <input
+                                                                                ref={wSellerRef}
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                className="hidden"
+                                                                                onChange={(e) => {
+                                                                                    const f = e.target.files?.[0];
+                                                                                    if (f) { setWSellerFeedback(f); setWSellerPreview(URL.createObjectURL(f)); }
+                                                                                }}
+                                                                            />
+                                                                        </label>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Product Review Screenshot */}
+                                                                <div>
+                                                                    <label className="block text-xs font-medium text-[#0F1111] mb-1">
+                                                                        Product Review Screenshot <span className="text-[#CC0C39]">*</span>
+                                                                    </label>
+                                                                    <p className="text-[10px] text-[#565959] mb-1.5">
+                                                                        <a href="https://www.amazon.in/review/create-review" target="_blank" rel="noopener noreferrer" className="text-[#0078D4] underline font-medium">Write a Product Review on Amazon</a> → Give <strong>5★ rating</strong> → Screenshot it
+                                                                    </p>
+                                                                    {wReviewPreview ? (
+                                                                        <div className="relative border border-[#BBF7D0] bg-[#F0FDF4] rounded-lg p-2 flex items-center gap-2">
+                                                                            <img src={wReviewPreview} alt="Product review" className="w-12 h-12 object-cover rounded" />
+                                                                            <span className="text-xs text-[#067D62] flex-1 truncate">{wProductReview?.name}</span>
+                                                                            <button onClick={() => { setWProductReview(null); setWReviewPreview(null); if (wReviewRef.current) wReviewRef.current.value = ''; }} className="text-[#CC0C39]">
+                                                                                <X className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <label className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-[#888C8C] rounded-lg cursor-pointer hover:border-[#0078D4] hover:bg-[#F5FAFF] transition-colors">
+                                                                            <Upload className="w-4 h-4 text-[#565959]" />
+                                                                            <span className="text-xs text-[#565959]">Upload Screenshot</span>
+                                                                            <input
+                                                                                ref={wReviewRef}
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                className="hidden"
+                                                                                onChange={(e) => {
+                                                                                    const f = e.target.files?.[0];
+                                                                                    if (f) { setWProductReview(f); setWReviewPreview(URL.createObjectURL(f)); }
+                                                                                }}
+                                                                            />
+                                                                        </label>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Submit */}
+                                                                <button
+                                                                    onClick={handleInlineWarrantySubmit}
+                                                                    disabled={wSubmitting}
+                                                                    className="w-full py-2.5 bg-gradient-to-b from-[#067D62] to-[#056B54] text-white font-bold text-sm rounded-lg hover:from-[#056B54] hover:to-[#045A47] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                                                >
+                                                                    {wSubmitting ? (
+                                                                        <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
+                                                                    ) : (
+                                                                        <>Register Warranty & Continue To Customize</>
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                         {/* Multiple Keys Note */}
                                         <div className="text-center p-3 bg-[#FEF8F2] border border-[#FF9900] rounded">
                                             <p className="text-xs text-[#B12704]">
@@ -2124,6 +2559,27 @@ function ActivatePageContent() {
                                 </div>
                             )}
 
+                            {/* OFFICE365 Username Customization Notice */}
+                            {(activationResult?.licenses?.some(l => l.fsn?.toUpperCase().startsWith('OFFICE365')) ||
+                                activationResult?.productInfo?.sku?.toUpperCase().startsWith('OFFICE365')) && (
+                                    <div className="bg-gradient-to-r from-[#EFF6FF] to-[#F0F9FF] border-2 border-[#0078D4] rounded-xl overflow-hidden">
+                                        <div className="bg-[#0078D4] text-white px-2 py-1.5 sm:px-3 sm:py-2 flex items-center gap-1.5 sm:gap-2">
+                                            <Pencil className="w-4 h-4 sm:w-5 sm:h-5" />
+                                            <h3 className="font-bold text-xs sm:text-sm">Customize Your Username</h3>
+                                        </div>
+                                        <div className="p-2 sm:p-3">
+                                            <p className="text-[10px] sm:text-xs text-[#334155] leading-relaxed">
+                                                Want a personalized email? You can request a custom username like{' '}
+                                                <strong className="text-[#0078D4] font-mono">yourname@ms365.pro</strong>{' '}
+                                                instead of the default numbered one.
+                                            </p>
+                                            <p className="text-[10px] sm:text-xs text-[#64748b] mt-1.5">
+                                                Scroll down below to register your warranty and request your custom username — all on this page!
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
                             {/* OFFICE365 Password Warning - Conditional */}
                             {(activationResult?.licenses?.some(l => l.fsn?.toUpperCase().startsWith('OFFICE365')) ||
                                 activationResult?.productInfo?.sku?.toUpperCase().startsWith('OFFICE365')) && (
@@ -2172,7 +2628,6 @@ function ActivatePageContent() {
                                         </div>
                                     </div>
                                 )}
-
                             {/* Installation Instructions Note */}
                             <div className="bg-[#FFF4E5] border border-[#FF9900] rounded-lg p-2 sm:p-3">
                                 <div className="flex items-start gap-2">

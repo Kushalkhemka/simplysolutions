@@ -217,6 +217,30 @@
   display: none;
 }
 
+/* Thin orange scrollbar */
+.scrollbar-orange {
+  scrollbar-width: thin;
+  scrollbar-color: #e8670c transparent;
+}
+
+.scrollbar-orange::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-orange::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-orange::-webkit-scrollbar-thumb {
+  background: #e8670c;
+  border-radius: 9999px;
+}
+
+.scrollbar-orange::-webkit-scrollbar-thumb:hover {
+  background: #f97316;
+}
+
 /* Prose styles for product descriptions with HTML content */
 .prose {
   line-height: 1.75;

@@ -218,7 +218,7 @@ function DigitalWarrantyContent() {
                             ? 'Your warranty has been verified. You are now covered with lifetime support!'
                             : existingStatus === 'REJECTED'
                                 ? 'Unfortunately, your warranty could not be verified. Please contact support on WhatsApp: 8178848830'
-                                : 'Your warranty registration has been submitted. We will verify within 24 hours.'}
+                                : 'You will be notified via email. If resubmission is required, we will let you know on the email you provided. Please check back in 24-48 hours to hear from us on your warranty status.'}
                     </p>
                     <div className="bg-gray-50 rounded-lg p-4 text-left">
                         <p className="text-sm text-gray-500 mb-1">Order ID</p>

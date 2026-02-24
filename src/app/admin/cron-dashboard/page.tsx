@@ -37,6 +37,7 @@ const JOB_NAMES = [
     { value: 'sync-fba', label: 'Sync FBA Orders' },
     { value: 'sync-mfn', label: 'Sync MFN Orders' },
     { value: 'sync-refunds', label: 'Sync Refunds' },
+    { value: 'sync-gmail', label: 'Sync Gmail Enquiries' },
     { value: 'request-reviews', label: 'Request Reviews' },
     { value: 'abandoned-cart', label: 'Abandoned Cart' },
 ];

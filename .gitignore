@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 scripts/test-amazon-api.ts
+
+# Gmail scripts with secrets
+scripts/gmail-*.mjs
