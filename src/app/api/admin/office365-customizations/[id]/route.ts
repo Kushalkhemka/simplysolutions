@@ -81,11 +81,11 @@ export async function PATCH(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { action, adminNotes } = body;
+        const { action, adminNotes, rejectionReason } = body;
 
-        if (action !== 'fulfill') {
+        if (action !== 'fulfill' && action !== 'reject') {
             return NextResponse.json(
-                { error: 'Invalid action. Must be "fulfill"' },
+                { error: 'Invalid action. Must be "fulfill" or "reject"' },
                 { status: 400 }
             );
         }
@@ -111,7 +111,115 @@ export async function PATCH(
             );
         }
 
-        // Get the current license key to extract the password
+        if (customization.is_rejected) {
+            return NextResponse.json(
+                { error: 'This request has already been rejected' },
+                { status: 400 }
+            );
+        }
+
+        // ── REJECT ACTION ──
+        if (action === 'reject') {
+            const { error: rejectError } = await supabase
+                .from('office365_customizations')
+                .update({
+                    is_rejected: true,
+                    rejection_reason: rejectionReason || 'Your customization request was rejected by the admin.',
+                    rejected_at: new Date().toISOString()
+                })
+                .eq('id', id);
+
+            if (rejectError) {
+                console.error('Error rejecting customization:', rejectError);
+                return NextResponse.json(
+                    { error: 'Failed to reject request' },
+                    { status: 500 }
+                );
+            }
+
+            // Send rejection email
+            let customerEmail = customization.customer_email;
+            if (!customerEmail) {
+                const { data: warranty } = await supabase
+                    .from('warranty_registrations')
+                    .select('customer_email')
+                    .eq('order_id', customization.order_id)
+                    .maybeSingle();
+                if (warranty?.customer_email) customerEmail = warranty.customer_email;
+            }
+            if (!customerEmail) {
+                const { data: order } = await supabase
+                    .from('amazon_orders')
+                    .select('contact_email')
+                    .eq('order_id', customization.order_id)
+                    .maybeSingle();
+                if (order?.contact_email && !order.contact_email.includes('@marketplace.amazon')) {
+                    customerEmail = order.contact_email;
+                }
+            }
+
+            if (resendApiKey && customerEmail) {
+                try {
+                    const resend = new Resend(resendApiKey);
+                    await resend.emails.send({
+                        from: 'SimplySolutions <support@auth.simplysolutions.co.in>',
+                        to: customerEmail,
+                        subject: `Username Customization Update - Order ${customization.order_id}`,
+                        html: `
+                            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f4f6f8;">
+                                <div style="padding: 32px 20px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+                                        <tr>
+                                            <td style="text-align: center;">
+                                                <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #DC3E15; letter-spacing: -0.5px;">SimplySolutions</h1>
+                                                <p style="margin: 4px 0 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Account Notification</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <div style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                        <div style="background: linear-gradient(135deg, #DC2626, #991B1B); padding: 28px 24px; text-align: center;">
+                                            <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">Username Customization Update</h2>
+                                            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.85); font-size: 14px;">Hi ${customization.first_name || 'there'}, we have an update on your request.</p>
+                                        </div>
+                                        <div style="padding: 28px 24px;">
+                                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+                                                <tr>
+                                                    <td style="background: #f8fafc; border-radius: 8px; padding: 12px 16px; border: 1px solid #e2e8f0;">
+                                                        <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; font-weight: 600;">Order ID</span><br />
+                                                        <span style="font-size: 14px; color: #334155; font-weight: 600; font-family: 'Courier New', monospace;">${customization.order_id}</span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                                                <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #991B1B;">Your customization request for <strong style="font-family: 'Courier New', monospace;">${customization.username_prefix}@ms365.pro</strong> could not be processed.</p>
+                                                ${rejectionReason ? `<p style="margin: 0; font-size: 13px; color: #DC2626;"><strong>Reason:</strong> ${rejectionReason}</p>` : ''}
+                                            </div>
+                                            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px;">
+                                                <p style="margin: 0; font-size: 14px; color: #1e40af;">
+                                                    <strong>What to do next:</strong> You can submit a new customization request with a different username by visiting your activation page.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+                                        <p style="margin: 0; font-size: 11px; color: #94a3b8;">&copy; ${new Date().getFullYear()} SimplySolutions. All rights reserved.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    });
+                } catch (emailError) {
+                    console.error('Failed to send rejection email:', emailError);
+                }
+            }
+
+            return NextResponse.json({
+                success: true,
+                message: 'Customization request rejected. Customer has been notified.'
+            });
+        }
+
+        // ── FULFILL ACTION ──
         let currentLicenseKey = null;
         const { data: licenseKeyRow } = await supabase
             .from('amazon_activation_license_keys')

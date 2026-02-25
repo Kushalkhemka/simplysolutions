@@ -18,9 +18,11 @@ export async function GET(request: NextRequest) {
             .order('created_at', { ascending: false });
 
         if (status === 'pending') {
-            query = query.eq('is_completed', false);
+            query = query.eq('is_completed', false).eq('is_rejected', false);
         } else if (status === 'fulfilled') {
             query = query.eq('is_completed', true);
+        } else if (status === 'rejected') {
+            query = query.eq('is_rejected', true);
         }
 
         const { data: requests, error } = await query;
@@ -36,11 +38,12 @@ export async function GET(request: NextRequest) {
         // Get stats
         const { data: allRequests } = await supabase
             .from('office365_customizations')
-            .select('is_completed');
+            .select('is_completed, is_rejected');
 
         const stats = {
-            pending: (allRequests || []).filter(r => !r.is_completed).length,
+            pending: (allRequests || []).filter(r => !r.is_completed && !r.is_rejected).length,
             fulfilled: (allRequests || []).filter(r => r.is_completed).length,
+            rejected: (allRequests || []).filter(r => r.is_rejected).length,
             total: (allRequests || []).length
         };
 

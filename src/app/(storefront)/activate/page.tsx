@@ -149,6 +149,8 @@ function ActivatePageContent() {
         canCustomize: boolean;
         alreadySubmitted?: boolean;
         alreadyCustomized?: boolean;
+        wasRejected?: boolean;
+        rejectionReason?: string;
         usernamePrefix?: string;
         generatedEmail?: string;
     } | null>(null);
@@ -171,6 +173,7 @@ function ActivatePageContent() {
     const [custSubmitting, setCustSubmitting] = useState(false);
     const [custSubmitted, setCustSubmitted] = useState(false);
     const [custSubmittedUsername, setCustSubmittedUsername] = useState('');
+    const [custEmail, setCustEmail] = useState('');
     const custUsernameDebounce = useRef<NodeJS.Timeout | null>(null);
 
     // Contact info modal state (for when keys are not available)
@@ -203,6 +206,13 @@ function ActivatePageContent() {
             if (data.valid && data.warrantyVerified) {
                 setCustomizationStatus({ canCustomize: true });
                 setWarrantyNeeded(false);
+                // Capture email from the response so the customization form has it
+                if (data.warrantyEmail) setWEmail(data.warrantyEmail);
+                else if (data.buyerEmail) setWEmail(data.buyerEmail);
+            } else if (data.wasRejected) {
+                setCustomizationStatus({ canCustomize: true, wasRejected: true, rejectionReason: data.rejectionReason });
+                setWarrantyNeeded(false);
+                if (data.buyerEmail) setWEmail(data.buyerEmail);
             } else if (data.alreadySubmitted) {
                 setCustomizationStatus({ canCustomize: false, alreadySubmitted: true, usernamePrefix: data.usernamePrefix });
                 setWarrantyNeeded(false);
@@ -292,6 +302,10 @@ function ActivatePageContent() {
             toast.error('Please fill in all fields (username must be at least 3 characters)');
             return;
         }
+        if (!custEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(custEmail.trim())) {
+            toast.error('Please enter a valid email address');
+            return;
+        }
         if (!/^[a-z][a-z0-9._-]*$/.test(custUsername)) {
             toast.error('Username must start with a letter');
             return;
@@ -310,7 +324,7 @@ function ActivatePageContent() {
                     usernamePrefix: custUsername.trim(),
                     firstName: custFirstName.trim(),
                     lastName: custLastName.trim(),
-                    customerEmail: wEmail.trim() || contactEmail.trim() || 'customer@simplysolutions.co.in',
+                    customerEmail: custEmail.trim(),
                 }),
             });
             const data = await res.json();
@@ -1538,6 +1552,20 @@ function ActivatePageContent() {
                                                             </div>
                                                         )}
 
+                                                        {/* Rejected - allow resubmission */}
+                                                        {customizationStatus?.wasRejected && !custSubmitted && (
+                                                            <div className="flex items-start gap-3 p-3 bg-[#FEF2F2] border border-[#FECACA] rounded-lg mb-3">
+                                                                <XCircle className="w-5 h-5 text-[#DC2626] flex-shrink-0 mt-0.5" />
+                                                                <div>
+                                                                    <p className="font-bold text-sm text-[#991B1B]">Previous Request Rejected</p>
+                                                                    <p className="text-xs text-[#565959] mt-1">
+                                                                        {customizationStatus.rejectionReason || 'Your previous customization request was rejected.'}
+                                                                    </p>
+                                                                    <p className="text-xs text-[#0078D4] font-medium mt-2">You can submit a new request below with a different username.</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
                                                         {/* Already customized */}
                                                         {customizationStatus?.alreadyCustomized && (
                                                             <div className="flex items-start gap-3 p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg">
@@ -1629,6 +1657,19 @@ function ActivatePageContent() {
                                                                                     className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white text-[#0F1111] focus:outline-none focus:ring-2 focus:ring-[#0078D4]"
                                                                                 />
                                                                             </div>
+                                                                        </div>
+
+                                                                        {/* Email */}
+                                                                        <div>
+                                                                            <label className="block text-xs font-medium text-[#0F1111] mb-1">Email Address <span className="text-[#CC0C39]">*</span></label>
+                                                                            <input
+                                                                                type="email"
+                                                                                value={custEmail}
+                                                                                onChange={(e) => setCustEmail(e.target.value)}
+                                                                                placeholder="your.email@example.com"
+                                                                                className="w-full px-3 py-2 border border-[#888C8C] rounded text-sm bg-white text-[#0F1111] focus:outline-none focus:ring-2 focus:ring-[#0078D4]"
+                                                                            />
+                                                                            <p className="text-[10px] text-[#565959] mt-1">We&apos;ll send your new login credentials to this email.</p>
                                                                         </div>
 
                                                                         {/* Preview */}

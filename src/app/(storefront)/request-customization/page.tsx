@@ -23,6 +23,7 @@ function RequestCustomizationContent() {
         usernamePrefix: '',
         firstName: '',
         lastName: '',
+        customerEmail: '',
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,6 +61,10 @@ function RequestCustomizationContent() {
             if (data.valid && data.warrantyVerified) {
                 setStep('form');
                 toast.success('Order verified! Please fill in your customization details.');
+            } else if (data.wasRejected) {
+                setOrderStatus(data);
+                setStep('form');
+                toast.info('Your previous request was rejected. You can submit a new one.');
             } else if (data.valid && data.alreadySubmitted) {
                 toast.info('A customization request has already been submitted for this order.');
             } else if (data.valid && data.alreadyCustomized) {
@@ -147,6 +152,12 @@ function RequestCustomizationContent() {
             newErrors.lastName = 'Last name is required';
         }
 
+        if (!formData.customerEmail.trim()) {
+            newErrors.customerEmail = 'Email address is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customerEmail.trim())) {
+            newErrors.customerEmail = 'Please enter a valid email address';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -185,7 +196,7 @@ function RequestCustomizationContent() {
                     usernamePrefix: formData.usernamePrefix.trim(),
                     firstName: formData.firstName.trim(),
                     lastName: formData.lastName.trim(),
-                    customerEmail: orderStatus?.buyerEmail || '',
+                    customerEmail: formData.customerEmail.trim(),
                 }),
             });
 
@@ -322,6 +333,22 @@ function RequestCustomizationContent() {
             <div className="container mx-auto px-4 py-8 md:py-12">
                 <div className="max-w-xl mx-auto">
 
+                    {/* Rejection Notice */}
+                    {orderStatus?.wasRejected && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-5 mb-6">
+                            <div className="flex items-start gap-3">
+                                <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <h3 className="font-semibold text-red-800 mb-1">Previous Request Rejected</h3>
+                                    <p className="text-sm text-red-700">
+                                        {orderStatus.rejectionReason || 'Your previous customization request was rejected.'}
+                                    </p>
+                                    <p className="text-sm text-red-600 mt-2 font-medium">You can submit a new request below.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Info Card */}
                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6">
                         <div className="flex items-start gap-3">
@@ -385,7 +412,7 @@ function RequestCustomizationContent() {
                                         onClick={() => {
                                             setStep('order');
                                             setOrderStatus(null);
-                                            setFormData({ usernamePrefix: '', firstName: '', lastName: '' });
+                                            setFormData({ usernamePrefix: '', firstName: '', lastName: '', customerEmail: '' });
                                             setUsernameAvailable(null);
                                         }}
                                         className="px-4 py-3 border-2 border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-all text-sm font-medium"
@@ -531,16 +558,25 @@ function RequestCustomizationContent() {
                                     </div>
                                 </div>
 
-                                {/* Email Preview */}
-                                {orderStatus?.buyerEmail && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                                        <Mail className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                                        <div>
-                                            <p className="text-xs text-slate-500">Notifications will be sent to</p>
-                                            <p className="text-sm font-medium text-slate-700">{orderStatus.buyerEmail}</p>
-                                        </div>
-                                    </div>
-                                )}
+                                {/* Email */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">
+                                        Email Address <span className="text-red-500">*</span>
+                                    </label>
+                                    <p className="text-xs text-slate-500 mb-2">We&apos;ll send your new login credentials to this email</p>
+                                    <input
+                                        type="email"
+                                        name="customerEmail"
+                                        value={formData.customerEmail}
+                                        onChange={handleInputChange}
+                                        placeholder="your.email@example.com"
+                                        className={`w-full px-4 py-3 border-2 rounded-lg text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${errors.customerEmail ? 'border-red-400 bg-red-50' : 'border-slate-300'
+                                            }`}
+                                    />
+                                    {errors.customerEmail && (
+                                        <p className="text-xs text-red-600 mt-1">{errors.customerEmail}</p>
+                                    )}
+                                </div>
 
                                 {/* Preview */}
                                 {formData.usernamePrefix.length >= 3 && (

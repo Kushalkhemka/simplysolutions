@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
         // Check if customization already submitted
         const { data: existingCustomization } = await supabase
             .from('office365_customizations')
-            .select('id, is_completed, username_prefix, generated_email')
+            .select('id, is_completed, is_rejected, rejection_reason, username_prefix, generated_email')
             .eq('order_id', orderId.trim())
             .maybeSingle();
 
@@ -96,6 +96,17 @@ export async function GET(request: NextRequest) {
                     alreadyCustomized: true,
                     generatedEmail: existingCustomization.generated_email,
                     message: 'Your customization request has already been fulfilled!'
+                });
+            }
+            // If rejected, allow resubmission
+            if (existingCustomization.is_rejected) {
+                return NextResponse.json({
+                    valid: true,
+                    wasRejected: true,
+                    rejectionReason: existingCustomization.rejection_reason,
+                    rejectedRequestId: existingCustomization.id,
+                    buyerEmail: order.contact_email,
+                    message: 'Your previous customization request was rejected. You can submit a new one.'
                 });
             }
             return NextResponse.json({
@@ -109,7 +120,7 @@ export async function GET(request: NextRequest) {
         // Check warranty status - must be submitted (any status)
         const { data: warranty } = await supabase
             .from('warranty_registrations')
-            .select('id, status')
+            .select('id, status, customer_email')
             .eq('order_id', orderId.trim())
             .maybeSingle();
 
@@ -123,11 +134,12 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // All checks passed
+        // All checks passed — return warranty email as a more reliable source
         return NextResponse.json({
             valid: true,
             warrantyVerified: true,
             buyerEmail: order.contact_email,
+            warrantyEmail: warranty.customer_email || null,
             message: 'Order verified. You can proceed with customization.'
         });
 
@@ -219,18 +231,26 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if already submitted
+        // Check if already submitted — allow resubmission if rejected
         const { data: existingCustomization } = await supabase
             .from('office365_customizations')
-            .select('id')
+            .select('id, is_rejected')
             .eq('order_id', trimmedOrderId)
             .maybeSingle();
 
         if (existingCustomization) {
-            return NextResponse.json(
-                { error: 'A customization request has already been submitted for this order.' },
-                { status: 409 }
-            );
+            if (existingCustomization.is_rejected) {
+                // Delete the rejected request to allow resubmission
+                await supabase
+                    .from('office365_customizations')
+                    .delete()
+                    .eq('id', existingCustomization.id);
+            } else {
+                return NextResponse.json(
+                    { error: 'A customization request has already been submitted for this order.' },
+                    { status: 409 }
+                );
+            }
         }
 
         // Check username uniqueness
