@@ -81,7 +81,26 @@ export default function LicenseKeysClient() {
             .order('fsn');
 
         if (data) {
-            setFsnMappings(data);
+            // Priority FSNs to show at the top of the dropdown
+            const priorityFsns = [
+                'OFFICE365',
+                'WINDOWS11',
+                'OFFICE2024-WIN',
+                'PP2016',
+                'WIN11HOME',
+                'OFFG9MREFCXD658G',
+                'OPSG4ZTTK5MMZWPB',
+                'CHATGPT',
+            ];
+            const sorted = [...data].sort((a, b) => {
+                const aIdx = priorityFsns.indexOf(a.fsn);
+                const bIdx = priorityFsns.indexOf(b.fsn);
+                if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                if (aIdx !== -1) return -1;
+                if (bIdx !== -1) return 1;
+                return a.fsn.localeCompare(b.fsn);
+            });
+            setFsnMappings(sorted);
         }
     }, [supabase]);
 

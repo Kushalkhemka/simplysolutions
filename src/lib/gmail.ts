@@ -159,20 +159,63 @@ export interface GmailThreadMessage {
 function categorizeEnquiry(reason: string, subject: string): GmailEnquiry['category'] {
     const text = `${reason} ${subject}`.toLowerCase();
 
-    if (/deliver|package|ship|dispatch|track|when.*get|eta/i.test(text)) {
-        return 'delivery';
-    }
-    if (/refund|cancel|return|money back/i.test(text)) {
-        return 'refund';
-    }
-    if (/fake|pirat|counterfeit|non.?genuine|not genuine|fraud|scam|illegal|suspicious/i.test(text)) {
-        return 'product_claim';
-    }
-    if (/not work|error|block|activat|install|key.*issue|broken|fail/i.test(text)) {
+    // ── Tech Support (highest priority — overrides all other categories on conflict) ──
+    // Template: "contact WhatsApp 8178848830 / share screenshot via Amazon B-S Messaging"
+    // Covers: activation, installation, error, invalid/used/expired key, crashes
+    if (/\b(not work(ing)?|doesn'?t work|error|block(ed)?|activat(e|ed|ion|ing)?)\b/.test(text)
+        || /\b(install(ed|ing|ation)?|setup|set up|configur(e|ed|ing|ation)?)\b/.test(text)
+        || /\b(key (issue|problem|error|not work|invalid|used|expired|wrong))\b/.test(text)
+        || /\b(invalid|expired|already used|wrong key|wrong product|wrong code)\b/.test(text)
+        || /\b(product key|serial (key|number|code)|license (key|code|expired|invalid))\b/.test(text)
+        || /\b(broken|fail(ed|ing)?|crash(ed|ing)?|freeze|stuck|not responding|hang(ing)?)\b/.test(text)
+        || /\b(unable to|cannot|can'?t (activate|install|run|use|open|access))\b/.test(text)
+        || /\b(problem|issue|trouble|help|support|assist(ance)?)\b/.test(text)
+        || /\b(code not|redemption|redeem|microsoft|windows|office|autocad|adobe)\b/.test(text)
+    ) {
         return 'tech_support';
     }
+
+    // ── Product Claim ─────────────────────────────────────────────────────
+    // Template: cancellation + screenshot request line
+    // Covers: fake, pirated, fraud, duplicate, blacklisted, compromised keys
+    if (/\b(fake|pirat(e|ed|acy)|counterfeit|non.?genuine|not genuine)\b/.test(text)
+        || /\b(fraud|scam|illegal|suspicious|unauthori[sz]ed|stolen|duplicate|copied)\b/.test(text)
+        || /\b(blacklist(ed)?|compromised|banned key|not (original|authentic|legit))\b/.test(text)
+    ) {
+        return 'product_claim';
+    }
+
+    // ── Refund / Cancellation ─────────────────────────────────────────────
+    // Template: "non-returnable, non-refundable, non-cancellable after delivery"
+    // Covers: refund, cancel, return, exchange, money back, complaint, chargeback
+    if (/\b(refund|cancel(led|lation)?|return(ed|ing)?|money back|get back|reimburse?ment?)\b/.test(text)
+        || /\b(exchange|replacement|swap|want (a )?replace|send (another|new))\b/.test(text)
+        || /\b(chargeback|dispute|claim|complain(t)?|not (happy|satisfied|working))\b/.test(text)
+        || /\b(compensation|credit|dissatisfied|reject(ed)?|don'?t want|no longer (want|need))\b/.test(text)
+        || /\b(withdraw|not accept(ed)?|unacceptable|demand (refund|money))\b/.test(text)
+    ) {
+        return 'refund';
+    }
+
+    // ── Delivery ─────────────────────────────────────────────────────────
+    // Template: "delivered to Amazon-registered email within 1 hour"
+    // Covers: customer asking where product is / not received in inbox / how to access
+    if (/\b(deliver|dispatched?|ship(ped|ping)?|package|parcel|track(ing)?|eta|dispatch)\b/.test(text)
+        || /\bnot\s+(received?|got|get|in inbox)\b/.test(text)
+        || /\b(haven'?t|have not|did ?n'?t|not)\s+(received?|got|get)\b/.test(text)
+        || /\b(where is|where'?s|status of)\s+(my )?(order|product|item|key|license)\b/.test(text)
+        || /\b(not (in|check) (my )?inbox|missing (email|key|license|product))\b/.test(text)
+        || /\b(how to (access|download|get|open)|access (my )?order|amazon message(s|ing)?|amazon\.in\/msg)\b/.test(text)
+        || /\bnot (yet )?received\b/.test(text)
+        || /\b(email not received|no email|inbox empty)\b/.test(text)
+    ) {
+        return 'delivery';
+    }
+
     return 'other';
 }
+
+
 
 function extractIssueDetails(body: string) {
     const orderMatch = body.match(/Order number:\s*([\w-]+)/i) || body.match(/Order ID:\s*([\w-]+)/i);
@@ -364,30 +407,34 @@ export async function sendGmailReply({ threadId, inReplyTo, to, subject, body, c
 // ─── Mark Messages as Read ──────────────────────────────────────────
 
 export async function markMessagesAsRead(messageIds: string[], creds?: GmailCredentials): Promise<number> {
-    const accessToken = await getGmailAccessToken(creds);
-    let successCount = 0;
+    if (messageIds.length === 0) return 0;
 
-    for (const messageId of messageIds) {
-        try {
-            const res = await fetch(
-                `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/modify`,
-                {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        removeLabelIds: ['UNREAD'],
-                    }),
-                }
-            );
-            const result = await res.json();
-            if (!result.error) successCount++;
-        } catch {
-            // Continue with next message
+    const accessToken = await getGmailAccessToken(creds);
+
+    // Use Gmail's batchModify — one API call for ALL messages
+    const res = await fetch(
+        'https://gmail.googleapis.com/gmail/v1/users/me/messages/batchModify',
+        {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ids: messageIds,
+                removeLabelIds: ['UNREAD'],
+            }),
         }
+    );
+
+    // batchModify returns 204 No Content on success
+    if (res.ok || res.status === 204) {
+        return messageIds.length;
     }
 
-    return successCount;
+    // Fallback: if batch fails, return 0
+    const error = await res.json().catch(() => ({}));
+    console.error('[Gmail] batchModify failed:', error);
+    return 0;
 }
+

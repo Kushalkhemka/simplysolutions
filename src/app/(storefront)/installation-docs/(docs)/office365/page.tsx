@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Download, ExternalLink, AlertCircle, CheckCircle, Shield, Smartphone, Tablet, Monitor, Info } from 'lucide-react';
+import { ArrowLeft, Download, ExternalLink, AlertCircle, CheckCircle, Shield, Smartphone, Tablet, Monitor, Info, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const metadata = {
@@ -414,6 +414,53 @@ export default function Office365GuidePage() {
                                     unoptimized
                                 />
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Customize Your Username */}
+                    <div className="bg-gradient-to-r from-[#E8F4FD] to-[#F0E6FF] dark:from-[#0078D4]/20 dark:to-[#6B21A8]/20 border-2 border-[#0078D4] dark:border-[#60A5FA] rounded-2xl p-6 shadow-lg">
+                        <div className="flex items-start gap-4 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0078D4] to-[#005A9E] text-white flex items-center justify-center shadow-lg">
+                                <Pencil className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-[#0078D4] dark:text-[#60A5FA]">Customize Your Username</h2>
+                                <p className="text-muted-foreground">Get a personalized email instead of the default numbered one</p>
+                            </div>
+                        </div>
+                        <div className="ml-14 space-y-4">
+                            <p className="text-[#333] dark:text-gray-300">
+                                You can replace your default numbered email with a custom one like <strong className="font-mono text-[#0078D4]">yourname@ms365.pro</strong>.
+                                This option is available directly on your <strong>Activate</strong> page.
+                            </p>
+                            <div className="bg-white dark:bg-gray-900/50 rounded-xl p-4 border border-[#0078D4]/20 space-y-3">
+                                <div className="flex items-start gap-3">
+                                    <span className="bg-[#0078D4] text-white font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">1</span>
+                                    <p className="text-sm text-[#333] dark:text-gray-300">Go to the <a href="/activate" className="font-bold text-[#0078D4] underline hover:text-[#005A9E]">Activate Page</a> and enter your Order ID / Secret Code</p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <span className="bg-[#0078D4] text-white font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">2</span>
+                                    <p className="text-sm text-[#333] dark:text-gray-300">Complete the <strong>Warranty Registration</strong> if you haven&apos;t already (required to unlock customization)</p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <span className="bg-[#0078D4] text-white font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">3</span>
+                                    <p className="text-sm text-[#333] dark:text-gray-300">Look for the <strong>&quot;Customize Your Username&quot;</strong> section and click <strong>&quot;✨ Customize My Username&quot;</strong></p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <span className="bg-[#0078D4] text-white font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">4</span>
+                                    <p className="text-sm text-[#333] dark:text-gray-300">Choose your desired username, fill in your details, and submit the request</p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <span className="bg-[#067D62] text-white font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">✓</span>
+                                    <p className="text-sm text-[#333] dark:text-gray-300">Your new custom username will be ready within <strong>24-48 hours</strong> and you&apos;ll be notified via email</p>
+                                </div>
+                            </div>
+                            <a href="/activate">
+                                <Button size="lg" className="gap-2 bg-gradient-to-r from-[#0078D4] to-[#005A9E] hover:from-[#006CBD] hover:to-[#004E8C] text-white shadow-lg mt-2">
+                                    <Pencil className="h-4 w-4" />
+                                    Go to Activate Page to Customize
+                                </Button>
+                            </a>
                         </div>
                     </div>
 

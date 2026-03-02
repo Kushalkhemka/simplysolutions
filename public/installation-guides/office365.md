@@ -69,7 +69,17 @@ Installation process is simple please follow all the instructions correctly till
 10) Your Office 365 will be activated for lifetime.[/left]
 [left]![](https://api.simplysolutions.co.in/storage/v1/object/public/product-assets/installation-guide-images/tinywow-d4d6504cd45a68e701db9c5b30041ea1-62491022.png)
 
- To access Onedrive Storage**, download Onedrive app or visit [**https://onedrive.live.com/**](https://onedrive.live.com/) . Remember you need to sign in with the generated 365 account in order to enjoy the cloud storage access.[/left]
+[hr]
+**✨ Customize Your Username (Optional)**
+You can replace your default numbered email with a custom one like **yourname@ms365.pro**. To do this:
+1. Go to the **[Activate Page](https://simplysolutions.co.in/activate)** and enter your Order ID / Secret Code
+2. Complete the **Warranty Registration** if you haven't already (required to unlock customization)
+3. Look for the **"Customize Your Username"** section and click **"✨ Customize My Username"**
+4. Choose your desired username, fill in your details, and submit the request
+5. Your new custom username will be ready within **24-48 hours** and you'll be notified via email
+[hr]
+
+ To access Onedrive Storage**, download Onedrive app or visit [**https://onedrive.live.com/**](https://onedrive.live.com/) . Remember you need to sign in with the generated 365 account in order to enjoy the cloud storage access.[/left]
 [left][hr]
 [/left]
 [left]***NOTE - The procedure is similar for both macOS and windows and you can activate upto 5 devices of even different OS in a similar way.***[/left]

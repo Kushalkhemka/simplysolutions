@@ -141,8 +141,8 @@ export const createCouponSchema = z.object({
     minOrderAmount: z.coerce.number().min(0).default(0),
     usageLimit: z.coerce.number().min(1).optional(),
     perUserLimit: z.coerce.number().min(1).default(1),
-    validFrom: z.string().datetime().optional(),
-    validUntil: z.string().datetime().optional(),
+    validFrom: z.string().min(1).optional(),
+    validUntil: z.string().min(1).optional(),
     isActive: z.boolean().default(true),
 });
 

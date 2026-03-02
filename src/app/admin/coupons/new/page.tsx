@@ -41,6 +41,7 @@ export default function NewCouponPage() {
                     minOrderAmount: parseFloat(formData.minOrderAmount) || 0,
                     usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : undefined,
                     perUserLimit: parseInt(formData.perUserLimit) || 1,
+                    validUntil: formData.validUntil ? new Date(formData.validUntil).toISOString() : undefined,
                 }),
             });
 
@@ -154,6 +155,7 @@ export default function NewCouponPage() {
                                 type="datetime-local"
                                 value={formData.validUntil}
                                 onChange={(e) => setFormData({ ...formData, validUntil: e.target.value })}
+                                max="9999-12-31T23:59"
                             />
                         </div>
                     </div>

@@ -5,10 +5,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import {
     Search, RefreshCw, Loader2, Mail, Send, Eye, X,
     MessageSquare, Truck, Ban, AlertTriangle, HelpCircle,
-    Sparkles, Copy, Check, ChevronDown, Clock, Inbox,
+    Copy, Check, ChevronDown, Clock, Inbox,
     Plus, Trash2, Settings, Power, ChevronUp,
-    Filter, ArrowUpDown, CalendarDays, MailOpen, CheckCircle2,
-    CheckSquare, Square, MailCheck
+    Filter, ArrowUpDown, MailOpen, CheckCircle2,
+    CheckSquare, Square, MailCheck, CloudDownload
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -70,19 +70,21 @@ For quick assistance with this issue, please contact our technical support team 
 
 Our WhatsApp support includes automated chatbot assistance for instant replies, followed by manual support from our technical team if required. You may also request your license directly from technical support through this channel.
 
-Additionally, you can find the email copy shared with you in Amazon Buyer–Seller Messaging at amazon.in/message for installation/activation instructions. If the issue persists, you may share the error screenshot via Amazon Buyer–Seller Messaging, and our team will review and respond accordingly.
+Additionally, you can find the email copy shared with you in Amazon Buyer\u2013Seller Messaging at amazon.in/message for installation/activation instructions.
 
-Thank you for your cooperation.
-CODEKEYS`,
+If the issue persists, you may share the error screenshot via Amazon Buyer\u2013Seller Messaging, and our team will review and respond accordingly.
+
+Thanks for your cooperation & patience.`,
     },
     delivery: {
         name: '📦 Delivery',
         body: `Dear [BUYER_NAME],
 
-We would like to inform you that your order has been successfully delivered to your Amazon-registered email address within 1 hour of your purchase time. You can also access a copy of the same by visiting Amazon Messaging Center at amazon.in/msg 
+We would like to inform you that your order has been successfully delivered to your Amazon-registered email address within 1 hour of your purchase time. You can also access a copy of the same by visiting Amazon Messaging Center at amazon.in/msg
 
-Thanks & Regards
-CODEKEYS`,
+For quick assistance with this issue, please contact our technical support team on WhatsApp at 8178848830 (messages only; calls are not supported). Our WhatsApp support includes automated chatbot assistance for instant replies, followed by manual support from our technical team if required.
+
+Thanks for your cooperation & patience.`,
     },
     cancellation: {
         name: '🚫 Cancellation',
@@ -94,12 +96,33 @@ We would like to clearly inform you that this order was successfully delivered v
 
 Please note that all software products are non-returnable, non-refundable, and non-cancellable after delivery, irrespective of usage status or activation.
 
-If you are experiencing any technical issues, activation errors, or installation difficulties, you may contact our technical support team on WhatsApp at 8178848830 (messages only; calls are not supported). Our support team will assist you with troubleshooting and activation guidance.
+If you are experiencing any technical issues, activation errors, or installation difficulties, you may contact our technical support team on WhatsApp at 8178848830 (messages only; calls are not supported).
+
+Our support team will assist you with troubleshooting and activation guidance.
 
 We appreciate your understanding and cooperation.
 
-Regards,
-CODEKEYS`,
+Thanks for your cooperation & patience.`,
+    },
+    product_claim: {
+        name: '🚨 Product Claim',
+        body: `Dear [BUYER_NAME],
+
+Thank you for contacting us regarding your order [ORDER_ID].
+
+We would like to clearly inform you that this order was successfully delivered via Digital Delivery. As this product falls under the software category, cancellations or refunds are strictly not permitted once delivery is completed, in accordance with Amazon's Policies and Guidelines. 
+
+Please note that all software products are non-returnable, non-refundable, and non-cancellable after delivery, irrespective of usage status or activation.
+
+If you are experiencing any technical issues, activation errors, or installation difficulties, you may contact our technical support team on WhatsApp at 8178848830 (messages only; calls are not supported).
+
+Our support team will assist you with troubleshooting and activation guidance.
+
+We appreciate your understanding and cooperation.
+
+Please share the screenshot of the claim made here for further review and resolution. Meanwhile you can reach out to our tech support team on WhatsApp at 8178848830 for faster resolution.
+
+Thanks for your cooperation & patience.`,
     },
 };
 
@@ -125,10 +148,10 @@ export default function GmailEnquiriesClient() {
     const [loadingThread, setLoadingThread] = useState(false);
     const [replyText, setReplyText] = useState('');
     const [sendingReply, setSendingReply] = useState(false);
-    const [generatingAI, setGeneratingAI] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<string>('');
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
     const [copiedReply, setCopiedReply] = useState(false);
+    const [syncing, setSyncing] = useState(false);
 
     // Selection & Bulk Actions
     const [selectedThreadIds, setSelectedThreadIds] = useState<Set<string>>(new Set());
@@ -181,25 +204,13 @@ export default function GmailEnquiriesClient() {
         else setLoading(true);
 
         try {
-            // If refreshing, trigger a live sync from Gmail first
-            if (isRefresh) {
-                const syncRes = await fetch('/api/cron/sync-gmail', {
-                    headers: { 'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || 'simplysolutions-cron-2026'}` },
-                });
-                const syncData = await syncRes.json();
-                if (syncData.success) {
-                    const newCount = syncData.new || 0;
-                    const aiCount = syncData.aiGenerated || 0;
-                    toast.success(`Synced! ${newCount} new, ${aiCount} AI replies generated`);
-                }
-            }
-
+            // Always read from DB — instant response
             const res = await fetch('/api/admin/gmail-enquiries');
             const data = await res.json();
 
             if (data.success) {
                 setEnquiries(data.enquiries);
-                if (!isRefresh) toast.success(`Loaded ${data.enquiries.length} enquiries`);
+                if (isRefresh) toast.success(`Refreshed — ${data.enquiries.length} enquiries loaded`);
             } else {
                 toast.error(data.error || 'Failed to fetch enquiries');
             }
@@ -210,6 +221,26 @@ export default function GmailEnquiriesClient() {
             setRefreshing(false);
         }
     }, []);
+
+    // Trigger a live Gmail sync (admin session auth via cookies — no bearer token needed)
+    const syncNow = useCallback(async () => {
+        setSyncing(true);
+        try {
+            const syncRes = await fetch('/api/cron/sync-gmail');
+            const syncData = await syncRes.json();
+            if (syncData.success) {
+                const newCount = syncData.new || 0;
+                toast.success(`Synced! ${newCount} new enquiries found`);
+                await fetchEnquiries();
+            } else {
+                toast.error(syncData.error || 'Sync failed');
+            }
+        } catch {
+            toast.error('Sync failed');
+        } finally {
+            setSyncing(false);
+        }
+    }, [fetchEnquiries]);
 
     const fetchAccounts = useCallback(async () => {
         try {
@@ -384,41 +415,6 @@ export default function GmailEnquiriesClient() {
         setShowTemplateDropdown(false);
     };
 
-    // ─── Generate AI Reply ──────────────────────────────────────────
-
-    const generateAIReply = async () => {
-        if (!selectedEnquiry) return;
-        setGeneratingAI(true);
-
-        try {
-            const res = await fetch('/api/admin/gmail-enquiries/ai-reply', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    customerMessage: selectedEnquiry.reason || selectedEnquiry.body,
-                    customerName: selectedEnquiry.customerName,
-                    orderId: selectedEnquiry.orderId,
-                    product: selectedEnquiry.product,
-                    reason: selectedEnquiry.reason,
-                    category: selectedEnquiry.category,
-                }),
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                setReplyText(data.reply);
-                setSelectedTemplate('');
-                toast.success('AI reply generated');
-            } else {
-                toast.error(data.error || 'Failed to generate AI reply');
-            }
-        } catch (error) {
-            toast.error('Failed to generate AI reply');
-        } finally {
-            setGeneratingAI(false);
-        }
-    };
-
     // ─── Send Reply ─────────────────────────────────────────────────
 
     const sendReply = async () => {
@@ -583,18 +579,18 @@ export default function GmailEnquiriesClient() {
         setBulkSending(false);
     };
 
-    const bulkSendAIReplies = async () => {
-        const selected = filteredEnquiries.filter(
-            e => selectedThreadIds.has(e.threadId) && e.aiSuggestedReply
-        );
-        const skipped = filteredEnquiries.filter(
-            e => selectedThreadIds.has(e.threadId) && !e.aiSuggestedReply
-        ).length;
+    // Sends each selected enquiry its category-appropriate template automatically
+    const CATEGORY_TO_TEMPLATE_KEY: Record<string, string> = {
+        delivery: 'delivery',
+        refund: 'cancellation',
+        product_claim: 'product_claim',
+        tech_support: 'tech_support',
+        other: 'tech_support',
+    };
 
-        if (selected.length === 0) {
-            toast.error('No selected enquiries have AI replies');
-            return;
-        }
+    const bulkSendCorrespondingTemplates = async () => {
+        const selected = filteredEnquiries.filter(e => selectedThreadIds.has(e.threadId));
+        if (selected.length === 0) { toast.error('No enquiries selected'); return; }
 
         setBulkSending(true);
         setBulkProgress({ current: 0, total: selected.length });
@@ -603,6 +599,14 @@ export default function GmailEnquiriesClient() {
         for (let i = 0; i < selected.length; i++) {
             const enquiry = selected[i];
             setBulkProgress({ current: i + 1, total: selected.length });
+
+            const templateKey = CATEGORY_TO_TEMPLATE_KEY[enquiry.category] || 'tech_support';
+            const template = TEMPLATES[templateKey];
+            if (!template) continue;
+
+            let text = template.body;
+            text = text.replace(/\[BUYER_NAME\]/g, enquiry.customerName || 'Customer');
+            text = text.replace(/\[ORDER_ID\]/g, enquiry.orderId || 'N/A');
 
             try {
                 const res = await fetch('/api/admin/gmail-enquiries/reply', {
@@ -613,7 +617,7 @@ export default function GmailEnquiriesClient() {
                         inReplyTo: enquiry.messageId,
                         to: enquiry.from,
                         subject: enquiry.subject,
-                        replyBody: enquiry.aiSuggestedReply,
+                        replyBody: text,
                         accountEmail: enquiry.accountEmail,
                     }),
                 });
@@ -632,10 +636,11 @@ export default function GmailEnquiriesClient() {
             } catch { /* continue */ }
         }
 
-        toast.success(`Sent ${successCount}/${selected.length} AI replies${skipped > 0 ? ` (${skipped} skipped — no AI reply)` : ''}`);
+        toast.success(`Sent ${successCount}/${selected.length} replies`);
         setSelectedThreadIds(new Set());
         setBulkSending(false);
     };
+
 
     // ─── Category Helpers ───────────────────────────────────────────
 
@@ -756,6 +761,15 @@ export default function GmailEnquiriesClient() {
                     >
                         {markingRead ? <Loader2 className="h-4 w-4 animate-spin" /> : <MailCheck className="h-4 w-4" />}
                         Mark All Read
+                    </button>
+                    <button
+                        onClick={syncNow}
+                        disabled={syncing}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-lg border bg-background font-medium text-sm hover:bg-muted transition-colors disabled:opacity-50"
+                        title="Fetch latest emails from Gmail now"
+                    >
+                        {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudDownload className="h-4 w-4" />}
+                        {syncing ? 'Syncing...' : 'Sync Now'}
                     </button>
                     <button
                         onClick={() => fetchEnquiries(true)}
@@ -1093,38 +1107,13 @@ export default function GmailEnquiriesClient() {
                         </div>
                     ) : (
                         <>
-                            {/* Bulk Template Reply */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setShowBulkTemplateDropdown(!showBulkTemplateDropdown)}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                                >
-                                    <Send className="h-4 w-4" />
-                                    Send Template
-                                    <ChevronDown className="h-3 w-3" />
-                                </button>
-                                {showBulkTemplateDropdown && (
-                                    <div className="absolute top-full right-0 mt-1 w-56 bg-card border rounded-lg shadow-xl z-10 py-1">
-                                        {Object.entries(TEMPLATES).map(([key, tmpl]) => (
-                                            <button
-                                                key={key}
-                                                onClick={() => bulkSendTemplate(key)}
-                                                className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors"
-                                            >
-                                                {tmpl.name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Bulk AI Reply */}
+                            {/* Send corresponding template for each selected enquiry */}
                             <button
-                                onClick={bulkSendAIReplies}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-700 dark:bg-violet-900/20 dark:text-violet-400 text-sm font-medium hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors"
+                                onClick={bulkSendCorrespondingTemplates}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
                             >
-                                <Sparkles className="h-4 w-4" />
-                                Send AI Replies
+                                <Send className="h-4 w-4" />
+                                Send Replies
                             </button>
                         </>
                     )}
@@ -1383,23 +1372,6 @@ export default function GmailEnquiriesClient() {
                                         </div>
                                     )}
                                 </div>
-
-                                {/* AI Generate */}
-                                <button
-                                    onClick={generateAIReply}
-                                    disabled={generatingAI}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-700 dark:bg-violet-900/20 dark:text-violet-400 text-sm font-medium hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors disabled:opacity-50"
-                                >
-                                    {generatingAI ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                    {generatingAI ? 'Generating...' : 'Regenerate AI Reply'}
-                                </button>
-
-                                {/* AI Pre-filled indicator */}
-                                {selectedEnquiry?.aiSuggestedReply && replyText === selectedEnquiry.aiSuggestedReply && (
-                                    <span className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20">
-                                        <Sparkles className="h-3 w-3" /> AI-generated · {selectedEnquiry.aiTemplateUsed || 'auto'}
-                                    </span>
-                                )}
 
                                 {/* Copy */}
                                 {replyText && (

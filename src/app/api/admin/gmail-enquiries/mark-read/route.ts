@@ -81,16 +81,21 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Update database — remove UNREAD from labels
-        let updatedCount = 0;
+        // Update database — remove UNREAD from labels (bulk update)
+        const allIds = unreadEnquiries.map(e => e.id);
+        const { error: updateError, count: updatedCount } = await adminClient
+            .from('gmail_enquiries')
+            .update({ is_read: true })
+            .in('id', allIds);
+
+        if (updateError) {
+            console.error('DB bulk update error:', updateError.message);
+        }
+
+        // Also remove UNREAD from the labels array for each row
         for (const enquiry of unreadEnquiries) {
             const newLabels = (enquiry.labels as string[]).filter((l: string) => l !== 'UNREAD');
-            const { error: updateError } = await adminClient
-                .from('gmail_enquiries')
-                .update({ labels: newLabels })
-                .eq('id', enquiry.id);
-
-            if (!updateError) updatedCount++;
+            await adminClient.from('gmail_enquiries').update({ labels: newLabels }).eq('id', enquiry.id);
         }
 
         return NextResponse.json({ success: true, updatedCount, gmailMarked });

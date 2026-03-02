@@ -12,6 +12,7 @@ interface AmazonOrder {
     fsn: string | null;
     contact_email: string | null;
     contact_phone: string | null;
+    buyer_name: string | null;
     warranty_status: string;
     fulfillment_type: string;
     getcid_used: boolean;
@@ -26,6 +27,19 @@ interface AmazonOrder {
     created_at: string;
     updated_at: string;
 }
+
+type SearchField = 'all' | 'order_id' | 'fsn' | 'contact_email' | 'contact_phone' | 'installation_id' | 'confirmation_id' | 'product_title';
+
+const SEARCH_FIELD_OPTIONS: { value: SearchField; label: string }[] = [
+    { value: 'all', label: 'All Fields' },
+    { value: 'order_id', label: 'Order ID' },
+    { value: 'fsn', label: 'FSN' },
+    { value: 'contact_email', label: 'Contact Email' },
+    { value: 'contact_phone', label: 'Contact Phone' },
+    { value: 'installation_id', label: 'Installation ID' },
+    { value: 'confirmation_id', label: 'Confirmation ID' },
+    { value: 'product_title', label: 'Product Title' },
+];
 
 interface LicenseKey {
     id: string;
@@ -54,6 +68,7 @@ export default function AmazonOrdersClient() {
     const [totalCount, setTotalCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchField, setSearchField] = useState<SearchField>('order_id');
     const [isLoading, setIsLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState<OrderDetails | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -108,7 +123,13 @@ export default function AmazonOrdersClient() {
             .order('created_at', { ascending: false });
 
         if (searchQuery) {
-            query = query.or(`order_id.ilike.%${searchQuery}%,fsn.ilike.%${searchQuery}%`);
+            if (searchField === 'all') {
+                query = query.or(
+                    `order_id.ilike.%${searchQuery}%,fsn.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%,contact_phone.ilike.%${searchQuery}%,installation_id.ilike.%${searchQuery}%,confirmation_id.ilike.%${searchQuery}%,product_title.ilike.%${searchQuery}%`
+                );
+            } else {
+                query = query.ilike(searchField, `%${searchQuery}%`);
+            }
         }
 
         // Apply filters
@@ -144,7 +165,7 @@ export default function AmazonOrdersClient() {
             setTotalCount(count || 0);
         }
         setIsLoading(false);
-    }, [currentPage, searchQuery, filterFsn, filterType, filterGetcid, filterWarranty, filterRedeemed, filterRefunded, supabase]);
+    }, [currentPage, searchQuery, searchField, filterFsn, filterType, filterGetcid, filterWarranty, filterRedeemed, filterRefunded, supabase]);
 
     // Fetch FSNs from products_data for filter dropdown
     const fetchUniqueFsns = useCallback(async () => {
@@ -154,8 +175,27 @@ export default function AmazonOrdersClient() {
             .order('fsn');
 
         if (data) {
-            const fsns = data.map(d => d.fsn).filter(Boolean);
-            setUniqueFsns(fsns as string[]);
+            const fsns = data.map(d => d.fsn).filter(Boolean) as string[];
+            // Priority FSNs to show at the top of the dropdown
+            const priorityFsns = [
+                'OFFICE365',
+                'WINDOWS11',
+                'OFFICE2024-WIN',
+                'PP2016',
+                'WIN11HOME',
+                'OFFG9MREFCXD658G',
+                'OPSG4ZTTK5MMZWPB',
+                'CHATGPT',
+            ];
+            const sorted = [...fsns].sort((a, b) => {
+                const aIdx = priorityFsns.indexOf(a);
+                const bIdx = priorityFsns.indexOf(b);
+                if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                if (aIdx !== -1) return -1;
+                if (bIdx !== -1) return 1;
+                return a.localeCompare(b);
+            });
+            setUniqueFsns(sorted);
         }
     }, [supabase]);
 
@@ -497,15 +537,26 @@ export default function AmazonOrdersClient() {
 
             {/* Search and Filter */}
             <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:flex-wrap">
-                <div className="relative flex-1 min-w-0 sm:min-w-[200px] sm:max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
-                        type="text"
-                        placeholder="Search by Order ID or FSN..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background"
-                    />
+                <div className="flex flex-1 min-w-0 sm:min-w-[200px] sm:max-w-2xl gap-0">
+                    <select
+                        value={searchField}
+                        onChange={(e) => setSearchField(e.target.value as SearchField)}
+                        className="px-3 py-2 border border-r-0 rounded-l-lg bg-muted/50 text-sm font-medium min-w-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                        {SEARCH_FIELD_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                            type="text"
+                            placeholder={searchField === 'all' ? 'Search across all fields...' : `Search by ${SEARCH_FIELD_OPTIONS.find(o => o.value === searchField)?.label}...`}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border rounded-r-lg bg-background"
+                        />
+                    </div>
                 </div>
                 <div className="flex gap-2">
                     <button type="submit" className="flex-1 sm:flex-none px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">

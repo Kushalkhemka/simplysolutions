@@ -45,7 +45,8 @@ export async function POST(request: NextRequest) {
         const parsed = createCouponSchema.safeParse(body);
 
         if (!parsed.success) {
-            return errorResponse('Invalid coupon data', 400);
+            const fieldErrors = parsed.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ');
+            return errorResponse(`Invalid coupon data: ${fieldErrors}`, 400);
         }
 
         const data = parsed.data;

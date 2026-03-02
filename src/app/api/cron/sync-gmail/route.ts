@@ -1,21 +1,19 @@
 /**
  * Cron endpoint to sync Gmail order enquiries
- * Schedule: Every 15 minutes
- * 
+ * Schedule: Every 15 minutes (configured in vercel.json)
+ *
  * Features:
  * - Supports multiple Gmail accounts from the database
  * - Falls back to env credentials if no DB accounts exist
  * - Stores enquiries in Supabase for fast loading
- * - Auto-generates AI replies using Gemini
+ * - Deterministically selects the best template based on enquiry category
  * - Categorizes enquiries (delivery, refund, product claim, tech support)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { fetchOrderEnquiries, GmailCredentials } from '@/lib/gmail';
+import { fetchOrderEnquiries, sendGmailReply, GmailCredentials } from '@/lib/gmail';
 import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 
 const TEMPLATES: Record<string, string> = {
     tech_support: `Dear [BUYER_NAME],
@@ -24,141 +22,94 @@ For quick assistance with this issue, please contact our technical support team 
 
 Our WhatsApp support includes automated chatbot assistance for instant replies, followed by manual support from our technical team if required. You may also request your license directly from technical support through this channel.
 
-Additionally, you can find the email copy shared with you in Amazon Buyer–Seller Messaging at amazon.in/message for installation/activation instructions. If the issue persists, you may share the error screenshot via Amazon Buyer–Seller Messaging, and our team will review and respond accordingly.
+Additionally, you can find the email copy shared with you in Amazon Buyer\u2013Seller Messaging at amazon.in/message for installation/activation instructions.
 
-Thank you for your cooperation.
-CODEKEYS`,
+If the issue persists, you may share the error screenshot via Amazon Buyer\u2013Seller Messaging, and our team will review and respond accordingly.
+
+Thanks for your cooperation & patience.`,
 
     delivery: `Dear [BUYER_NAME],
 
-We would like to inform you that your order has been successfully delivered to your Amazon-registered email address within 1 hour of your purchase time. You can also access a copy of the same by visiting Amazon Messaging Center at amazon.in/msg 
+We would like to inform you that your order has been successfully delivered to your Amazon-registered email address within 1 hour of your purchase time. You can also access a copy of the same by visiting Amazon Messaging Center at amazon.in/msg
 
-Thanks & Regards
-CODEKEYS`,
+For quick assistance with this issue, please contact our technical support team on WhatsApp at 8178848830 (messages only; calls are not supported). Our WhatsApp support includes automated chatbot assistance for instant replies, followed by manual support from our technical team if required.
+
+Thanks for your cooperation & patience.`,
 
     cancellation: `Dear [BUYER_NAME],
 
 Thank you for contacting us regarding your order [ORDER_ID].
 
-We would like to clearly inform you that this order was successfully delivered via Digital Delivery. As this product falls under the software category, cancellations or refunds are strictly not permitted once delivery is completed, in accordance with Amazon's Policies and Guidelines. 
+We would like to clearly inform you that this order was successfully delivered via Digital Delivery. As this product falls under the software category, cancellations or refunds are strictly not permitted once delivery is completed, in accordance with Amazon's Policies and Guidelines.
 
 Please note that all software products are non-returnable, non-refundable, and non-cancellable after delivery, irrespective of usage status or activation.
 
-If you are experiencing any technical issues, activation errors, or installation difficulties, you may contact our technical support team on WhatsApp at 8178848830 (messages only; calls are not supported). Our support team will assist you with troubleshooting and activation guidance.
+If you are experiencing any technical issues, activation errors, or installation difficulties, you may contact our technical support team on WhatsApp at 8178848830 (messages only; calls are not supported).
+
+Our support team will assist you with troubleshooting and activation guidance.
 
 We appreciate your understanding and cooperation.
 
-Regards,
-CODEKEYS`,
+Thanks for your cooperation & patience.`,
 };
 
-function verifyCronAuth(request: NextRequest): boolean {
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
-    if (!cronSecret) return true;
-    return authHeader === `Bearer ${cronSecret}`;
+
+// Deterministic category → template mapping (no AI needed)
+const CATEGORY_TO_TEMPLATE: Record<string, string> = {
+    delivery: 'delivery',
+    refund: 'cancellation',
+    product_claim: 'cancellation',
+    tech_support: 'tech_support',
+    other: 'tech_support',
+};
+
+const PRODUCT_CLAIM_APPENDIX = `\n\nPlease share the screenshot of the claim made here for further review and resolution.Meanwhile you can reach out to our tech support team on WhatsApp at 8178848830 for faster resolution.`;
+
+function selectTemplate(category: string, customerName: string, orderId: string): { reply: string; templateUsed: string } {
+    const templateKey = CATEGORY_TO_TEMPLATE[category] || 'tech_support';
+    let reply = TEMPLATES[templateKey];
+    reply = reply.replace(/\[BUYER_NAME\]/g, customerName || 'Customer');
+    reply = reply.replace(/\[ORDER_ID\]/g, orderId || 'N/A');
+
+    // For product claims (fake/pirated/defective/invalid), append screenshot request
+    if (category === 'product_claim') {
+        // Insert before the closing signature line
+        const sigIndex = reply.lastIndexOf('\n\nRegards,');
+        if (sigIndex !== -1) {
+            reply = reply.slice(0, sigIndex) + PRODUCT_CLAIM_APPENDIX + reply.slice(sigIndex);
+        } else {
+            reply = reply + PRODUCT_CLAIM_APPENDIX;
+        }
+    }
+
+    return { reply, templateUsed: templateKey };
 }
 
-async function generateAIReply(enquiry: {
-    customerName: string;
-    orderId: string;
-    product: string;
-    reason: string;
-    category: string;
-    body: string;
-}): Promise<{ reply: string; templateUsed: string }> {
-    const systemPrompt = `You are a customer support representative for CODEKEYS, an Amazon seller that sells digital software licenses (Microsoft Office 365, Windows 10/11 Pro keys, AutoCAD, etc.).
+async function verifyCronAuth(request: NextRequest): Promise<boolean> {
+    // 1. Check Bearer token (used by Coolify cron / direct calls)
+    const authHeader = request.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+    if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+        return true;
+    }
+    // If no CRON_SECRET is set, allow all requests
+    if (!cronSecret) return true;
 
-Your task is to generate a professional reply to the customer's enquiry. You MUST:
-1. First determine the best template category (tech_support, delivery, or cancellation)
-2. Use that template as a base
-3. Adapt/augment it for the specific customer's situation
-4. Replace [BUYER_NAME] with the customer's actual name
-5. Replace [ORDER_ID] with the actual order ID
-
-AVAILABLE TEMPLATES:
-
-TECH SUPPORT (for activation issues, key errors, installation problems):
-${TEMPLATES.tech_support}
-
-DELIVERY (for delivery/shipping status queries):
-${TEMPLATES.delivery}
-
-CANCELLATION (for refund/cancellation requests):
-${TEMPLATES.cancellation}
-
-CRITICAL RULES:
-- If customer claims the product is pirated, fake, counterfeit, or non-genuine: Ask for proof/screenshot via Amazon Buyer-Seller Messaging. Politely state your products are 100% genuine.
-- NEVER agree to a refund, replacement, or compensation. Do NOT make any commitments or promises on behalf of the seller. For refund/cancellation requests, redirect the customer to the tech support team (WhatsApp 8178848830) using the TECH SUPPORT template. Ask the customer to share a screenshot or proof of their claim via Amazon Buyer-Seller Messaging for review by the team.
-- Keep the response professional, concise, and empathetic
-- Do not add any markdown formatting
-- Do not add any sign-off or signature at the end of the reply
-
-Respond in this exact format:
-TEMPLATE: [template_name]
----
-[reply text]`;
-
-    const userPrompt = `Customer Name: ${enquiry.customerName || 'Customer'}
-Order ID: ${enquiry.orderId || 'N/A'}
-Product: ${enquiry.product || 'Digital Software License'}
-Category: ${enquiry.category || 'general'}
-Reason: ${enquiry.reason || 'Not specified'}
-
-Customer's Message:
-${enquiry.body?.substring(0, 1500) || enquiry.reason || 'No message available'}`;
-
+    // 2. Fallback: check admin session (used by Sync Now button via browser cookies)
     try {
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
-                    generationConfig: { temperature: 0.3, maxOutputTokens: 1024 },
-                }),
-            }
-        );
-
-        const data = await res.json();
-
-        // Check for API errors
-        if (data.error) {
-            throw new Error(data.error.message || 'Gemini API error');
-        }
-
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-        if (!text) {
-            throw new Error('Empty response from Gemini');
-        }
-
-        const templateMatch = text.match(/TEMPLATE:\s*(\w+)/i);
-        const templateUsed = templateMatch ? templateMatch[1].toLowerCase() : enquiry.category;
-        const replyMatch = text.split('---');
-        const reply = replyMatch.length > 1 ? replyMatch.slice(1).join('---').trim() : text.trim();
-
-        return { reply, templateUsed };
-    } catch (error) {
-        console.error('[sync-gmail] AI generation error:', error);
-        const categoryToTemplate: Record<string, string> = {
-            delivery: 'delivery',
-            refund: 'cancellation',
-            product_claim: 'cancellation',
-            tech_support: 'tech_support',
-            other: 'tech_support',
-        };
-        const templateKey = categoryToTemplate[enquiry.category] || 'tech_support';
-        let fallbackReply = TEMPLATES[templateKey];
-        fallbackReply = fallbackReply.replace(/\[BUYER_NAME\]/g, enquiry.customerName || 'Customer');
-        fallbackReply = fallbackReply.replace(/\[ORDER_ID\]/g, enquiry.orderId || 'N/A');
-        return { reply: fallbackReply, templateUsed: templateKey };
+        const { createClient } = await import('@/lib/supabase/server');
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return false;
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        return profile?.role === 'admin' || profile?.role === 'super_admin';
+    } catch {
+        return false;
     }
 }
 
 export async function GET(request: NextRequest) {
-    if (!verifyCronAuth(request)) {
+    if (!(await verifyCronAuth(request))) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -218,15 +169,15 @@ export async function GET(request: NextRequest) {
                 success: true,
                 message: 'No Gmail accounts configured',
                 synced: 0,
-                aiGenerated: 0,
-                duration: `${Date.now() - startTime}ms`,
+                templated: 0,
+                duration: `${Date.now() - startTime} ms`,
             });
         }
 
         let totalNew = 0;
-        let totalAI = 0;
+        let totalTemplated = 0;
         let totalEnquiries = 0;
-        const accountResults: Array<{ email: string; total: number; new: number; aiGenerated: number; error?: string }> = [];
+        const accountResults: Array<{ email: string; total: number; new: number; templated: number; error?: string }> = [];
 
         for (const account of accountsToSync) {
             try {
@@ -235,7 +186,7 @@ export async function GET(request: NextRequest) {
                 totalEnquiries += enquiries.length;
 
                 if (enquiries.length === 0) {
-                    accountResults.push({ email: account.email, total: 0, new: 0, aiGenerated: 0 });
+                    accountResults.push({ email: account.email, total: 0, new: 0, templated: 0 });
                     // Update last_synced_at
                     if (account.id) {
                         await supabase.from('gmail_accounts').update({ last_synced_at: new Date().toISOString() }).eq('id', account.id);
@@ -251,34 +202,16 @@ export async function GET(request: NextRequest) {
                     .in('id', ids);
 
                 const existingIds = new Set((existing || []).map((e: any) => e.id));
-                const existingWithAI = new Set(
+                const existingWithReply = new Set(
                     (existing || []).filter((e: any) => e.ai_suggested_reply).map((e: any) => e.id)
                 );
 
                 let accountNew = 0;
-                let accountAI = 0;
+                let accountTemplated = 0;
 
                 for (const enquiry of enquiries) {
                     const isNew = !existingIds.has(enquiry.id);
-                    const needsAI = !existingWithAI.has(enquiry.id);
-
-                    let aiReply = '';
-                    let templateUsed = '';
-
-                    if (needsAI) {
-                        const result = await generateAIReply({
-                            customerName: enquiry.customerName,
-                            orderId: enquiry.orderId,
-                            product: enquiry.product,
-                            reason: enquiry.reason,
-                            category: enquiry.category,
-                            body: enquiry.body,
-                        });
-                        aiReply = result.reply;
-                        templateUsed = result.templateUsed;
-                        accountAI++;
-                        await new Promise(resolve => setTimeout(resolve, 300));
-                    }
+                    const needsReply = !existingWithReply.has(enquiry.id);
 
                     const record: any = {
                         id: enquiry.id,
@@ -304,9 +237,16 @@ export async function GET(request: NextRequest) {
 
                     if (account.id) record.account_id = account.id;
 
-                    if (needsAI && aiReply) {
-                        record.ai_suggested_reply = aiReply;
+                    // Deterministically select the right template — instant, no AI needed
+                    if (needsReply) {
+                        const { reply, templateUsed } = selectTemplate(
+                            enquiry.category,
+                            enquiry.customerName,
+                            enquiry.orderId
+                        );
+                        record.ai_suggested_reply = reply;
                         record.ai_template_used = templateUsed;
+                        accountTemplated++;
                     }
 
                     const { error } = await supabase.from('gmail_enquiries').upsert(record, { onConflict: 'id' });
@@ -315,12 +255,32 @@ export async function GET(request: NextRequest) {
                         console.error(`[sync-gmail] Error upserting ${enquiry.id}:`, error.message);
                     } else if (isNew) {
                         accountNew++;
+
+                        // Auto-reply: send the template reply immediately for new enquiries
+                        if (record.ai_suggested_reply) {
+                            try {
+                                await sendGmailReply({
+                                    threadId: enquiry.threadId,
+                                    inReplyTo: enquiry.messageId,
+                                    to: enquiry.from,
+                                    subject: enquiry.subject,
+                                    body: record.ai_suggested_reply,
+                                    creds: account.creds,
+                                });
+                                // Mark as replied in DB
+                                await supabase.from('gmail_enquiries')
+                                    .update({ is_replied: true, replied_at: new Date().toISOString() })
+                                    .eq('id', enquiry.id);
+                            } catch (replyErr) {
+                                console.error(`[sync-gmail] Auto-reply failed for ${enquiry.id}:`, replyErr);
+                            }
+                        }
                     }
                 }
 
                 totalNew += accountNew;
-                totalAI += accountAI;
-                accountResults.push({ email: account.email, total: enquiries.length, new: accountNew, aiGenerated: accountAI });
+                totalTemplated += accountTemplated;
+                accountResults.push({ email: account.email, total: enquiries.length, new: accountNew, templated: accountTemplated });
 
                 // Update last_synced_at
                 if (account.id) {
@@ -328,15 +288,15 @@ export async function GET(request: NextRequest) {
                 }
             } catch (error) {
                 const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-                console.error(`[sync-gmail] Error syncing ${account.email}:`, errorMsg);
-                accountResults.push({ email: account.email, total: 0, new: 0, aiGenerated: 0, error: errorMsg });
+                console.error(`[sync - gmail] Error syncing ${account.email}: `, errorMsg);
+                accountResults.push({ email: account.email, total: 0, new: 0, templated: 0, error: errorMsg });
             }
         }
 
         await logCronSuccess(logId, totalNew, {
             totalEnquiries,
             newEnquiries: totalNew,
-            aiGenerated: totalAI,
+            templated: totalTemplated,
             accounts: accountResults,
         });
 
@@ -346,14 +306,14 @@ export async function GET(request: NextRequest) {
             accounts: accountResults,
             total: totalEnquiries,
             new: totalNew,
-            aiGenerated: totalAI,
-            duration: `${Date.now() - startTime}ms`,
+            templated: totalTemplated,
+            duration: `${Date.now() - startTime} ms`,
         });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         await logCronError(logId, errorMessage);
         return NextResponse.json(
-            { success: false, error: errorMessage, duration: `${Date.now() - startTime}ms` },
+            { success: false, error: errorMessage, duration: `${Date.now() - startTime} ms` },
             { status: 500 }
         );
     }
