@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Filter, Clock, CheckCircle, Loader2, Eye, X, RefreshCw, User, Key, Mail, Zap, Trash2, XCircle, Ban } from 'lucide-react';
+import { Search, Filter, Clock, CheckCircle, Loader2, Eye, X, RefreshCw, User, Key, Mail, Zap, Trash2, XCircle, Ban, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -50,12 +50,19 @@ export default function AdminOffice365CustomizationsPage() {
     const [fulfillingId, setFulfillingId] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
 
     // Rejection modal
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectingRequest, setRejectingRequest] = useState<CustomizationRequest | null>(null);
     const [rejectionReason, setRejectionReason] = useState('');
     const [isRejecting, setIsRejecting] = useState(false);
+
+    const copyToClipboard = (text: string, field: string) => {
+        navigator.clipboard.writeText(text);
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 1500);
+    };
 
     useEffect(() => {
         fetchRequests();
@@ -615,7 +622,16 @@ export default function AdminOffice365CustomizationsPage() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground mb-1">Customer Name</p>
-                                    <p className="font-medium text-foreground">{selectedRequest.display_name}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="font-medium text-foreground">{selectedRequest.display_name}</p>
+                                        <button
+                                            onClick={() => copyToClipboard(selectedRequest.display_name, 'name')}
+                                            title="Copy customer name"
+                                            className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground shrink-0"
+                                        >
+                                            {copiedField === 'name' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground mb-1">Customer Email</p>
@@ -623,9 +639,20 @@ export default function AdminOffice365CustomizationsPage() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground mb-1">Requested Username</p>
-                                    <p className="font-mono font-medium text-blue-400">
-                                        {selectedRequest.username_prefix ? `${selectedRequest.username_prefix}@ms365.pro` : '-'}
-                                    </p>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <p className="font-mono font-medium text-blue-400">
+                                            {selectedRequest.username_prefix ? `${selectedRequest.username_prefix}@ms365.pro` : '-'}
+                                        </p>
+                                        {selectedRequest.username_prefix && (
+                                            <button
+                                                onClick={() => copyToClipboard(selectedRequest.username_prefix!, 'prefix')}
+                                                title="Copy username prefix"
+                                                className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground shrink-0"
+                                            >
+                                                {copiedField === 'prefix' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground mb-1">Submitted</p>
