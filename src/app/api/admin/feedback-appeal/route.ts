@@ -149,7 +149,8 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
         .from('feedback_appeals')
         .select('id')
         .eq('order_id', actualOrderId)
-        .single();
+        .eq('type', appealType)
+        .maybeSingle();
 
     if (existingAppeal) {
         // Update existing

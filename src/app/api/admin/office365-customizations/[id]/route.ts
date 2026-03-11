@@ -81,7 +81,7 @@ export async function PATCH(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { action, adminNotes, rejectionReason } = body;
+        const { action, adminNotes, rejectionReason, silentReject } = body;
 
         if (action !== 'fulfill' && action !== 'reject') {
             return NextResponse.json(
@@ -158,7 +158,7 @@ export async function PATCH(
                 }
             }
 
-            if (resendApiKey && customerEmail) {
+            if (!silentReject && resendApiKey && customerEmail) {
                 try {
                     const resend = new Resend(resendApiKey);
                     await resend.emails.send({
@@ -215,7 +215,9 @@ export async function PATCH(
 
             return NextResponse.json({
                 success: true,
-                message: 'Customization request rejected. Customer has been notified.'
+                message: silentReject
+                    ? 'Customization request rejected silently. Customer was NOT notified.'
+                    : 'Customization request rejected. Customer has been notified.'
             });
         }
 

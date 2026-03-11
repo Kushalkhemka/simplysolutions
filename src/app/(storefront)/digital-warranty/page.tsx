@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, Suspense } from 'react';
-import { Shield, Upload, CheckCircle, Loader2, X, Clock, XCircle, Search, ExternalLink, Star, ArrowRight, Award, AlertTriangle, Mail } from 'lucide-react';
+import { Shield, Upload, CheckCircle, Loader2, X, Clock, XCircle, Search, ExternalLink, Star, ArrowRight, Award, AlertTriangle, Mail, ClipboardList } from 'lucide-react';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -11,6 +11,8 @@ function DigitalWarrantyContent() {
     const searchParams = useSearchParams();
     const prefilledOrderId = searchParams.get('orderId') || '';
 
+    const [activeTab, setActiveTab] = useState<'register' | 'track'>('register');
+
     const [orderId, setOrderId] = useState(prefilledOrderId);
     const [customerEmail, setCustomerEmail] = useState('');
     const [sellerFeedback, setSellerFeedback] = useState<File | null>(null);
@@ -18,6 +20,7 @@ function DigitalWarrantyContent() {
     const [sellerPreview, setSellerPreview] = useState<string | null>(null);
     const [reviewPreview, setReviewPreview] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isCheckingOrder, setIsCheckingOrder] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [existingStatus, setExistingStatus] = useState<string | null>(null);
     const [failedAttempts, setFailedAttempts] = useState(0);
@@ -27,6 +30,103 @@ function DigitalWarrantyContent() {
     const [missingSeller, setMissingSeller] = useState(false);
     const [missingReview, setMissingReview] = useState(false);
     const [adminNotes, setAdminNotes] = useState<string | null>(null);
+
+    // Track status state
+    const [trackOrderId, setTrackOrderId] = useState('');
+    const [isTracking, setIsTracking] = useState(false);
+    const [trackResult, setTrackResult] = useState<{
+        found: boolean;
+        status?: string;
+        registeredAt?: string;
+        verifiedAt?: string;
+        rejectionReason?: string;
+        adminNotes?: string;
+        missingSeller?: boolean;
+        missingReview?: boolean;
+    } | null>(null);
+
+    // Inline resubmission state (for track tab)
+    const [showInlineUpload, setShowInlineUpload] = useState(false);
+    const [inlineSellerFile, setInlineSellerFile] = useState<File | null>(null);
+    const [inlineReviewFile, setInlineReviewFile] = useState<File | null>(null);
+    const [inlineSellerPreview, setInlineSellerPreview] = useState<string | null>(null);
+    const [inlineReviewPreview, setInlineReviewPreview] = useState<string | null>(null);
+    const [inlineEmail, setInlineEmail] = useState('');
+    const [isInlineSubmitting, setIsInlineSubmitting] = useState(false);
+    const inlineSellerRef = useRef<HTMLInputElement>(null);
+    const inlineReviewRef = useRef<HTMLInputElement>(null);
+
+    const handleTrackStatus = async () => {
+        if (!trackOrderId.trim()) {
+            toast.error('Please enter your Order ID');
+            return;
+        }
+        setIsTracking(true);
+        setTrackResult(null);
+        setShowInlineUpload(false);
+        setInlineSellerFile(null);
+        setInlineReviewFile(null);
+        setInlineSellerPreview(null);
+        setInlineReviewPreview(null);
+        setInlineEmail('');
+        try {
+            const response = await fetch(`/api/warranty?orderId=${encodeURIComponent(trackOrderId.trim())}`);
+            const data = await response.json();
+            setTrackResult(data);
+            if (!data.found) {
+                toast.info('No warranty registration found for this Order ID');
+            }
+            if (data.found && data.status === 'NEEDS_RESUBMISSION' && data.customerEmail) {
+                setInlineEmail(data.customerEmail);
+            }
+        } catch (error) {
+            console.error('Track status error:', error);
+            toast.error('Network error. Please try again.');
+        } finally {
+            setIsTracking(false);
+        }
+    };
+
+    const handleInlineResubmit = async () => {
+        if (!inlineEmail.trim() || !inlineEmail.includes('@')) {
+            toast.error('Please enter a valid email address');
+            return;
+        }
+        if (trackResult?.missingSeller && !inlineSellerFile) {
+            toast.error('Please upload the seller feedback screenshot');
+            return;
+        }
+        if (trackResult?.missingReview && !inlineReviewFile) {
+            toast.error('Please upload the product review screenshot');
+            return;
+        }
+        setIsInlineSubmitting(true);
+        try {
+            const formData = new FormData();
+            formData.append('orderId', trackOrderId.trim());
+            formData.append('customerEmail', inlineEmail.trim());
+            formData.append('isResubmission', 'true');
+            if (inlineSellerFile) formData.append('screenshotSellerFeedback', inlineSellerFile);
+            if (inlineReviewFile) formData.append('screenshotProductReview', inlineReviewFile);
+
+            const response = await fetch('/api/warranty', { method: 'POST', body: formData });
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success(data.message);
+                setShowInlineUpload(false);
+                // Refresh track result to show new status
+                setTrackResult({ ...trackResult!, status: data.status || 'PROCESSING' });
+            } else {
+                toast.error(data.error || 'Failed to submit');
+            }
+        } catch (error) {
+            console.error('Inline resubmit error:', error);
+            toast.error('Network error. Please try again.');
+        } finally {
+            setIsInlineSubmitting(false);
+        }
+    };
 
     const sellerInputRef = useRef<HTMLInputElement>(null);
     const reviewInputRef = useRef<HTMLInputElement>(null);
@@ -39,9 +139,11 @@ function DigitalWarrantyContent() {
         }
     }, [prefilledOrderId]);
 
-    const checkExistingWarranty = async (orderIdToCheck: string) => {
+    const checkExistingWarranty = async (orderIdToCheck: string, showLoader = false) => {
+        if (!orderIdToCheck.trim()) return;
+        if (showLoader) setIsCheckingOrder(true);
         try {
-            const response = await fetch(`/api/warranty?orderId=${orderIdToCheck}`);
+            const response = await fetch(`/api/warranty?orderId=${encodeURIComponent(orderIdToCheck.trim())}`);
             const data = await response.json();
 
             if (data.found && data.status === 'NEEDS_RESUBMISSION') {
@@ -57,6 +159,8 @@ function DigitalWarrantyContent() {
             }
         } catch (error) {
             console.error('Error checking warranty status:', error);
+        } finally {
+            if (showLoader) setIsCheckingOrder(false);
         }
     };
 
@@ -237,14 +341,305 @@ function DigitalWarrantyContent() {
                     <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mb-3">
                         WARRANTY REGISTRATION
                     </h1>
-                    <p className="text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-gray-600 max-w-2xl mx-auto mb-6">
                         Please follow the below Steps &amp; Enter your Amazon Order ID &amp; Upload Screenshot of Ratings to Get <span className="font-semibold text-red-600">Lifetime Technical/Installation Support</span>.
                     </p>
+                    {/* Tab Switcher */}
+                    <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1">
+                        <button
+                            onClick={() => setActiveTab('register')}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                                activeTab === 'register'
+                                    ? 'bg-white text-red-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            <Shield className="w-4 h-4" />
+                            Register Warranty
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('track')}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                                activeTab === 'track'
+                                    ? 'bg-white text-red-600 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            <ClipboardList className="w-4 h-4" />
+                            Track Status
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
+
+                    {/* ── TRACK STATUS PANEL ── */}
+                    {activeTab === 'track' && (
+                        <div className="space-y-6">
+                            {/* Search Card */}
+                            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8">
+                                <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                    <ClipboardList className="w-6 h-6 text-red-500" />
+                                    Check Your Warranty Status
+                                </h2>
+                                <p className="text-gray-500 text-sm mb-6">Enter your Amazon Order ID to see the current status of your warranty registration.</p>
+                                <div className="flex gap-3">
+                                    <div className="relative flex-1">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <Search className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={trackOrderId}
+                                            onChange={(e) => setTrackOrderId(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleTrackStatus()}
+                                            placeholder="e.g. 408-2477254-5428882"
+                                            className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition text-gray-900 placeholder:text-gray-400"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleTrackStatus}
+                                        disabled={isTracking}
+                                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-3.5 rounded-xl font-semibold transition disabled:opacity-50 flex items-center gap-2 shrink-0"
+                                    >
+                                        {isTracking ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                                        {isTracking ? 'Checking...' : 'Check'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Track Result Card */}
+                            {trackResult && (
+                                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                                    {!trackResult.found ? (
+                                        <div className="text-center py-4">
+                                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <Search className="w-8 h-8 text-gray-400" />
+                                            </div>
+                                            <h3 className="text-lg font-bold text-gray-900 mb-2">No Registration Found</h3>
+                                            <p className="text-gray-500 text-sm mb-4">No warranty registration found for order <span className="font-mono font-semibold text-gray-700">{trackOrderId}</span>.</p>
+                                            <button
+                                                onClick={() => setActiveTab('register')}
+                                                className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition"
+                                            >
+                                                <Shield className="w-4 h-4" />
+                                                Register Now
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <div className={`w-16 h-16 rounded-full flex items-center justify-center shrink-0 ${
+                                                    trackResult.status === 'VERIFIED' ? 'bg-green-100' :
+                                                    trackResult.status === 'REJECTED' ? 'bg-red-100' :
+                                                    trackResult.status === 'NEEDS_RESUBMISSION' ? 'bg-orange-100' :
+                                                    'bg-yellow-100'
+                                                }`}>
+                                                    {trackResult.status === 'VERIFIED' && <CheckCircle className="w-8 h-8 text-green-600" />}
+                                                    {trackResult.status === 'REJECTED' && <XCircle className="w-8 h-8 text-red-600" />}
+                                                    {trackResult.status === 'NEEDS_RESUBMISSION' && <AlertTriangle className="w-8 h-8 text-orange-600" />}
+                                                    {(trackResult.status === 'PROCESSING' || !trackResult.status) && <Clock className="w-8 h-8 text-yellow-600" />}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">Warranty Status</p>
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${
+                                                        trackResult.status === 'VERIFIED' ? 'bg-green-100 text-green-700' :
+                                                        trackResult.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                                        trackResult.status === 'NEEDS_RESUBMISSION' ? 'bg-orange-100 text-orange-700' :
+                                                        'bg-yellow-100 text-yellow-700'
+                                                    }`}>
+                                                        {trackResult.status === 'VERIFIED' && 'Verified'}
+                                                        {trackResult.status === 'REJECTED' && 'Rejected'}
+                                                        {trackResult.status === 'NEEDS_RESUBMISSION' && 'Resubmission Required'}
+                                                        {trackResult.status === 'PROCESSING' && 'Processing'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-gray-50 rounded-xl p-4 space-y-3 mb-5">
+                                                <div>
+                                                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Order ID</p>
+                                                    <p className="font-mono text-gray-900 font-semibold">{trackOrderId}</p>
+                                                </div>
+                                                {trackResult.registeredAt && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Submitted On</p>
+                                                        <p className="text-gray-700 text-sm">{new Date(trackResult.registeredAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                                    </div>
+                                                )}
+                                                {trackResult.verifiedAt && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Verified On</p>
+                                                        <p className="text-gray-700 text-sm">{new Date(trackResult.verifiedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                                    </div>
+                                                )}
+                                                {trackResult.rejectionReason && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Rejection Reason</p>
+                                                        <p className="text-red-600 text-sm">{trackResult.rejectionReason}</p>
+                                                    </div>
+                                                )}
+                                                {trackResult.adminNotes && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Note from Team</p>
+                                                        <p className="text-gray-600 text-sm italic">{trackResult.adminNotes}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Status-specific CTAs */}
+                                            {trackResult.status === 'VERIFIED' && (
+                                                <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                                                    <p className="text-green-700 font-semibold">Your warranty is active! You are covered with lifetime support.</p>
+                                                </div>
+                                            )}
+                                            {trackResult.status === 'NEEDS_RESUBMISSION' && (
+                                                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                                                    <p className="text-orange-700 font-semibold mb-2">Missing Screenshots:</p>
+                                                    <ul className="list-disc list-inside text-orange-600 text-sm mb-3">
+                                                        {trackResult.missingSeller && <li>Seller Feedback Screenshot</li>}
+                                                        {trackResult.missingReview && <li>Product Review Screenshot</li>}
+                                                    </ul>
+
+                                                    {!showInlineUpload ? (
+                                                        <button
+                                                            onClick={() => setShowInlineUpload(true)}
+                                                            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg font-semibold text-sm transition"
+                                                        >
+                                                            <Upload className="w-4 h-4" />
+                                                            Submit Missing Screenshots
+                                                        </button>
+                                                    ) : (
+                                                        <div className="mt-4 space-y-4 bg-white rounded-xl border border-orange-200 p-5">
+                                                            {/* Email */}
+                                                            <div>
+                                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address *</label>
+                                                                <div className="relative">
+                                                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                                        <Mail className="w-4 h-4 text-gray-400" />
+                                                                    </div>
+                                                                    <input
+                                                                        type="email"
+                                                                        value={inlineEmail}
+                                                                        onChange={(e) => setInlineEmail(e.target.value)}
+                                                                        placeholder="your.email@example.com"
+                                                                        className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition text-gray-900 placeholder:text-gray-400 text-sm"
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Upload areas */}
+                                                            <div className={`grid gap-4 ${trackResult.missingSeller && trackResult.missingReview ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
+                                                                {trackResult.missingSeller && (
+                                                                    <div>
+                                                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                                                            Seller Feedback Screenshot *
+                                                                        </label>
+                                                                        {inlineSellerPreview ? (
+                                                                            <div className="relative border-2 border-green-500 rounded-lg overflow-hidden">
+                                                                                <Image src={inlineSellerPreview} alt="Seller feedback" width={300} height={150} className="w-full h-36 object-cover" />
+                                                                                <button type="button" onClick={() => { setInlineSellerFile(null); setInlineSellerPreview(null); if (inlineSellerRef.current) inlineSellerRef.current.value = ''; }}
+                                                                                    className="absolute top-1.5 right-1.5 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition"
+                                                                                >
+                                                                                    <X className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                                <div className="absolute bottom-1.5 left-1.5 bg-green-500 text-white px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1">
+                                                                                    <CheckCircle className="w-3 h-3" /> Uploaded
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <label className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer hover:border-orange-500 hover:bg-orange-50/50 transition-all group">
+                                                                                <Upload className="w-8 h-8 text-gray-400 group-hover:text-orange-500 transition" />
+                                                                                <span className="text-xs text-gray-500 mt-1.5 group-hover:text-orange-600 font-medium">Click to Upload</span>
+                                                                                <span className="text-xs text-gray-400 mt-0.5">PNG, JPG up to 10MB</span>
+                                                                                <input ref={inlineSellerRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                                                                    const f = e.target.files?.[0];
+                                                                                    if (f) { setInlineSellerFile(f); setInlineSellerPreview(URL.createObjectURL(f)); }
+                                                                                }} />
+                                                                            </label>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+
+                                                                {trackResult.missingReview && (
+                                                                    <div>
+                                                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                                                            Product Review Screenshot *
+                                                                        </label>
+                                                                        {inlineReviewPreview ? (
+                                                                            <div className="relative border-2 border-green-500 rounded-lg overflow-hidden">
+                                                                                <Image src={inlineReviewPreview} alt="Product review" width={300} height={150} className="w-full h-36 object-cover" />
+                                                                                <button type="button" onClick={() => { setInlineReviewFile(null); setInlineReviewPreview(null); if (inlineReviewRef.current) inlineReviewRef.current.value = ''; }}
+                                                                                    className="absolute top-1.5 right-1.5 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition"
+                                                                                >
+                                                                                    <X className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                                <div className="absolute bottom-1.5 left-1.5 bg-green-500 text-white px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1">
+                                                                                    <CheckCircle className="w-3 h-3" /> Uploaded
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <label className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer hover:border-orange-500 hover:bg-orange-50/50 transition-all group">
+                                                                                <Upload className="w-8 h-8 text-gray-400 group-hover:text-orange-500 transition" />
+                                                                                <span className="text-xs text-gray-500 mt-1.5 group-hover:text-orange-600 font-medium">Click to Upload</span>
+                                                                                <span className="text-xs text-gray-400 mt-0.5">PNG, JPG up to 10MB</span>
+                                                                                <input ref={inlineReviewRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                                                                    const f = e.target.files?.[0];
+                                                                                    if (f) { setInlineReviewFile(f); setInlineReviewPreview(URL.createObjectURL(f)); }
+                                                                                }} />
+                                                                            </label>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Submit + Cancel */}
+                                                            <div className="flex gap-3">
+                                                                <button
+                                                                    onClick={handleInlineResubmit}
+                                                                    disabled={isInlineSubmitting}
+                                                                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-lg font-semibold text-sm transition disabled:opacity-50 flex items-center justify-center gap-2"
+                                                                >
+                                                                    {isInlineSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                                                                    {isInlineSubmitting ? 'Submitting...' : 'Submit'}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setShowInlineUpload(false)}
+                                                                    className="px-4 py-2.5 border border-gray-300 text-gray-600 rounded-lg font-semibold text-sm hover:bg-gray-50 transition"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {trackResult.status === 'REJECTED' && (
+                                                <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+                                                    <p className="text-red-700 font-semibold mb-2">Please contact support for assistance.</p>
+                                                    <a href="https://wa.me/918178848830" target="_blank" rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg font-semibold text-sm transition">
+                                                        WhatsApp: 8178848830
+                                                        <ArrowRight className="w-4 h-4" />
+                                                    </a>
+                                                </div>
+                                            )}
+                                            {trackResult.status === 'PROCESSING' && (
+                                                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
+                                                    <p className="text-yellow-700 font-semibold">Your registration is under review. We will notify you within 24–48 hours.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ── REGISTER PANEL ── */}
+                    {activeTab === 'register' && <>
 
                     {/* Resubmission Alert */}
                     {isResubmission && (
@@ -339,11 +734,17 @@ function DigitalWarrantyContent() {
                                         type="text"
                                         value={orderId}
                                         onChange={(e) => setOrderId(e.target.value)}
+                                        onBlur={() => checkExistingWarranty(orderId, true)}
                                         placeholder="e.g. 408-2477254-5428882"
-                                        className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition text-gray-900 placeholder:text-gray-400 text-lg"
+                                        className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition text-gray-900 placeholder:text-gray-400 text-lg"
                                         required
-                                        disabled={isResubmission}
+                                        disabled={isResubmission || isCheckingOrder}
                                     />
+                                    {isCheckingOrder && (
+                                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                                            <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -610,6 +1011,8 @@ function DigitalWarrantyContent() {
 
                     {/* Cross-Sell Recommendations */}
                     <CrossSellBanner currentProduct="all" title="Explore More Software Deals" />
+
+                    </>}
 
                 </div>
             </div>

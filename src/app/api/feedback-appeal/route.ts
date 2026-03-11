@@ -28,18 +28,20 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if there's already a pending FEEDBACK appeal for this order
+        // Check if there's already a FEEDBACK appeal for this order
         // Filter by type = 'feedback' OR type is null (for legacy records)
         const { data: existing } = await supabase
             .from('feedback_appeals')
-            .select('id, status, type')
+            .select('id, status, type, screenshot_url')
             .eq('order_id', orderId)
             .or('type.eq.feedback,type.is.null')
             .single();
 
-        if (existing && existing.status === 'PENDING') {
+        // Block if PENDING and customer already submitted a screenshot
+        // (do NOT block if PENDING but no screenshot — that means admin initiated but customer hasn't submitted yet)
+        if (existing && existing.status === 'PENDING' && existing.screenshot_url) {
             return NextResponse.json(
-                { error: 'An appeal is already pending for this order. Please wait for review.' },
+                { error: 'Your appeal is currently under review. Please wait for our team to respond before submitting again.' },
                 { status: 400 }
             );
         }

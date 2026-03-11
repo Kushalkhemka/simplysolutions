@@ -38,6 +38,7 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
     const [generatedPassword, setGeneratedPassword] = useState('');
     const [isCompleting, setIsCompleting] = useState(false);
     const [showCompleteModal, setShowCompleteModal] = useState(false);
+    const [bypassPrefixCheck, setBypassPrefixCheck] = useState(false);
 
     // View Customer Data Modal State
     const [showViewModal, setShowViewModal] = useState(false);
@@ -142,6 +143,7 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
         // Reset generated fields
         setGeneratedEmail('');
         setGeneratedPassword('');
+        setBypassPrefixCheck(false);
         setShowCompleteModal(true);
     };
 
@@ -250,12 +252,12 @@ Email - ${request.email || '-'}`;
                 toast.error('Please enter generated email and password');
                 return;
             }
-            // Validate username prefix matches
-            if (selectedRequest.username_prefix) {
+            // Validate username prefix matches (unless admin bypassed)
+            if (selectedRequest.username_prefix && !bypassPrefixCheck) {
                 const emailPrefix = generatedEmail.split('@')[0].toLowerCase();
                 const expectedPrefix = selectedRequest.username_prefix.toLowerCase();
                 if (emailPrefix !== expectedPrefix) {
-                    toast.error(`Email prefix "${emailPrefix}" does not match requested username "${expectedPrefix}"`);
+                    toast.error(`Email prefix "${emailPrefix}" does not match requested username "${expectedPrefix}". Check the bypass option if you want to proceed with a different username.`);
                     return;
                 }
             }
@@ -839,6 +841,32 @@ Email - ${request.email || '-'}`;
                                                     : <><AlertCircle className="h-3 w-3" /> Username does not match "{selectedRequest.username_prefix}"</>
                                                 }
                                             </p>
+                                        )}
+
+                                        {/* Bypass option — only visible when there is a mismatch */}
+                                        {generatedEmail && selectedRequest.username_prefix &&
+                                            generatedEmail.split('@')[0].toLowerCase() !== selectedRequest.username_prefix.toLowerCase() && (
+                                            <div className="mt-3 space-y-2">
+                                                <label className="flex items-start gap-2 cursor-pointer select-none">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={bypassPrefixCheck}
+                                                        onChange={(e) => setBypassPrefixCheck(e.target.checked)}
+                                                        className="mt-0.5 h-4 w-4 rounded border-orange-400 text-orange-500 accent-orange-500 cursor-pointer"
+                                                    />
+                                                    <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                                                        Bypass prefix check — customer entered invalid username, assigning alternative from our end
+                                                    </span>
+                                                </label>
+                                                {bypassPrefixCheck && (
+                                                    <div className="flex items-start gap-2 rounded-lg border border-orange-400/40 bg-orange-500/10 px-3 py-2.5">
+                                                        <AlertCircle className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+                                                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                                                            <strong>Bypass active:</strong> The confirmation email will be sent with the username you entered above, overriding the customer's original request ({selectedRequest.username_prefix}).
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
 

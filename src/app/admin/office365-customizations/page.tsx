@@ -168,7 +168,7 @@ export default function AdminOffice365CustomizationsPage() {
     };
 
     // Handle rejection
-    const handleReject = async () => {
+    const handleReject = async (silent: boolean) => {
         if (!rejectingRequest) return;
 
         setIsRejecting(true);
@@ -178,12 +178,15 @@ export default function AdminOffice365CustomizationsPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'reject',
-                    rejectionReason: rejectionReason.trim() || undefined
+                    rejectionReason: rejectionReason.trim() || undefined,
+                    silentReject: silent
                 })
             });
             const data = await res.json();
             if (data.success) {
-                toast.success('Request rejected. Customer has been notified.');
+                toast.success(silent
+                    ? 'Request rejected silently. Customer was NOT notified.'
+                    : 'Request rejected. Customer has been notified.');
                 setShowRejectModal(false);
                 setIsModalOpen(false);
                 fetchRequests();
@@ -792,7 +795,7 @@ export default function AdminOffice365CustomizationsPage() {
                                 />
                             </div>
 
-                            <div className="flex gap-3 pt-2">
+                            <div className="flex gap-3 pt-2 flex-wrap">
                                 <Button
                                     variant="outline"
                                     onClick={() => setShowRejectModal(false)}
@@ -801,7 +804,7 @@ export default function AdminOffice365CustomizationsPage() {
                                     Cancel
                                 </Button>
                                 <Button
-                                    onClick={handleReject}
+                                    onClick={() => handleReject(false)}
                                     disabled={isRejecting}
                                     className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                                 >
@@ -810,7 +813,20 @@ export default function AdminOffice365CustomizationsPage() {
                                     ) : (
                                         <Ban className="w-4 h-4 mr-2" />
                                     )}
-                                    Reject & Notify Customer
+                                    Reject & Notify
+                                </Button>
+                                <Button
+                                    onClick={() => handleReject(true)}
+                                    disabled={isRejecting}
+                                    variant="outline"
+                                    className="flex-1 border-orange-500/40 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 hover:border-orange-500/60"
+                                >
+                                    {isRejecting ? (
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    ) : (
+                                        <XCircle className="w-4 h-4 mr-2" />
+                                    )}
+                                    Silent Reject
                                 </Button>
                             </div>
                         </div>
