@@ -12,30 +12,34 @@ export async function POST(request: NextRequest) {
 
         const supabase = await createClient();
 
-        // Look up the order in amazon_orders table
-        const { data: order, error: orderError } = await supabase
+        // Fetch ALL rows for this order ID (supports multi-item orders)
+        const { data: orderRows, error: orderError } = await supabase
             .from('amazon_orders')
             .select('*')
-            .eq('order_id', orderId.trim())
-            .single();
+            .eq('order_id', orderId.trim());
 
-        if (orderError || !order) {
+        const orders = orderRows || [];
+
+        if (orderError || orders.length === 0) {
             return NextResponse.json({
                 valid: false,
                 error: 'Order ID not found. Please check your order ID and try again.'
             }, { status: 404 });
         }
 
-        // CRITICAL: Check if order has been refunded (explicit check for safety)
-        if (order.is_refunded === true) {
+        // Use first order row for shared checks
+        const primaryOrder = orders[0];
+
+        // CRITICAL: Check if any item has been refunded
+        if (orders.some(o => o.is_refunded === true)) {
             return NextResponse.json({
                 valid: false,
                 error: 'This order has been refunded. Activation is not available for refunded orders.'
             }, { status: 403 });
         }
 
-        // Check if order is BLOCKED
-        if (order.warranty_status === 'BLOCKED') {
+        // Check if any item is BLOCKED
+        if (orders.some(o => o.warranty_status === 'BLOCKED')) {
             return NextResponse.json({
                 valid: false,
                 error: `This order has been blocked. Please contact support for assistance.\n\nIt may happen you have left a negative seller feedback. You need to remove that from amazon.in/hz/feedback and fill the appeal form after removal at simplysolutions.co.in/feedback-appeal/${orderId.trim()}`,
@@ -45,8 +49,8 @@ export async function POST(request: NextRequest) {
             }, { status: 403 });
         }
 
-        // Check FBA redemption eligibility (pending orders, delivery delay, etc.)
-        const redemptionCheck = await checkFBARedemption(order);
+        // Check FBA redemption eligibility
+        const redemptionCheck = await checkFBARedemption(primaryOrder);
         if (!redemptionCheck.canRedeem) {
             return NextResponse.json({
                 valid: false,
@@ -59,12 +63,13 @@ export async function POST(request: NextRequest) {
         }
 
 
-        // Check if already redeemed (has license key assigned)
+        // Check if already redeemed (has license key assigned) — check across all items
         const { data: licenseData } = await supabase
             .from('amazon_activation_license_keys')
             .select('license_key, fsn')
             .eq('order_id', orderId.trim())
-            .single();
+            .limit(1)
+            .maybeSingle();
 
         if (licenseData) {
             // Get product info from products_data using FSN
@@ -87,13 +92,14 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Order is valid and not yet redeemed
+        // Order is valid and not yet redeemed — return primary order info
+        // The generate endpoint will handle fetching keys for all items
         return NextResponse.json({
             valid: true,
             isAlreadyRedeemed: false,
-            orderId: order.order_id,
-            fsn: order.fsn,
-            fulfillmentType: order.fulfillment_type || null
+            orderId: primaryOrder.order_id,
+            fsn: primaryOrder.fsn,
+            fulfillmentType: primaryOrder.fulfillment_type || null
         });
 
     } catch (error) {

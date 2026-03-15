@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { isComboProduct } from '@/lib/amazon/combo-products';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -109,7 +108,7 @@ export async function POST(request: NextRequest) {
 
         const { data: exactMatch } = await supabase
             .from('amazon_orders')
-            .select('id, order_id, fsn, quantity, getcid_used, getcid_count, warranty_status')
+            .select('id, order_id, fsn, quantity, getcid_used, getcid_count, getcid_limit, warranty_status')
             .eq('order_id', cleanIdentifier)
             .single();
 
@@ -118,7 +117,7 @@ export async function POST(request: NextRequest) {
         } else {
             const { data: ilikeMatch } = await supabase
                 .from('amazon_orders')
-                .select('id, order_id, fsn, quantity, getcid_used, getcid_count, warranty_status')
+                .select('id, order_id, fsn, quantity, getcid_used, getcid_count, getcid_limit, warranty_status')
                 .ilike('order_id', cleanIdentifier)
                 .single();
 
@@ -143,16 +142,13 @@ export async function POST(request: NextRequest) {
             }, { status: 403 });
         }
 
-        // Calculate max uses based on order quantity and product type
-        const isCombo = order.fsn ? isComboProduct(order.fsn) : false;
-        const orderQuantity = order.quantity || 1;
-        const itemsPerOrder = isCombo ? 2 : 1;
-        const maxUses = orderQuantity * itemsPerOrder;
+        // Use the stored getcid_limit (set at order creation, admin-editable)
+        const maxUses = order.getcid_limit || 1;
         const currentUses = order.getcid_count || 0;
 
         if (currentUses >= maxUses) {
             return NextResponse.json({
-                error: `You have used all ${maxUses} Confirmation ID generation${maxUses > 1 ? 's' : ''} for this order (${orderQuantity} × ${itemsPerOrder} product${itemsPerOrder > 1 ? 's' : ''}). Please contact support if you need assistance.`
+                error: `You have used all ${maxUses} Confirmation ID generation${maxUses > 1 ? 's' : ''} for this order. Please contact support if you need assistance.`
             }, { status: 403 });
         }
 

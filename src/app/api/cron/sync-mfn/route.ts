@@ -14,6 +14,7 @@ import {
     updateSyncStatus,
     SellerAccountWithCredentials
 } from '@/lib/amazon/seller-accounts';
+import { isComboProduct } from '@/lib/amazon/combo-products';
 import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
 
 // India marketplace (A21TJRUUN4KGV) uses the EU region endpoint
@@ -105,44 +106,54 @@ async function syncMFNOrdersForAccount(
     account: SellerAccountWithCredentials,
     supabase: any,
     asinToFSN: Map<string, string>
-): Promise<{ inserted: number; unmappedAsins: string[]; error?: string }> {
+): Promise<{ inserted: number; multiProductCount: number; unmappedAsins: string[]; error?: string }> {
     try {
         const accessToken = await getAccessToken(account);
 
         // Fetch MFN orders from last 2 days
         const twoDaysAgo = new Date();
-        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+        twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
 
         const orders = await fetchMFNOrders(accessToken, account.marketplaceId, twoDaysAgo.toISOString());
 
         if (orders.length === 0) {
             await updateSyncStatus(account.id, 'success', 0);
-            return { inserted: 0, unmappedAsins: [] };
+            return { inserted: 0, multiProductCount: 0, unmappedAsins: [] };
         }
 
-        // Check existing orders - get those with null FSN so we can update them
+        // Check existing orders - get order_id + fsn pairs
         const orderIds = orders.map((o: any) => o.AmazonOrderId);
         const { data: existingOrders } = await supabase
             .from('amazon_orders')
             .select('order_id, fsn')
             .in('order_id', orderIds);
 
-        // Create a map of existing orders with their FSN status
-        const existingOrdersMap = new Map((existingOrders || []).map((o: any) => [o.order_id, o.fsn]));
+        // Create a set of existing order_id:fsn combinations
+        const existingPairs = new Set(
+            (existingOrders || []).map((o: any) => `${o.order_id}:${o.fsn || ''}`)
+        );
+        // Also track which order_ids exist at all (for null FSN update check)
+        const existingOrderIds = new Set((existingOrders || []).map((o: any) => o.order_id));
 
-        // Process orders that are new OR have null FSN (need FSN update)
+        // Only process orders that are new or have items not yet in the DB
         const ordersToProcess = orders.filter((o: any) => {
-            const existingFsn = existingOrdersMap.get(o.AmazonOrderId);
-            return existingFsn === undefined || existingFsn === null;
+            // Process if the order doesn't exist at all, or if it has null FSN entries
+            if (!existingOrderIds.has(o.AmazonOrderId)) return true;
+            // Also re-process if there are null FSN entries (need FSN update)
+            const hasNullFsn = (existingOrders || []).some(
+                (e: any) => e.order_id === o.AmazonOrderId && !e.fsn
+            );
+            return hasNullFsn;
         });
 
         if (ordersToProcess.length === 0) {
             await updateSyncStatus(account.id, 'success', 0);
-            return { inserted: 0, unmappedAsins: [] };
+            return { inserted: 0, multiProductCount: 0, unmappedAsins: [] };
         }
 
-        // Prepare orders with ALL fields
+        // Prepare orders with ALL fields — one row per item
         const ordersToInsert = [];
+        const multiProductOrders = [];
         const seenOrderIds = new Set<string>();
         const unmappedAsins = new Set<string>();
 
@@ -154,55 +165,110 @@ async function syncMFNOrdersForAccount(
             seenOrderIds.add(order.AmazonOrderId);
 
             const items = await fetchOrderItems(accessToken, order.AmazonOrderId);
-            const firstItem = items[0];
-            const asin = firstItem?.ASIN;
-            const sellerSku = firstItem?.SellerSKU;
 
-            // Use ASIN mapping to get FSN
-            const mappedFSN = asin ? asinToFSN.get(asin) : null;
+            // Log multi-product orders for manual admin handling
+            if (items.length > 1) {
+                const itemsData = items.map((item: any) => ({
+                    asin: item.ASIN,
+                    sku: item.SellerSKU,
+                    fsn: asinToFSN.get(item.ASIN) || item.SellerSKU,
+                    title: item.Title,
+                    quantity: item.QuantityOrdered,
+                    price: item.ItemPrice?.Amount
+                }));
 
-            // Track unmapped ASINs for debugging
-            if (asin && !mappedFSN) {
-                unmappedAsins.add(asin);
+                multiProductOrders.push({
+                    order_id: order.AmazonOrderId,
+                    order_date: order.PurchaseDate || null,
+                    buyer_email: order.BuyerInfo?.BuyerEmail || null,
+                    contact_email: order.BuyerInfo?.BuyerEmail || null,
+                    items: itemsData,
+                    item_count: items.length,
+                    total_amount: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
+                    currency: order.OrderTotal?.CurrencyCode || 'INR',
+                    fulfillment_type: 'amazon_mfn',
+                    status: 'PENDING'
+                });
+
+                console.log(`[sync-mfn] Multi-product order detected: ${order.AmazonOrderId} (${items.length} items)`);
             }
 
-            ordersToInsert.push({
-                order_id: order.AmazonOrderId,
-                fulfillment_type: 'amazon_mfn',
-                fsn: mappedFSN || sellerSku || null,
-                order_date: order.PurchaseDate || null,
-                order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
-                currency: order.OrderTotal?.CurrencyCode || 'INR',
-                quantity: firstItem?.QuantityOrdered || 1,
-                buyer_email: order.BuyerInfo?.BuyerEmail || null,
-                contact_email: order.BuyerInfo?.BuyerEmail || null,
-                city: order.ShippingAddress?.City || null,
-                state: order.ShippingAddress?.StateOrRegion || null,
-                postal_code: order.ShippingAddress?.PostalCode || null,
-                country: order.ShippingAddress?.CountryCode || 'IN',
-                warranty_status: 'PENDING',
-                synced_at: new Date().toISOString(),
-                seller_account_id: account.id  // Link to seller account
-            });
+            // Insert one row per item (not just the first)
+            for (const item of items) {
+                const asin = item.ASIN;
+                const sellerSku = item.SellerSKU;
+                const mappedFSN = asin ? asinToFSN.get(asin) : null;
+
+                // Track unmapped ASINs for debugging
+                if (asin && !mappedFSN) {
+                    unmappedAsins.add(asin);
+                }
+
+                const finalFsn = mappedFSN || sellerSku || null;
+                const qty = item.QuantityOrdered || 1;
+
+                // Skip if this order_id + fsn pair already exists
+                if (finalFsn && existingPairs.has(`${order.AmazonOrderId}:${finalFsn}`)) {
+                    continue;
+                }
+
+                ordersToInsert.push({
+                    order_id: order.AmazonOrderId,
+                    fulfillment_type: 'amazon_mfn',
+                    fsn: finalFsn,
+                    order_date: order.PurchaseDate || null,
+                    order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
+                    currency: order.OrderTotal?.CurrencyCode || 'INR',
+                    quantity: qty,
+                    getcid_limit: qty * 2,
+                    buyer_email: order.BuyerInfo?.BuyerEmail || null,
+                    contact_email: order.BuyerInfo?.BuyerEmail || null,
+                    city: order.ShippingAddress?.City || null,
+                    state: order.ShippingAddress?.StateOrRegion || null,
+                    postal_code: order.ShippingAddress?.PostalCode || null,
+                    country: order.ShippingAddress?.CountryCode || 'IN',
+                    warranty_status: 'PENDING',
+                    synced_at: new Date().toISOString(),
+                    seller_account_id: account.id
+                });
+            }
         }
 
-        // Use upsert to handle race conditions and update existing orders
+        if (ordersToInsert.length === 0) {
+            await updateSyncStatus(account.id, 'success', 0);
+            return { inserted: 0, multiProductCount: multiProductOrders.length, unmappedAsins: Array.from(unmappedAsins) };
+        }
+
+        // Insert orders (use insert instead of upsert since we check for duplicates above)
         const { error } = await supabase
             .from('amazon_orders')
-            .upsert(ordersToInsert, { onConflict: 'order_id' });
+            .insert(ordersToInsert);
 
         if (error) {
             await updateSyncStatus(account.id, `Error: ${error.message}`);
-            return { inserted: 0, unmappedAsins: Array.from(unmappedAsins), error: error.message };
+            return { inserted: 0, multiProductCount: 0, unmappedAsins: Array.from(unmappedAsins), error: error.message };
+        }
+
+        // Log multi-product orders for admin handling
+        if (multiProductOrders.length > 0) {
+            const { error: multiError } = await supabase
+                .from('multi_fsn_orders')
+                .insert(multiProductOrders);
+
+            if (multiError) {
+                console.error(`[sync-mfn] Error inserting multi-product orders: ${multiError.message}`);
+            } else {
+                console.log(`[sync-mfn] Logged ${multiProductOrders.length} multi-product order(s) for admin review`);
+            }
         }
 
         await updateSyncStatus(account.id, 'success', ordersToInsert.length);
-        return { inserted: ordersToInsert.length, unmappedAsins: Array.from(unmappedAsins) };
+        return { inserted: ordersToInsert.length, multiProductCount: multiProductOrders.length, unmappedAsins: Array.from(unmappedAsins) };
 
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         await updateSyncStatus(account.id, `Error: ${errorMessage}`);
-        return { inserted: 0, unmappedAsins: [], error: errorMessage };
+        return { inserted: 0, multiProductCount: 0, unmappedAsins: [], error: errorMessage };
     }
 }
 
@@ -244,8 +310,9 @@ export async function GET(request: NextRequest) {
         });
 
         // Process each seller account
-        const results: { accountName: string; inserted: number; unmappedAsins: string[]; error?: string }[] = [];
+        const results: { accountName: string; inserted: number; multiProductCount: number; unmappedAsins: string[]; error?: string }[] = [];
         let totalInserted = 0;
+        let totalMultiProduct = 0;
         const allUnmappedAsins = new Set<string>();
 
         for (const account of accounts) {
@@ -256,11 +323,13 @@ export async function GET(request: NextRequest) {
             results.push({
                 accountName: account.name,
                 inserted: result.inserted,
+                multiProductCount: result.multiProductCount,
                 unmappedAsins: result.unmappedAsins,
                 error: result.error
             });
 
             totalInserted += result.inserted;
+            totalMultiProduct += result.multiProductCount;
             result.unmappedAsins.forEach(asin => allUnmappedAsins.add(asin));
 
             // Small delay between accounts to avoid rate limiting
@@ -276,6 +345,7 @@ export async function GET(request: NextRequest) {
             message: 'MFN orders synced successfully',
             accountsProcessed: accounts.length,
             totalOrdersInserted: totalInserted,
+            totalMultiProductOrders: totalMultiProduct,
             unmappedAsinCount: allUnmappedAsins.size,
             unmappedAsins: Array.from(allUnmappedAsins),
             results,

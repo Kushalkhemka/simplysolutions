@@ -17,10 +17,10 @@ interface AmazonOrder {
     fulfillment_type: string;
     getcid_used: boolean;
     getcid_count: number | null;
+    getcid_limit: number | null;
     quantity: number | null;
     installation_id: string | null;
     confirmation_id: string | null;
-    product_title: string | null;
     license_key_id: string | null;
     is_refunded: boolean | null;
     fulfillment_status: string | null;  // Pending, Shipped, Delivered
@@ -28,7 +28,7 @@ interface AmazonOrder {
     updated_at: string;
 }
 
-type SearchField = 'all' | 'order_id' | 'fsn' | 'contact_email' | 'contact_phone' | 'installation_id' | 'confirmation_id' | 'product_title';
+type SearchField = 'all' | 'order_id' | 'fsn' | 'contact_email' | 'contact_phone' | 'installation_id' | 'confirmation_id';
 
 const SEARCH_FIELD_OPTIONS: { value: SearchField; label: string }[] = [
     { value: 'all', label: 'All Fields' },
@@ -38,7 +38,6 @@ const SEARCH_FIELD_OPTIONS: { value: SearchField; label: string }[] = [
     { value: 'contact_phone', label: 'Contact Phone' },
     { value: 'installation_id', label: 'Installation ID' },
     { value: 'confirmation_id', label: 'Confirmation ID' },
-    { value: 'product_title', label: 'Product Title' },
 ];
 
 interface LicenseKey {
@@ -96,6 +95,11 @@ export default function AmazonOrdersClient() {
     // Refund toggle state
     const [isTogglingRefund, setIsTogglingRefund] = useState(false);
 
+    // GetCID limit editing state
+    const [isEditingGetcidLimit, setIsEditingGetcidLimit] = useState(false);
+    const [editedGetcidLimit, setEditedGetcidLimit] = useState<number>(1);
+    const [isSavingGetcidLimit, setIsSavingGetcidLimit] = useState(false);
+
     // Shipment status state
     const [isUpdatingShipment, setIsUpdatingShipment] = useState(false);
 
@@ -125,7 +129,7 @@ export default function AmazonOrdersClient() {
         if (searchQuery) {
             if (searchField === 'all') {
                 query = query.or(
-                    `order_id.ilike.%${searchQuery}%,fsn.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%,contact_phone.ilike.%${searchQuery}%,installation_id.ilike.%${searchQuery}%,confirmation_id.ilike.%${searchQuery}%,product_title.ilike.%${searchQuery}%`
+                    `order_id.ilike.%${searchQuery}%,fsn.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%,contact_phone.ilike.%${searchQuery}%,installation_id.ilike.%${searchQuery}%,confirmation_id.ilike.%${searchQuery}%`
                 );
             } else {
                 query = query.ilike(searchField, `%${searchQuery}%`);
@@ -310,7 +314,7 @@ export default function AmazonOrdersClient() {
                     contact_phone: editedOrder.contact_phone || null,
                     updated_at: new Date().toISOString()
                 })
-                .eq('order_id', selectedOrder.order_id);
+                .eq('id', selectedOrder.id);
 
             if (error) throw error;
 
@@ -324,7 +328,7 @@ export default function AmazonOrdersClient() {
                 contact_phone: editedOrder.contact_phone || null,
             });
             setOrders(prev => prev.map(o =>
-                o.order_id === selectedOrder.order_id
+                o.id === selectedOrder.id
                     ? {
                         ...o,
                         fsn: editedOrder.fsn || null,
@@ -1188,23 +1192,101 @@ export default function AmazonOrdersClient() {
                                         <p className="text-xs text-muted-foreground uppercase tracking-wide">GetCID Usage</p>
                                         <div className="mt-1">
                                             {(() => {
-                                                const isCombo = selectedOrder.fsn ? isComboProduct(selectedOrder.fsn) : false;
-                                                const qty = selectedOrder.quantity || 1;
-                                                const itemsPerOrder = isCombo ? 2 : 1;
-                                                const maxUses = qty * itemsPerOrder;
+                                                const maxUses = selectedOrder.getcid_limit || 1;
                                                 const usedCount = selectedOrder.getcid_count || 0;
                                                 const remaining = maxUses - usedCount;
 
+                                                const startEditingLimit = () => {
+                                                    setEditedGetcidLimit(maxUses);
+                                                    setIsEditingGetcidLimit(true);
+                                                };
+
+                                                const cancelEditingLimit = () => {
+                                                    setIsEditingGetcidLimit(false);
+                                                };
+
+                                                const saveGetcidLimit = async () => {
+                                                    setIsSavingGetcidLimit(true);
+                                                    try {
+                                                        const { error } = await supabase
+                                                            .from('amazon_orders')
+                                                            .update({
+                                                                getcid_limit: editedGetcidLimit,
+                                                                updated_at: new Date().toISOString()
+                                                            })
+                                                            .eq('id', selectedOrder.id);
+
+                                                        if (error) throw error;
+
+                                                        // Update local state
+                                                        setSelectedOrder({ ...selectedOrder, getcid_limit: editedGetcidLimit });
+                                                        setOrders(prev => prev.map(o =>
+                                                            o.id === selectedOrder.id
+                                                                ? { ...o, getcid_limit: editedGetcidLimit }
+                                                                : o
+                                                        ));
+
+                                                        toast.success(`GetCID limit updated to ${editedGetcidLimit}`);
+                                                        setIsEditingGetcidLimit(false);
+                                                    } catch (error) {
+                                                        console.error('Error updating GetCID limit:', error);
+                                                        toast.error('Failed to update GetCID limit');
+                                                    } finally {
+                                                        setIsSavingGetcidLimit(false);
+                                                    }
+                                                };
+
                                                 return (
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 flex-wrap">
                                                         <div className="flex items-center gap-1">
                                                             <Phone className="h-3 w-3 text-muted-foreground" />
                                                             <span className={`font-bold ${usedCount >= maxUses ? 'text-red-600' : 'text-green-600'}`}>
                                                                 {usedCount}
                                                             </span>
                                                             <span className="text-muted-foreground">/</span>
-                                                            <span className="font-medium">{maxUses}</span>
+                                                            {isEditingGetcidLimit ? (
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={editedGetcidLimit}
+                                                                    onChange={(e) => setEditedGetcidLimit(Math.max(0, parseInt(e.target.value) || 0))}
+                                                                    className="w-14 px-1 py-0.5 text-sm font-medium border rounded bg-background focus:ring-2 focus:ring-blue-500 text-center"
+                                                                    autoFocus
+                                                                />
+                                                            ) : (
+                                                                <span className="font-medium">{maxUses}</span>
+                                                            )}
                                                         </div>
+                                                        {isEditingGetcidLimit ? (
+                                                            <div className="flex items-center gap-1">
+                                                                <button
+                                                                    onClick={saveGetcidLimit}
+                                                                    disabled={isSavingGetcidLimit}
+                                                                    className="flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50"
+                                                                >
+                                                                    {isSavingGetcidLimit ? (
+                                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                                    ) : (
+                                                                        <Save className="h-3 w-3" />
+                                                                    )}
+                                                                </button>
+                                                                <button
+                                                                    onClick={cancelEditingLimit}
+                                                                    disabled={isSavingGetcidLimit}
+                                                                    className="px-1.5 py-0.5 text-xs border rounded hover:bg-muted transition-colors"
+                                                                >
+                                                                    <X className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={startEditingLimit}
+                                                                className="flex items-center gap-0.5 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                                                                title="Edit GetCID limit"
+                                                            >
+                                                                <Edit2 className="h-3 w-3" />
+                                                            </button>
+                                                        )}
                                                         {usedCount >= maxUses ? (
                                                             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                                 Exhausted
@@ -1218,6 +1300,7 @@ export default function AmazonOrdersClient() {
                                                                 Not Used
                                                             </span>
                                                         )}
+
                                                     </div>
                                                 );
                                             })()}

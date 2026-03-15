@@ -5,6 +5,7 @@ import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/util
 import { paymentVerificationSchema } from '@/lib/utils/validation';
 import { verifyPaymentSignature } from '@/lib/razorpay';
 import { getInstallDocUrl } from '@/lib/amazon/asin-mapping';
+import { isComboProduct } from '@/lib/amazon/combo-products';
 import { sendDigitalDeliveryEmail, DigitalProductDelivery } from '@/lib/email';
 
 // Generate unique 15-digit secret code
@@ -168,6 +169,7 @@ export async function POST(request: NextRequest) {
                             contact_phone: order.billing_phone || null,
                             warranty_status: 'PENDING',
                             quantity: 1, // Each secret code is for 1 unit
+                            getcid_limit: 2,
                         });
 
                     if (amazonOrderError) {

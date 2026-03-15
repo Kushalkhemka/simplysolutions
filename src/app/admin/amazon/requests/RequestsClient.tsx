@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CheckCircle, Clock, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle, Eye, Copy, Check, Mail, Key, User, Lock, Trash2 } from 'lucide-react';
+import { CheckCircle, Clock, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle, Eye, Copy, Check, Mail, Key, User, Lock, Trash2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -51,6 +51,11 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
     const [typeFilter, setTypeFilter] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+
+    // Export Modal State
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportDateFrom, setExportDateFrom] = useState('');
+    const [exportDateTo, setExportDateTo] = useState('');
 
     // Get unique types
     const types = useMemo(() => {
@@ -243,6 +248,61 @@ Email - ${request.email || '-'}`;
         }
     };
 
+    // Export 365E5 completed requests to CSV
+    const handleExportExcel = () => {
+        let office365Requests = requests.filter(
+            (r) => r.request_type === '365e5' && r.is_completed
+        );
+
+        // Apply date range filter
+        if (exportDateFrom) {
+            const from = new Date(exportDateFrom);
+            from.setHours(0, 0, 0, 0);
+            office365Requests = office365Requests.filter(
+                (r) => new Date(r.created_at) >= from
+            );
+        }
+        if (exportDateTo) {
+            const to = new Date(exportDateTo);
+            to.setHours(23, 59, 59, 999);
+            office365Requests = office365Requests.filter(
+                (r) => new Date(r.created_at) <= to
+            );
+        }
+
+        if (office365Requests.length === 0) {
+            toast.error('No completed 365E5 requests found for the selected date range');
+            return;
+        }
+
+        const headers = ['Order ID', 'FSN', 'Mobile', 'Email', 'Status', 'Date', 'Login ID', 'Password'];
+        const escape = (val: string) => `"${val.replace(/"/g, '""')}"`;
+
+        const rows = office365Requests.map((r) => [
+            r.order_id || '-',
+            r.fsn || '-',
+            r.mobile_number || '-',
+            r.email || '-',
+            r.is_completed ? 'Completed' : 'Pending',
+            new Date(r.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+            r.generated_email || '-',
+            r.generated_password || '-',
+        ].map(escape).join(','));
+
+        const csv = [headers.map(escape).join(','), ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const today = new Date().toISOString().slice(0, 10);
+        a.download = `365E5_Requests_${today}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        toast.success(`Exported ${office365Requests.length} requests to CSV`);
+        setShowExportModal(false);
+    };
+
     const handleCompleteRequest = async () => {
         if (!selectedRequest) return;
 
@@ -314,6 +374,14 @@ Email - ${request.email || '-'}`;
                         Manage subscription product requests ({totalCount.toLocaleString()} total)
                     </p>
                 </div>
+                <button
+                    onClick={() => { setExportDateFrom(''); setExportDateTo(''); setShowExportModal(true); }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors shadow-sm"
+                    title="Export completed 365E5 requests to Excel"
+                >
+                    <Download className="h-4 w-4" />
+                    Export 365E5
+                </button>
             </div>
 
             {/* Stats Cards - Cohesive gradient design */}
@@ -655,6 +723,79 @@ Email - ${request.email || '-'}`;
                     </div>
                 )}
             </div>
+
+            {/* Export Modal */}
+            {showExportModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="bg-card border rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+                        <div className="p-4 border-b flex items-center justify-between">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <Download className="h-5 w-5 text-emerald-500" />
+                                Export 365E5 Requests
+                            </h3>
+                            <button
+                                onClick={() => setShowExportModal(false)}
+                                className="p-1 hover:bg-muted rounded transition-colors"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-4 space-y-4">
+                            <p className="text-sm text-muted-foreground">
+                                Select a date range to filter completed 365E5 requests. Leave blank to export all.
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                        <Calendar className="h-3 w-3" />
+                                        From
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={exportDateFrom}
+                                        onChange={(e) => setExportDateFrom(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                        <Calendar className="h-3 w-3" />
+                                        To
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={exportDateTo}
+                                        onChange={(e) => setExportDateTo(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2">
+                                Columns: Order ID, FSN, Mobile, Email, Status, Date, Login ID, Password
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-muted/30 border-t flex items-center justify-end gap-3">
+                            <button
+                                onClick={() => setShowExportModal(false)}
+                                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleExportExcel}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+                            >
+                                <Download className="h-4 w-4" />
+                                Export Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* View Customer Data Modal */}
             {showViewModal && viewRequest && (

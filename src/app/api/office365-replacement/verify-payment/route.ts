@@ -246,6 +246,7 @@ export async function POST(request: NextRequest) {
         contact_phone: phone.trim(),
         warranty_status: 'PENDING',
         quantity: 1,
+        getcid_limit: 2,
       });
 
     if (insertError) {

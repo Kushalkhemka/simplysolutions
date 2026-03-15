@@ -204,27 +204,30 @@ async function handleInitiate(adminClient: ReturnType<typeof getAdminClient>, or
 
 // Approve appeal: Unblock order + send WhatsApp
 async function handleApprove(adminClient: ReturnType<typeof getAdminClient>, orderId: string, appealType: AppealType) {
-    // 1. Get appeal details
-    const { data: appeal, error: appealError } = await adminClient
+    // 1. Get appeal details (for 'feedback', also match NULL type for legacy records)
+    let selectQuery = adminClient
         .from('feedback_appeals')
         .select('*')
-        .eq('order_id', orderId)
-        .eq('type', appealType)
-        .single();
+        .eq('order_id', orderId);
+    if (appealType === 'feedback') {
+        selectQuery = selectQuery.or('type.eq.feedback,type.is.null');
+    } else {
+        selectQuery = selectQuery.eq('type', 'review');
+    }
+    const { data: appeal, error: appealError } = await selectQuery.single();
 
     if (appealError || !appeal) {
         return NextResponse.json({ error: 'Appeal not found' }, { status: 404 });
     }
 
-    // 2. Update appeal status
+    // 2. Update appeal status (use id for precision)
     await adminClient
         .from('feedback_appeals')
         .update({
             status: 'APPROVED',
             reviewed_at: new Date().toISOString()
         })
-        .eq('order_id', orderId)
-        .eq('type', appealType);
+        .eq('id', appeal.id);
 
     // 3. Unblock the order (set to null or a normal status)
     await adminClient
@@ -250,27 +253,30 @@ async function handleApprove(adminClient: ReturnType<typeof getAdminClient>, ord
 
 // Reject appeal: Keep blocked + send WhatsApp
 async function handleReject(adminClient: ReturnType<typeof getAdminClient>, orderId: string, appealType: AppealType) {
-    // 1. Get appeal details
-    const { data: appeal, error: appealError } = await adminClient
+    // 1. Get appeal details (for 'feedback', also match NULL type for legacy records)
+    let selectQuery = adminClient
         .from('feedback_appeals')
         .select('*')
-        .eq('order_id', orderId)
-        .eq('type', appealType)
-        .single();
+        .eq('order_id', orderId);
+    if (appealType === 'feedback') {
+        selectQuery = selectQuery.or('type.eq.feedback,type.is.null');
+    } else {
+        selectQuery = selectQuery.eq('type', 'review');
+    }
+    const { data: appeal, error: appealError } = await selectQuery.single();
 
     if (appealError || !appeal) {
         return NextResponse.json({ error: 'Appeal not found' }, { status: 404 });
     }
 
-    // 2. Update appeal status (order stays BLOCKED)
+    // 2. Update appeal status (use id for precision)
     await adminClient
         .from('feedback_appeals')
         .update({
             status: 'REJECTED',
             reviewed_at: new Date().toISOString()
         })
-        .eq('order_id', orderId)
-        .eq('type', appealType);
+        .eq('id', appeal.id);
 
     // 3. Send WhatsApp notification based on type
     let whatsappResult: WhatsAppResponse = { success: false, error: 'No phone number' };
@@ -290,19 +296,23 @@ async function handleReject(adminClient: ReturnType<typeof getAdminClient>, orde
 
 // Request resubmission: Reset to pending + send WhatsApp
 async function handleResubmit(adminClient: ReturnType<typeof getAdminClient>, orderId: string, appealType: AppealType) {
-    // 1. Get appeal details
-    const { data: appeal, error: appealError } = await adminClient
+    // 1. Get appeal details (for 'feedback', also match NULL type for legacy records)
+    let selectQuery = adminClient
         .from('feedback_appeals')
         .select('*')
-        .eq('order_id', orderId)
-        .eq('type', appealType)
-        .single();
+        .eq('order_id', orderId);
+    if (appealType === 'feedback') {
+        selectQuery = selectQuery.or('type.eq.feedback,type.is.null');
+    } else {
+        selectQuery = selectQuery.eq('type', 'review');
+    }
+    const { data: appeal, error: appealError } = await selectQuery.single();
 
     if (appealError || !appeal) {
         return NextResponse.json({ error: 'Appeal not found' }, { status: 404 });
     }
 
-    // 2. Update appeal status
+    // 2. Update appeal status (use id for precision)
     await adminClient
         .from('feedback_appeals')
         .update({
@@ -310,8 +320,7 @@ async function handleResubmit(adminClient: ReturnType<typeof getAdminClient>, or
             screenshot_url: '',
             reviewed_at: new Date().toISOString()
         })
-        .eq('order_id', orderId)
-        .eq('type', appealType);
+        .eq('id', appeal.id);
 
     // 3. Send WhatsApp notification based on type
     let whatsappResult: WhatsAppResponse = { success: false, error: 'No phone number' };
@@ -329,43 +338,84 @@ async function handleResubmit(adminClient: ReturnType<typeof getAdminClient>, or
     });
 }
 
-// GET stats for feedback appeals
-export async function GET() {
+// GET appeals list + stats for feedback appeals
+export async function GET(request: NextRequest) {
     try {
         const adminClient = getAdminClient();
+        const { searchParams } = new URL(request.url);
 
-        const { data, error } = await adminClient
+        const type = searchParams.get('type') || 'feedback';
+        const status = searchParams.get('status') || 'all';
+        const search = searchParams.get('search') || '';
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
+
+        const typeFilter: AppealType = type === 'review' ? 'review' : 'feedback';
+        // For 'feedback' type, also include NULL type for legacy records
+        const isFeedback = typeFilter === 'feedback';
+
+        // 1. Fetch stats for this type
+        const statuses = ['PENDING', 'APPROVED', 'REJECTED', 'RESUBMIT'] as const;
+        const statsPromises = statuses.map(s => {
+            let q = adminClient
+                .from('feedback_appeals')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', s);
+            if (isFeedback) {
+                q = q.or('type.eq.feedback,type.is.null');
+            } else {
+                q = q.eq('type', 'review');
+            }
+            return q;
+        });
+        const statsResults = await Promise.all(statsPromises);
+
+        const stats = {
+            pending: statsResults[0].count || 0,
+            approved: statsResults[1].count || 0,
+            rejected: statsResults[2].count || 0,
+            resubmit: statsResults[3].count || 0,
+        };
+
+        // 2. Fetch paginated appeals
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
+        let query = adminClient
             .from('feedback_appeals')
-            .select('status')
-            .then(result => {
-                if (result.error) throw result.error;
+            .select('*', { count: 'exact' })
+            .order('created_at', { ascending: false });
 
-                const stats = {
-                    pending: 0,
-                    approved: 0,
-                    rejected: 0,
-                    resubmit: 0,
-                    total: result.data?.length || 0
-                };
+        if (isFeedback) {
+            query = query.or('type.eq.feedback,type.is.null');
+        } else {
+            query = query.eq('type', 'review');
+        }
 
-                result.data?.forEach(appeal => {
-                    switch (appeal.status) {
-                        case 'PENDING': stats.pending++; break;
-                        case 'APPROVED': stats.approved++; break;
-                        case 'REJECTED': stats.rejected++; break;
-                        case 'RESUBMIT': stats.resubmit++; break;
-                    }
-                });
+        if (search) {
+            query = query.or(`order_id.ilike.%${search}%,phone.ilike.%${search}%`);
+        }
 
-                return { data: stats, error: null };
-            });
+        if (status !== 'all') {
+            query = query.eq('status', status);
+        }
 
-        if (error) throw error;
+        const { data: appeals, count, error } = await query.range(from, to);
 
-        return NextResponse.json(data);
+        if (error) {
+            console.error('Error fetching appeals:', error);
+            return NextResponse.json({ error: 'Failed to fetch appeals' }, { status: 500 });
+        }
+
+        return NextResponse.json({
+            appeals: appeals || [],
+            totalCount: count || 0,
+            stats,
+        });
     } catch (error) {
-        console.error('Error fetching stats:', error);
-        return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
+        console.error('Error fetching appeals:', error);
+        return NextResponse.json({ error: 'Failed to fetch appeals' }, { status: 500 });
     }
 }
+
 

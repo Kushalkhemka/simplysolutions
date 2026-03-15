@@ -20,6 +20,7 @@ import {
     updateSyncStatus,
     SellerAccountWithCredentials
 } from '@/lib/amazon/seller-accounts';
+import { isComboProduct } from '@/lib/amazon/combo-products';
 import { logCronStart, logCronSuccess, logCronError } from '@/lib/cron/logger';
 
 // India marketplace (A21TJRUUN4KGV) uses the EU region endpoint
@@ -126,18 +127,28 @@ async function syncOrdersForAccount(
         const orderIds = orders.map((o: any) => o.AmazonOrderId);
         const { data: existingOrders } = await supabase
             .from('amazon_orders')
-            .select('order_id, fulfillment_status, shipped_at, state')
+            .select('order_id, fsn, fulfillment_status, shipped_at, state')
             .in('order_id', orderIds);
 
-        const existingMap = new Map<string, { order_id: string; fulfillment_status: string | null; shipped_at: string | null; state: string | null }>();
+        // Track existing order_id:fsn pairs to avoid duplicate inserts
+        const existingPairs = new Set(
+            (existingOrders || []).map((o: any) => `${o.order_id}:${o.fsn || ''}`)
+        );
+        const existingOrderIds = new Set((existingOrders || []).map((o: any) => o.order_id));
+
+        // Build a map for status update checks (keyed by order_id)
+        const existingStatusMap = new Map<string, { fulfillment_status: string | null; shipped_at: string | null; state: string | null }>();
         (existingOrders || []).forEach((o: any) => {
-            existingMap.set(o.order_id, o);
+            // Use the first entry per order_id for status update checks
+            if (!existingStatusMap.has(o.order_id)) {
+                existingStatusMap.set(o.order_id, o);
+            }
         });
 
         // Separate new orders from existing orders that need status updates
-        const newOrders = orders.filter((o: any) => !existingMap.has(o.AmazonOrderId));
+        const newOrders = orders.filter((o: any) => !existingOrderIds.has(o.AmazonOrderId));
         const ordersToUpdate = orders.filter((o: any) => {
-            const existing = existingMap.get(o.AmazonOrderId);
+            const existing = existingStatusMap.get(o.AmazonOrderId);
             if (!existing) return false;
 
             const statusChanged = (existing.fulfillment_status === 'Pending' || existing.fulfillment_status === null)
@@ -148,7 +159,7 @@ async function syncOrdersForAccount(
             return statusChanged || needsShippedAt || needsState;
         });
 
-        // Prepare new orders for insert
+        // Prepare new orders for insert — one row per item
         const ordersToInsert = [];
         const multiProductOrders = [];
 
@@ -180,11 +191,6 @@ async function syncOrdersForAccount(
                 });
             }
 
-            // Only sync first item to amazon_orders (customer can activate this)
-            const firstItem = items[0];
-            const asin = firstItem?.ASIN;
-            const mappedFSN = asin ? asinToFSN.get(asin) : null;
-
             const amazonOrderStatus = order.OrderStatus || 'Pending';
             const postalCode = order.ShippingAddress?.PostalCode || null;
             const state = order.ShippingAddress?.StateOrRegion || null;
@@ -195,26 +201,40 @@ async function syncOrdersForAccount(
                 shippedAt = order.LastUpdateDate || new Date().toISOString();
             }
 
-            ordersToInsert.push({
-                order_id: order.AmazonOrderId,
-                fulfillment_type: 'amazon_fba',
-                fulfillment_status: amazonOrderStatus,
-                fsn: mappedFSN || firstItem?.SellerSKU || null,
-                order_date: order.PurchaseDate || null,
-                order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
-                currency: order.OrderTotal?.CurrencyCode || 'INR',
-                quantity: firstItem?.QuantityOrdered || 1,
-                buyer_email: order.BuyerInfo?.BuyerEmail || null,
-                contact_email: order.BuyerInfo?.BuyerEmail || null,
-                city: order.ShippingAddress?.City || null,
-                state: state,
-                postal_code: postalCode,
-                country: order.ShippingAddress?.CountryCode || 'IN',
-                warranty_status: 'PENDING',
-                shipped_at: shippedAt,
-                synced_at: new Date().toISOString(),
-                seller_account_id: account.id  // Link to seller account
-            });
+            // Insert one row per item
+            for (const item of items) {
+                const asin = item.ASIN;
+                const mappedFSN = asin ? asinToFSN.get(asin) : null;
+                const finalFsn = mappedFSN || item.SellerSKU || null;
+                const qty = item.QuantityOrdered || 1;
+
+                // Skip if this order_id + fsn pair already exists
+                if (finalFsn && existingPairs.has(`${order.AmazonOrderId}:${finalFsn}`)) {
+                    continue;
+                }
+
+                ordersToInsert.push({
+                    order_id: order.AmazonOrderId,
+                    fulfillment_type: 'amazon_fba',
+                    fulfillment_status: amazonOrderStatus,
+                    fsn: finalFsn,
+                    order_date: order.PurchaseDate || null,
+                    order_total: order.OrderTotal?.Amount ? parseFloat(order.OrderTotal.Amount) : null,
+                    currency: order.OrderTotal?.CurrencyCode || 'INR',
+                    quantity: qty,
+                    getcid_limit: qty * 2,
+                    buyer_email: order.BuyerInfo?.BuyerEmail || null,
+                    contact_email: order.BuyerInfo?.BuyerEmail || null,
+                    city: order.ShippingAddress?.City || null,
+                    state: state,
+                    postal_code: postalCode,
+                    country: order.ShippingAddress?.CountryCode || 'IN',
+                    warranty_status: 'PENDING',
+                    shipped_at: shippedAt,
+                    synced_at: new Date().toISOString(),
+                    seller_account_id: account.id
+                });
+            }
         }
 
         // Insert new orders

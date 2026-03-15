@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+
 import {
     CheckCircle, XCircle, Clock, ExternalLink, ChevronLeft, ChevronRight,
     Loader2, Search, Eye, X, Phone, Calendar, Image as ImageIcon,
@@ -72,82 +72,47 @@ export default function FeedbackAppealsClient() {
     const [resendPhone, setResendPhone] = useState('');
 
     const pageSize = 50;
-    const supabase = createClient();
 
-    const fetchStats = useCallback(async () => {
-        const typeFilter = appealType === 'feedback' ? 'feedback' : 'review';
-
-        const { count: pending } = await supabase
-            .from('feedback_appeals')
-            .select('*', { count: 'exact', head: true })
-            .eq('type', typeFilter)
-            .eq('status', 'PENDING');
-
-        const { count: approved } = await supabase
-            .from('feedback_appeals')
-            .select('*', { count: 'exact', head: true })
-            .eq('type', typeFilter)
-            .eq('status', 'APPROVED');
-
-        const { count: rejected } = await supabase
-            .from('feedback_appeals')
-            .select('*', { count: 'exact', head: true })
-            .eq('type', typeFilter)
-            .eq('status', 'REJECTED');
-
-        const { count: resubmit } = await supabase
-            .from('feedback_appeals')
-            .select('*', { count: 'exact', head: true })
-            .eq('type', typeFilter)
-            .eq('status', 'RESUBMIT');
-
-        setPendingCount(pending || 0);
-        setApprovedCount(approved || 0);
-        setRejectedCount(rejected || 0);
-        setResubmitCount(resubmit || 0);
-    }, [supabase, appealType]);
-
-    const fetchAppeals = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         setIsLoading(true);
-        const from = (currentPage - 1) * pageSize;
-        const to = from + pageSize - 1;
-        const typeFilter = appealType === 'feedback' ? 'feedback' : 'review';
+        try {
+            const params = new URLSearchParams({
+                type: appealType,
+                status: statusFilter,
+                search: searchQuery,
+                page: String(currentPage),
+                pageSize: String(pageSize),
+            });
 
-        let query = supabase
-            .from('feedback_appeals')
-            .select('*', { count: 'exact' })
-            .eq('type', typeFilter)
-            .order('created_at', { ascending: false });
+            const response = await fetch(`/api/admin/feedback-appeal?${params}`);
+            const data = await response.json();
 
-        if (searchQuery) {
-            query = query.or(`order_id.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
-        }
-
-        if (statusFilter !== 'all') {
-            query = query.eq('status', statusFilter);
-        }
-
-        const { data, count, error } = await query.range(from, to);
-
-        if (error) {
+            if (response.ok) {
+                setAppeals(data.appeals || []);
+                setTotalCount(data.totalCount || 0);
+                setPendingCount(data.stats?.pending || 0);
+                setApprovedCount(data.stats?.approved || 0);
+                setRejectedCount(data.stats?.rejected || 0);
+                setResubmitCount(data.stats?.resubmit || 0);
+            } else {
+                console.error('Error fetching appeals:', data.error);
+                toast.error('Failed to load appeals');
+            }
+        } catch (error) {
             console.error('Error fetching appeals:', error);
             toast.error('Failed to load appeals');
-        } else {
-            setAppeals(data || []);
-            setTotalCount(count || 0);
         }
         setIsLoading(false);
-    }, [currentPage, searchQuery, statusFilter, supabase, appealType]);
+    }, [currentPage, searchQuery, statusFilter, appealType]);
 
     useEffect(() => {
-        fetchAppeals();
-        fetchStats();
-    }, [fetchAppeals, fetchStats]);
+        fetchData();
+    }, [fetchData]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setCurrentPage(1);
-        fetchAppeals();
+        fetchData();
     };
 
     const fetchWhatsAppLogs = async (orderId: string) => {
@@ -232,8 +197,7 @@ export default function FeedbackAppealsClient() {
                 if (!data.whatsappSent) {
                     toast.warning(`WhatsApp not sent: ${data.whatsappError}`);
                 }
-                fetchAppeals();
-                fetchStats();
+                fetchData();
                 closeModal();
             } else {
                 toast.error(data.error || 'Action failed');
@@ -274,8 +238,7 @@ export default function FeedbackAppealsClient() {
                 setIsInitiateModalOpen(false);
                 setInitiateOrderId('');
                 setInitiatePhone('');
-                fetchAppeals();
-                fetchStats();
+                fetchData();
             } else {
                 toast.error(data.error || 'Failed to initiate');
             }
@@ -316,8 +279,7 @@ export default function FeedbackAppealsClient() {
                 setIsReviewRemovalModalOpen(false);
                 setReviewRemovalOrderId('');
                 setReviewRemovalPhone('');
-                fetchAppeals();
-                fetchStats();
+                fetchData();
             } else {
                 toast.error(data.error || 'Failed to send');
             }
