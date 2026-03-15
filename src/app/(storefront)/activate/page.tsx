@@ -515,10 +515,11 @@ function ActivatePageContent() {
             }
 
             // Check if this is a Windows product that needs installation type selection
-            // Also check if it's a combo that contains Windows
-            const containsWindows = data.fsn && (
-                WINDOWS_FSNS.includes(data.fsn) ||
-                (isComboProduct(data.fsn) && getComponentFSNs(data.fsn).some(fsn => WINDOWS_FSNS.includes(fsn)))
+            // Also check if it's a combo that contains Windows, or if any item in a multi-item order is Windows
+            const allFsns: string[] = data.allFsns || (data.fsn ? [data.fsn] : []);
+            const containsWindows = allFsns.some((fsn: string) =>
+                WINDOWS_FSNS.includes(fsn) ||
+                (isComboProduct(fsn) && getComponentFSNs(fsn).some(cf => WINDOWS_FSNS.includes(cf)))
             );
 
             if (containsWindows) {

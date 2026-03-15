@@ -180,10 +180,18 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Fetch all FSNs for this order (for multi-item orders)
+        const { data: allOrderRows } = await supabase
+            .from('amazon_orders')
+            .select('fsn')
+            .eq('order_id', order.order_id);
+        const allFsns = (allOrderRows || []).map((r: any) => r.fsn).filter(Boolean);
+
         return NextResponse.json({
             valid: true,
             isAlreadyRedeemed: false,
             fsn: order.fsn,
+            allFsns,
             fulfillmentType: order.fulfillment_type,
             productInfo
         });
