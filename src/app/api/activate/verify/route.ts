@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('id, order_id, fsn, license_key_id, fulfillment_type, warranty_status, is_refunded, fulfillment_status, order_date, created_at, state, early_appeal_status')
             .eq('order_id', cleanCode)
-            .single();
+            .limit(1)
+            .maybeSingle();
 
         if (exactMatch) {
             order = exactMatch;
@@ -47,7 +48,8 @@ export async function POST(request: NextRequest) {
                 .from('amazon_orders')
                 .select('id, order_id, fsn, license_key_id, fulfillment_type, warranty_status, is_refunded, fulfillment_status, order_date, created_at, state, early_appeal_status')
                 .ilike('order_id', cleanCode)
-                .single();
+                .limit(1)
+                .maybeSingle();
 
             if (ilikeMatch) {
                 order = ilikeMatch;

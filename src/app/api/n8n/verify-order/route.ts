@@ -77,7 +77,8 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('*')
             .eq('order_id', cleanOrderId)
-            .single();
+            .limit(1)
+            .maybeSingle();
 
         if (orderError || !order) {
             return NextResponse.json({
@@ -363,7 +364,7 @@ export async function POST(request: NextRequest) {
             // Product Info
             product: {
                 fsn: order.fsn,
-                asin: order.asin,
+                asin: null,
                 isCombo: order.fsn ? isComboProduct(order.fsn) : false,
                 componentFSNs: order.fsn ? getComponentFSNs(order.fsn) : [],
                 comboDisplayName: order.fsn ? COMBO_DISPLAY_NAMES[order.fsn] : null,
