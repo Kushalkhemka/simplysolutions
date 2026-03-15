@@ -1304,8 +1304,11 @@ function ActivatePageContent() {
                                             </div>
                                         )}
 
-                                        {/* Generic Upgrade Key Button for Fresh Install path */}
-                                        {activationResult.windowsInstallType === 'fresh' && (
+                                        {/* Generic Upgrade Key Button for Fresh Install path OR when revisiting a Windows order */}
+                                        {(activationResult.windowsInstallType === 'fresh' || (
+                                            !activationResult.windowsInstallType &&
+                                            activationResult.licenses?.some(l => WINDOWS_FSNS.includes(l.fsn?.toUpperCase?.() || l.fsn || ''))
+                                        )) && (
                                             <div className="border-2 border-[#FF9900] rounded-lg overflow-hidden">
                                                 <button
                                                     onClick={() => setShowFreshUpgradeKey(!showFreshUpgradeKey)}
