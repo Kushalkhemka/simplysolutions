@@ -25,7 +25,7 @@ export default function WarrantyClaimsClient() {
     const [totalCount, setTotalCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [statusFilter, setStatusFilter] = useState<string>('PROCESSING');
     const [isLoading, setIsLoading] = useState(true);
     const [selectedWarranty, setSelectedWarranty] = useState<WarrantyRegistration | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
