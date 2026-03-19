@@ -110,6 +110,8 @@ export default function AmazonOrdersClient() {
     const [filterWarranty, setFilterWarranty] = useState<string>('all');
     const [filterRedeemed, setFilterRedeemed] = useState<string>('all');
     const [filterRefunded, setFilterRefunded] = useState<string>('all');
+    const [filterDateFrom, setFilterDateFrom] = useState<string>('');
+    const [filterDateTo, setFilterDateTo] = useState<string>('');
     const [showFilters, setShowFilters] = useState(false);
     const [uniqueFsns, setUniqueFsns] = useState<string[]>([]);
 
@@ -159,6 +161,12 @@ export default function AmazonOrdersClient() {
         if (filterRefunded !== 'all') {
             query = query.eq('is_refunded', filterRefunded === 'yes');
         }
+        if (filterDateFrom) {
+            query = query.gte('created_at', filterDateFrom + 'T00:00:00');
+        }
+        if (filterDateTo) {
+            query = query.lt('created_at', filterDateTo + 'T23:59:59');
+        }
 
         const { data, count, error } = await query.range(from, to);
 
@@ -169,7 +177,7 @@ export default function AmazonOrdersClient() {
             setTotalCount(count || 0);
         }
         setIsLoading(false);
-    }, [currentPage, searchQuery, searchField, filterFsn, filterType, filterGetcid, filterWarranty, filterRedeemed, filterRefunded, supabase]);
+    }, [currentPage, searchQuery, searchField, filterFsn, filterType, filterGetcid, filterWarranty, filterRedeemed, filterRefunded, filterDateFrom, filterDateTo, supabase]);
 
     // Fetch FSNs from products_data for filter dropdown
     const fetchUniqueFsns = useCallback(async () => {
@@ -575,7 +583,7 @@ export default function AmazonOrdersClient() {
                         Filter
                     </button>
                 </div>
-                {(filterFsn !== 'all' || filterType !== 'all' || filterGetcid !== 'all' || filterWarranty !== 'all' || filterRedeemed !== 'all' || filterRefunded !== 'all') && (
+                {(filterFsn !== 'all' || filterType !== 'all' || filterGetcid !== 'all' || filterWarranty !== 'all' || filterRedeemed !== 'all' || filterRefunded !== 'all' || filterDateFrom || filterDateTo) && (
                     <button
                         type="button"
                         onClick={() => {
@@ -585,6 +593,8 @@ export default function AmazonOrdersClient() {
                             setFilterWarranty('all');
                             setFilterRedeemed('all');
                             setFilterRefunded('all');
+                            setFilterDateFrom('');
+                            setFilterDateTo('');
                             setCurrentPage(1);
                         }}
                         className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
@@ -596,7 +606,25 @@ export default function AmazonOrdersClient() {
 
             {/* Filter Dropdowns */}
             {showFilters && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 p-4 bg-muted/30 rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Date From</label>
+                        <input
+                            type="date"
+                            value={filterDateFrom}
+                            onChange={(e) => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Date To</label>
+                        <input
+                            type="date"
+                            value={filterDateTo}
+                            onChange={(e) => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
+                        />
+                    </div>
                     <div>
                         <label className="block text-sm font-medium mb-1">FSN</label>
                         <select
@@ -1306,6 +1334,41 @@ export default function AmazonOrdersClient() {
                                             })()}
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* Refund Status */}
+                                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border-l-4 border-l-rose-500">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-rose-100 rounded-lg">
+                                            <DollarSign className="h-5 w-5 text-rose-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Refund Status</p>
+                                            <p className="font-medium">
+                                                {selectedOrder.is_refunded ? (
+                                                    <span className="text-rose-600">💰 Refunded</span>
+                                                ) : (
+                                                    <span className="text-gray-500">Not Refunded</span>
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => toggleRefundStatus(selectedOrder.order_id, !!selectedOrder.is_refunded)}
+                                        disabled={isTogglingRefund}
+                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
+                                            selectedOrder.is_refunded
+                                                ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                                                : 'bg-rose-600 text-white hover:bg-rose-700'
+                                        }`}
+                                    >
+                                        {isTogglingRefund ? (
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <DollarSign className="h-3.5 w-3.5" />
+                                        )}
+                                        {selectedOrder.is_refunded ? 'Unmark Refunded' : 'Mark Refunded'}
+                                    </button>
                                 </div>
 
                                 {/* Fulfillment Status - Only show for FBA orders */}
