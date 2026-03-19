@@ -26,7 +26,7 @@ export default function BlockedOrdersClient() {
     const [searchOrderId, setSearchOrderId] = useState('');
     const [filterFsn, setFilterFsn] = useState<string>('all');
     const [showFilters, setShowFilters] = useState(false);
-    const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+    const [showAllKeys, setShowAllKeys] = useState(false);
     const [unblockingId, setUnblockingId] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
@@ -211,7 +211,17 @@ export default function BlockedOrdersClient() {
                             <tr>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Order ID</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">FSN</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium">License Key</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium">
+                                    <div className="flex items-center gap-2">
+                                        License Key
+                                        <button
+                                            onClick={() => setShowAllKeys(!showAllKeys)}
+                                            className="p-1 rounded hover:bg-accent transition-colors" title={showAllKeys ? 'Hide all keys' : 'Show all keys'}
+                                        >
+                                            {showAllKeys ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                        </button>
+                                    </div>
+                                </th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Contact</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Refunded</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Blocked On</th>
@@ -230,7 +240,7 @@ export default function BlockedOrdersClient() {
                                             <div className="space-y-1">
                                                 {order.licenseKeys.map((lk, i) => (
                                                     <div key={i} className="flex items-center gap-1">
-                                                        {visibleKeys.has(`${order.id}-${i}`) ? (
+                                                        {showAllKeys ? (
                                                             <>
                                                                 <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{lk.license_key}</code>
                                                                 <button
@@ -239,21 +249,9 @@ export default function BlockedOrdersClient() {
                                                                 >
                                                                     <Copy className="w-3 h-3" />
                                                                 </button>
-                                                                <button
-                                                                    onClick={() => setVisibleKeys(prev => { const next = new Set(prev); next.delete(`${order.id}-${i}`); return next; })}
-                                                                    className="p-0.5 hover:text-primary" title="Hide"
-                                                                >
-                                                                    <EyeOff className="w-3 h-3" />
-                                                                </button>
                                                             </>
                                                         ) : (
-                                                            <button
-                                                                onClick={() => setVisibleKeys(prev => { const next = new Set(prev); next.add(`${order.id}-${i}`); return next; })}
-                                                                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                                                            >
-                                                                <Eye className="w-3 h-3" />
-                                                                Show Key
-                                                            </button>
+                                                            <span className="text-xs text-muted-foreground">••••••••••</span>
                                                         )}
                                                     </div>
                                                 ))}
