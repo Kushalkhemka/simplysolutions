@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Clock, CheckCircle, AlertCircle, ExternalLink, RefreshCw, Calendar, DollarSign } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Clock, CheckCircle, AlertCircle, ExternalLink, RefreshCw, Calendar, DollarSign, Search, Filter, X } from 'lucide-react';
 
 interface SafeTOrder {
     id: string;
@@ -34,6 +34,13 @@ export default function SafeTClaimsClient() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'eligible' | 'approaching' | 'all'>('eligible');
 
+    // Filter state
+    const [searchOrderId, setSearchOrderId] = useState('');
+    const [filterFsn, setFilterFsn] = useState<string>('all');
+    const [daysMin, setDaysMin] = useState<string>('');
+    const [daysMax, setDaysMax] = useState<string>('');
+    const [showFilters, setShowFilters] = useState(false);
+
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
@@ -51,6 +58,45 @@ export default function SafeTClaimsClient() {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // Extract unique FSNs from all orders
+    const uniqueFsns = useMemo(() => {
+        if (!data) return [];
+        const allOrders = [...data.eligible, ...data.approaching, ...data.notYetEligible];
+        const fsns = Array.from(new Set(allOrders.map(o => o.fsn).filter(Boolean))) as string[];
+        return fsns.sort();
+    }, [data]);
+
+    const hasActiveFilters = searchOrderId || filterFsn !== 'all' || daysMin || daysMax;
+
+    const clearFilters = () => {
+        setSearchOrderId('');
+        setFilterFsn('all');
+        setDaysMin('');
+        setDaysMax('');
+    };
+
+    // Apply filters to an array of orders
+    const applyFilters = useCallback((orders: SafeTOrder[]) => {
+        return orders.filter(order => {
+            // Search by order ID
+            if (searchOrderId && !order.order_id.toLowerCase().includes(searchOrderId.toLowerCase())) {
+                return false;
+            }
+            // Filter by FSN
+            if (filterFsn !== 'all' && order.fsn !== filterFsn) {
+                return false;
+            }
+            // Days range filter
+            if (daysMin && order.daysSinceRefund < parseInt(daysMin)) {
+                return false;
+            }
+            if (daysMax && order.daysSinceRefund > parseInt(daysMax)) {
+                return false;
+            }
+            return true;
+        });
+    }, [searchOrderId, filterFsn, daysMin, daysMax]);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-IN', {
@@ -85,13 +131,18 @@ export default function SafeTClaimsClient() {
     const getOrdersForTab = () => {
         switch (activeTab) {
             case 'eligible':
-                return data.eligible;
+                return applyFilters(data.eligible);
             case 'approaching':
-                return data.approaching;
+                return applyFilters(data.approaching);
             case 'all':
-                return [...data.eligible, ...data.approaching, ...data.notYetEligible];
+                return applyFilters([...data.eligible, ...data.approaching, ...data.notYetEligible]);
         }
     };
+
+    // Filtered counts for tab badges
+    const filteredEligibleCount = applyFilters(data.eligible).length;
+    const filteredApproachingCount = applyFilters(data.approaching).length;
+    const filteredAllCount = applyFilters([...data.eligible, ...data.approaching, ...data.notYetEligible]).length;
 
     const orders = getOrdersForTab();
 
@@ -153,6 +204,79 @@ export default function SafeTClaimsClient() {
                 </div>
             </div>
 
+            {/* Search & Filter Bar */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:flex-wrap">
+                <div className="relative flex-1 min-w-0 sm:min-w-[200px] sm:max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                        type="text"
+                        placeholder="Search by Order ID..."
+                        value={searchOrderId}
+                        onChange={(e) => setSearchOrderId(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background"
+                    />
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center justify-center gap-2 px-4 py-2 border rounded-lg hover:bg-accent ${showFilters ? 'bg-accent' : ''}`}
+                >
+                    <Filter className="h-4 w-4" />
+                    Filters
+                </button>
+                {hasActiveFilters && (
+                    <button
+                        type="button"
+                        onClick={clearFilters}
+                        className="flex items-center gap-1 px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+                    >
+                        <X className="h-3 w-3" />
+                        Clear Filters
+                    </button>
+                )}
+            </div>
+
+            {/* Expanded Filter Panel */}
+            {showFilters && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">FSN</label>
+                        <select
+                            value={filterFsn}
+                            onChange={(e) => setFilterFsn(e.target.value)}
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
+                        >
+                            <option value="all">All FSNs</option>
+                            {uniqueFsns.map(fsn => (
+                                <option key={fsn} value={fsn}>{fsn}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Min Days Since Refund</label>
+                        <input
+                            type="number"
+                            placeholder="e.g. 45"
+                            value={daysMin}
+                            onChange={(e) => setDaysMin(e.target.value)}
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
+                            min="0"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Max Days Since Refund</label>
+                        <input
+                            type="number"
+                            placeholder="e.g. 60"
+                            value={daysMax}
+                            onChange={(e) => setDaysMax(e.target.value)}
+                            className="w-full px-3 py-2 border rounded-lg bg-background"
+                            min="0"
+                        />
+                    </div>
+                </div>
+            )}
+
             {/* Tabs */}
             <div className="flex gap-2 border-b border-border">
                 <button
@@ -162,7 +286,7 @@ export default function SafeTClaimsClient() {
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
-                    Eligible ({data.summary.eligible})
+                    Eligible ({hasActiveFilters ? filteredEligibleCount : data.summary.eligible})
                 </button>
                 <button
                     onClick={() => setActiveTab('approaching')}
@@ -171,7 +295,7 @@ export default function SafeTClaimsClient() {
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
-                    Approaching ({data.summary.approaching})
+                    Approaching ({hasActiveFilters ? filteredApproachingCount : data.summary.approaching})
                 </button>
                 <button
                     onClick={() => setActiveTab('all')}
@@ -180,7 +304,7 @@ export default function SafeTClaimsClient() {
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
-                    All Refunded ({data.summary.totalRefunded})
+                    All Refunded ({hasActiveFilters ? filteredAllCount : data.summary.totalRefunded})
                 </button>
             </div>
 
@@ -188,7 +312,7 @@ export default function SafeTClaimsClient() {
             {orders.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                     <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No orders in this category</p>
+                    <p>{hasActiveFilters ? 'No orders match the current filters' : 'No orders in this category'}</p>
                 </div>
             ) : (
                 <div className="overflow-x-auto rounded-lg border border-border">
@@ -258,7 +382,7 @@ export default function SafeTClaimsClient() {
                 <ul className="text-sm text-muted-foreground space-y-1">
                     <li>• Amazon Safe-T claims can be filed after <strong>50 days</strong> from the refund date</li>
                     <li>• Claims must be filed within <strong>60 days</strong> of the refund to be eligible</li>
-                    <li>• Click "File Claim" to open Amazon Seller Central directly with the order ID</li>
+                    <li>• Click &quot;File Claim&quot; to open Amazon Seller Central directly with the order ID</li>
                 </ul>
             </div>
         </div>
