@@ -31,6 +31,26 @@ export async function GET() {
 
         const orders = refundedOrders || [];
 
+        // Fetch license keys for all refunded orders
+        const orderIds = orders.map(o => o.order_id).filter(Boolean);
+        let licenseKeyMap: Record<string, { license_key: string; fsn: string | null }[]> = {};
+        
+        if (orderIds.length > 0) {
+            const { data: licenseKeys } = await supabase
+                .from('amazon_activation_license_keys')
+                .select('order_id, license_key, fsn')
+                .in('order_id', orderIds);
+            
+            if (licenseKeys) {
+                for (const lk of licenseKeys) {
+                    if (!licenseKeyMap[lk.order_id]) {
+                        licenseKeyMap[lk.order_id] = [];
+                    }
+                    licenseKeyMap[lk.order_id].push({ license_key: lk.license_key, fsn: lk.fsn });
+                }
+            }
+        }
+
         // Categorize orders
         const eligible: any[] = [];       // 50+ days (can file Safe-T)
         const approaching: any[] = [];    // 45-49 days (almost eligible)
@@ -51,7 +71,8 @@ export async function GET() {
                 daysSinceRefund,
                 daysUntilEligible: Math.max(0, daysUntilEligible),
                 isEligible: daysSinceRefund >= 50,
-                eligibleDate: new Date(refundedAt.getTime() + (50 * 24 * 60 * 60 * 1000)).toISOString()
+                eligibleDate: new Date(refundedAt.getTime() + (50 * 24 * 60 * 60 * 1000)).toISOString(),
+                licenseKeys: licenseKeyMap[order.order_id] || []
             };
 
             if (daysSinceRefund >= 50) {

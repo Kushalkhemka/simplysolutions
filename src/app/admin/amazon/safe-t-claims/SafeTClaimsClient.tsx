@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Clock, CheckCircle, AlertCircle, ExternalLink, RefreshCw, Calendar, DollarSign, Search, Filter, X } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, ExternalLink, RefreshCw, Calendar, DollarSign, Search, Filter, X, Key, Eye, EyeOff, Copy } from 'lucide-react';
 
 interface SafeTOrder {
     id: string;
@@ -15,6 +15,7 @@ interface SafeTOrder {
     daysUntilEligible: number;
     isEligible: boolean;
     eligibleDate: string;
+    licenseKeys: { license_key: string; fsn: string | null }[];
 }
 
 interface SafeTData {
@@ -40,6 +41,7 @@ export default function SafeTClaimsClient() {
     const [daysMin, setDaysMin] = useState<string>('');
     const [daysMax, setDaysMax] = useState<string>('');
     const [showFilters, setShowFilters] = useState(false);
+    const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -321,6 +323,7 @@ export default function SafeTClaimsClient() {
                             <tr>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Order ID</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">FSN</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium">License Key</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Refund Date</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Days Since</th>
                                 <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
@@ -334,6 +337,43 @@ export default function SafeTClaimsClient() {
                                         <span className="font-mono text-sm">{order.order_id}</span>
                                     </td>
                                     <td className="px-4 py-3 text-sm">{order.fsn || '-'}</td>
+                                    <td className="px-4 py-3">
+                                        {order.licenseKeys.length > 0 ? (
+                                            <div className="space-y-1">
+                                                {order.licenseKeys.map((lk, i) => (
+                                                    <div key={i} className="flex items-center gap-1">
+                                                        {visibleKeys.has(`${order.id}-${i}`) ? (
+                                                            <>
+                                                                <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{lk.license_key}</code>
+                                                                <button
+                                                                    onClick={() => { navigator.clipboard.writeText(lk.license_key); }}
+                                                                    className="p-0.5 hover:text-primary" title="Copy"
+                                                                >
+                                                                    <Copy className="w-3 h-3" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setVisibleKeys(prev => { const next = new Set(prev); next.delete(`${order.id}-${i}`); return next; })}
+                                                                    className="p-0.5 hover:text-primary" title="Hide"
+                                                                >
+                                                                    <EyeOff className="w-3 h-3" />
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => setVisibleKeys(prev => { const next = new Set(prev); next.add(`${order.id}-${i}`); return next; })}
+                                                                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                                                            >
+                                                                <Eye className="w-3 h-3" />
+                                                                Show Key
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-muted-foreground">No key</span>
+                                        )}
+                                    </td>
                                     <td className="px-4 py-3 text-sm">{formatDate(order.refundedAt)}</td>
                                     <td className="px-4 py-3">
                                         <span className={`font-bold ${order.daysSinceRefund >= 50

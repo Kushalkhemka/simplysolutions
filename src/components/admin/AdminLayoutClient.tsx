@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     Menu, X, LogOut, LayoutDashboard, Package, ShoppingCart, Key,
-    Users, User, Tag, BarChart3, Settings, ShoppingBag, Shield, Mail,
+    Users, User, Tag, BarChart3, Settings, ShoppingBag, Shield, Mail, Ban,
     Terminal, AlertTriangle, Plus, ShieldX, BarChart2, RefreshCw, Database, Sparkles, Bell, MessageSquareWarning,
     Clock, FileCheck, Store, Activity, MessageSquare, ShieldAlert, DollarSign, KeyRound,
     ChevronsLeft, ChevronsRight
@@ -38,6 +38,7 @@ const amazonLinks = [
     { name: 'Fraud Orders', href: '/admin/amazon/fraud', icon: ShieldX },
     { name: 'Warranty Claims', href: '/admin/amazon/warranty', icon: Shield },
     { name: 'Safe-T Claims', href: '/admin/amazon/safe-t-claims', icon: DollarSign },
+    { name: 'Blocked Orders', href: '/admin/amazon/blocked-orders', icon: Ban },
     { name: 'Feedback Appeals', href: '/admin/amazon/feedback-appeals', icon: MessageSquareWarning },
     { name: 'WhatsApp Logs', href: '/admin/whatsapp-logs', icon: MessageSquare },
     { name: 'Listing Alerts', href: '/admin/listing-alerts', icon: ShieldAlert },
