@@ -8,6 +8,22 @@ const resendApiKey = process.env.RESEND_API_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+const DEFAULT_DOMAIN = 'ms365.pro';
+
+// Extract domain suffix from license key (format: "Username: user@domain | Password: ...")
+function extractDomainFromLicenseKey(licenseKey: string | null): string {
+    if (!licenseKey) return DEFAULT_DOMAIN;
+    const usernameMatch = licenseKey.match(/Username\s*:\s*([^|]+)/i);
+    if (usernameMatch) {
+        const username = usernameMatch[1].trim();
+        const atIndex = username.lastIndexOf('@');
+        if (atIndex !== -1) {
+            return username.substring(atIndex + 1);
+        }
+    }
+    return DEFAULT_DOMAIN;
+}
+
 // GET: Get single customization request details
 export async function GET(
     request: NextRequest,
@@ -60,7 +76,8 @@ export async function GET(
             data: {
                 ...customization,
                 current_license_key: currentLicenseKey,
-                license_key_id: licenseKeyId
+                license_key_id: licenseKeyId,
+                domain: extractDomainFromLicenseKey(currentLicenseKey)
             }
         });
 
@@ -137,6 +154,26 @@ export async function PATCH(
                 );
             }
 
+            // Look up license key to extract domain for the rejection email
+            let rejectionDomain = DEFAULT_DOMAIN;
+            const { data: licKeyRow } = await supabase
+                .from('amazon_activation_license_keys')
+                .select('license_key')
+                .eq('order_id', customization.order_id)
+                .maybeSingle();
+            if (licKeyRow?.license_key) {
+                rejectionDomain = extractDomainFromLicenseKey(licKeyRow.license_key);
+            } else {
+                const { data: orderRow } = await supabase
+                    .from('amazon_orders')
+                    .select('license_key')
+                    .eq('order_id', customization.order_id)
+                    .maybeSingle();
+                if (orderRow?.license_key) {
+                    rejectionDomain = extractDomainFromLicenseKey(orderRow.license_key);
+                }
+            }
+
             // Send rejection email
             let customerEmail = customization.customer_email;
             if (!customerEmail) {
@@ -191,7 +228,7 @@ export async function PATCH(
                                                 </tr>
                                             </table>
                                             <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
-                                                <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #991B1B;">Your customization request for <strong style="font-family: 'Courier New', monospace;">${customization.username_prefix}@ms365.pro</strong> could not be processed.</p>
+                                                <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #991B1B;">Your customization request for <strong style="font-family: 'Courier New', monospace;">${customization.username_prefix}@${rejectionDomain}</strong> could not be processed.</p>
                                                 ${rejectionReason ? `<p style="margin: 0; font-size: 13px; color: #DC2626;"><strong>Reason:</strong> ${rejectionReason}</p>` : ''}
                                             </div>
                                             <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px;">
@@ -256,7 +293,8 @@ export async function PATCH(
             );
         }
 
-        const generatedEmail = `${customization.username_prefix}@ms365.pro`;
+        const domain = extractDomainFromLicenseKey(currentLicenseKey);
+        const generatedEmail = `${customization.username_prefix}@${domain}`;
         const newLicenseKey = `Username: ${generatedEmail} | Password: ${existingPassword}`;
 
         // 1. Update the customization request

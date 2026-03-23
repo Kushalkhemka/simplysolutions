@@ -36,6 +36,9 @@ function RequestCustomizationContent() {
     // Success
     const [submittedUsername, setSubmittedUsername] = useState('');
 
+    // Domain suffix from license key
+    const [domain, setDomain] = useState('ms365.pro');
+
     // Auto-verify if orderId is prefilled
     useEffect(() => {
         if (prefilledOrderId) {
@@ -57,6 +60,9 @@ function RequestCustomizationContent() {
             const data = await res.json();
 
             setOrderStatus(data);
+
+            // Capture domain from response
+            if (data.domain) setDomain(data.domain);
 
             if (data.valid && data.warrantyVerified) {
                 setStep('form');
@@ -283,7 +289,7 @@ function RequestCustomizationContent() {
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 mb-3">Request Already Submitted</h1>
                     <p className="text-slate-600 mb-4">
-                        A customization request for username <strong className="font-mono">{orderStatus.usernamePrefix}@ms365.pro</strong> has already been submitted for this order.
+                        A customization request for username <strong className="font-mono">{orderStatus.usernamePrefix}@{domain}</strong> has already been submitted for this order.
                     </p>
                     <p className="text-sm text-slate-500">
                         Please wait for it to be processed. You will be notified via email once ready.
@@ -357,7 +363,7 @@ function RequestCustomizationContent() {
                                 <h3 className="font-semibold text-blue-800 mb-1">Customize Your Username</h3>
                                 <p className="text-sm text-blue-700">
                                     Choose a personalized username for your Office 365 account instead of the default numbered email.
-                                    Your username will be in the format <strong className="font-mono">yourname@ms365.pro</strong>.
+                                    Your username will be in the format <strong className="font-mono">yourname@{domain}</strong>.
                                 </p>
                             </div>
                         </div>
@@ -503,7 +509,7 @@ function RequestCustomizationContent() {
                                             )}
                                         </div>
                                         <span className="inline-flex items-center px-4 border-2 border-l-0 border-slate-300 rounded-r-lg bg-slate-100 text-slate-600 text-sm font-mono font-medium select-none">
-                                            @ms365.pro
+                                            @{domain}
                                         </span>
                                     </div>
                                     {errors.usernamePrefix && (
@@ -512,7 +518,7 @@ function RequestCustomizationContent() {
                                     {usernameAvailable === true && formData.usernamePrefix.length >= 3 && (
                                         <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
                                             <CheckCircle className="h-3 w-3" />
-                                            <span className="font-mono">{formData.usernamePrefix}@ms365.pro</span> is available!
+                                            <span className="font-mono">{formData.usernamePrefix}@{domain}</span> is available!
                                         </p>
                                     )}
                                     <p className="text-xs text-slate-500 mt-1.5">
@@ -583,7 +589,7 @@ function RequestCustomizationContent() {
                                     <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                                         <p className="text-sm text-blue-800 mb-1 font-medium">Your Office 365 email will be:</p>
                                         <p className="text-lg font-bold text-blue-900 font-mono">
-                                            {formData.usernamePrefix}@ms365.pro
+                                            {formData.usernamePrefix}@{domain}
                                         </p>
                                     </div>
                                 )}

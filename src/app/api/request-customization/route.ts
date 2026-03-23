@@ -6,6 +6,39 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+const DEFAULT_DOMAIN = 'ms365.pro';
+
+// Extract domain suffix from license key (format: "Username: user@domain | Password: ...")
+function extractDomainFromLicenseKey(licenseKey: string | null): string {
+    if (!licenseKey) return DEFAULT_DOMAIN;
+    const usernameMatch = licenseKey.match(/Username\s*:\s*([^|]+)/i);
+    if (usernameMatch) {
+        const username = usernameMatch[1].trim();
+        const atIndex = username.lastIndexOf('@');
+        if (atIndex !== -1) {
+            return username.substring(atIndex + 1);
+        }
+    }
+    return DEFAULT_DOMAIN;
+}
+
+// Look up the license key for an order from activation keys or amazon_orders
+async function getLicenseKeyForOrder(orderId: string): Promise<string | null> {
+    const { data: licenseKeyRow } = await supabase
+        .from('amazon_activation_license_keys')
+        .select('license_key')
+        .eq('order_id', orderId)
+        .maybeSingle();
+    if (licenseKeyRow?.license_key) return licenseKeyRow.license_key;
+
+    const { data: orderRow } = await supabase
+        .from('amazon_orders')
+        .select('license_key')
+        .eq('order_id', orderId)
+        .maybeSingle();
+    return orderRow?.license_key || null;
+}
+
 // GET: Validate order, check warranty, check username availability
 export async function GET(request: NextRequest) {
     try {
@@ -33,7 +66,7 @@ export async function GET(request: NextRequest) {
 
             return NextResponse.json({
                 available: !existing,
-                username: `${prefix}@ms365.pro`
+                username: `${prefix}@${DEFAULT_DOMAIN}`
             });
         }
 
@@ -82,6 +115,10 @@ export async function GET(request: NextRequest) {
             });
         }
 
+        // Look up the license key to extract the domain suffix
+        const licenseKey = await getLicenseKeyForOrder(order.order_id);
+        const domain = extractDomainFromLicenseKey(licenseKey);
+
         // Check if customization already submitted
         const { data: existingCustomization } = await supabase
             .from('office365_customizations')
@@ -95,6 +132,7 @@ export async function GET(request: NextRequest) {
                     valid: true,
                     alreadyCustomized: true,
                     generatedEmail: existingCustomization.generated_email,
+                    domain,
                     message: 'Your customization request has already been fulfilled!'
                 });
             }
@@ -106,6 +144,7 @@ export async function GET(request: NextRequest) {
                     rejectionReason: existingCustomization.rejection_reason,
                     rejectedRequestId: existingCustomization.id,
                     buyerEmail: order.contact_email,
+                    domain,
                     message: 'Your previous customization request was rejected. You can submit a new one.'
                 });
             }
@@ -113,6 +152,7 @@ export async function GET(request: NextRequest) {
                 valid: true,
                 alreadySubmitted: true,
                 usernamePrefix: existingCustomization.username_prefix,
+                domain,
                 message: 'A customization request has already been submitted for this order. Please wait for processing.'
             });
         }
@@ -130,7 +170,8 @@ export async function GET(request: NextRequest) {
                 warrantyRequired: true,
                 warrantyStatus: null,
                 error: 'Please complete your Digital Warranty registration first before requesting customization.',
-                buyerEmail: order.contact_email
+                buyerEmail: order.contact_email,
+                domain
             });
         }
 
@@ -140,6 +181,7 @@ export async function GET(request: NextRequest) {
             warrantyVerified: true,
             buyerEmail: order.contact_email,
             warrantyEmail: warranty.customer_email || null,
+            domain,
             message: 'Order verified. You can proceed with customization.'
         });
 
@@ -267,6 +309,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Look up the license key to extract the domain suffix
+        const licenseKey = await getLicenseKeyForOrder(order.order_id);
+        const domain = extractDomainFromLicenseKey(licenseKey);
+
         // Insert the customization request
         const displayName = `${firstName.trim()} ${lastName.trim()}`;
         const { data: inserted, error: insertError } = await supabase
@@ -310,7 +356,7 @@ export async function POST(request: NextRequest) {
             success: true,
             message: 'Your customization request has been submitted successfully! We will process it within 24-48 hours.',
             requestId: inserted.id,
-            requestedUsername: `${trimmedPrefix}@ms365.pro`
+            requestedUsername: `${trimmedPrefix}@${domain}`
         });
 
     } catch (error) {

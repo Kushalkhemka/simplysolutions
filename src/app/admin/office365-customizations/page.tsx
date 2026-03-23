@@ -22,11 +22,13 @@ interface CustomizationRequest {
     rejected_at: string | null;
     created_at: string;
     completed_at: string | null;
+    domain: string | null;
 }
 
 interface RequestDetails extends CustomizationRequest {
     current_license_key: string | null;
     license_key_id: string | null;
+    domain: string | null;
 }
 
 interface Stats {
@@ -131,12 +133,13 @@ export default function AdminOffice365CustomizationsPage() {
     };
 
     // Direct fulfill from table row (no modal needed)
-    const handleDirectFulfill = async (requestId: string, orderId: string, usernamePrefix: string | null) => {
+    const handleDirectFulfill = async (requestId: string, orderId: string, usernamePrefix: string | null, req?: CustomizationRequest) => {
         if (!usernamePrefix) {
             toast.error('No username prefix found for this request');
             return;
         }
-        if (!confirm(`Fulfill this request?\n\nOrder: ${orderId}\nNew username: ${usernamePrefix}@ms365.pro\n\nPassword will be auto-extracted from the existing license key.`)) {
+        const domainSuffix = req?.domain || 'ms365.pro';
+        if (!confirm(`Fulfill this request?\n\nOrder: ${orderId}\nNew username: ${usernamePrefix}@${domainSuffix}\n\nPassword will be auto-extracted from the existing license key.`)) {
             return;
         }
         setFulfillingId(requestId);
@@ -148,7 +151,7 @@ export default function AdminOffice365CustomizationsPage() {
             });
             const data = await res.json();
             if (data.success) {
-                toast.success(`Fulfilled! ${usernamePrefix}@ms365.pro — customer notified.`);
+                toast.success(`Fulfilled! ${data.generatedEmail || `${usernamePrefix}@${domainSuffix}`} — customer notified.`);
                 fetchRequests();
             } else {
                 toast.error(data.error || 'Failed to fulfill');
@@ -407,7 +410,7 @@ export default function AdminOffice365CustomizationsPage() {
                                             )}
                                             {request.username_prefix && (
                                                 <p className="text-sm font-mono text-blue-400 mt-1">
-                                                    {request.username_prefix}@ms365.pro
+                                                    {request.username_prefix}@{request.domain || 'ms365.pro'}
                                                 </p>
                                             )}
                                             <div className="flex items-center gap-2 mt-2">
@@ -433,7 +436,7 @@ export default function AdminOffice365CustomizationsPage() {
                                                 <>
                                                     <Button
                                                         size="sm"
-                                                        onClick={() => handleDirectFulfill(request.id, request.order_id, request.username_prefix)}
+                                                        onClick={() => handleDirectFulfill(request.id, request.order_id, request.username_prefix, request)}
                                                         disabled={fulfillingId === request.id}
                                                         className="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
                                                     >
@@ -508,7 +511,7 @@ export default function AdminOffice365CustomizationsPage() {
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-sm font-mono text-blue-400">
-                                                {request.username_prefix ? `${request.username_prefix}@ms365.pro` : '-'}
+                                                {request.username_prefix ? `${request.username_prefix}@${request.domain || 'ms365.pro'}` : '-'}
                                             </td>
                                             <td className="px-4 py-3">
                                                 {getStatusBadge(request)}
@@ -536,7 +539,7 @@ export default function AdminOffice365CustomizationsPage() {
                                                         <>
                                                             <Button
                                                                 size="sm"
-                                                                onClick={() => handleDirectFulfill(request.id, request.order_id, request.username_prefix)}
+                                                                onClick={() => handleDirectFulfill(request.id, request.order_id, request.username_prefix, request)}
                                                                 disabled={fulfillingId === request.id}
                                                                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
                                                             >
@@ -644,7 +647,7 @@ export default function AdminOffice365CustomizationsPage() {
                                     <p className="text-sm text-muted-foreground mb-1">Requested Username</p>
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <p className="font-mono font-medium text-blue-400">
-                                            {selectedRequest.username_prefix ? `${selectedRequest.username_prefix}@ms365.pro` : '-'}
+                                            {selectedRequest.username_prefix ? `${selectedRequest.username_prefix}@${selectedRequest.domain || 'ms365.pro'}` : '-'}
                                         </p>
                                         {selectedRequest.username_prefix && (
                                             <button
@@ -713,7 +716,7 @@ export default function AdminOffice365CustomizationsPage() {
                                             <div>
                                                 <p className="font-medium text-blue-400">Fulfill This Request</p>
                                                 <p className="text-sm text-blue-300/70 mt-1">
-                                                    The username will be set to <strong className="font-mono text-blue-300">{selectedRequest.username_prefix}@ms365.pro</strong>.
+                                                    The username will be set to <strong className="font-mono text-blue-300">{selectedRequest.username_prefix}@{selectedRequest.domain || 'ms365.pro'}</strong>.
                                                     The password will be auto-extracted from the current license key.
                                                 </p>
                                             </div>
@@ -779,7 +782,7 @@ export default function AdminOffice365CustomizationsPage() {
                                 <p className="text-xs text-muted-foreground">Order</p>
                                 <p className="font-mono text-sm text-foreground font-medium">{rejectingRequest.order_id}</p>
                                 <p className="text-xs text-muted-foreground mt-1">Username</p>
-                                <p className="font-mono text-sm text-blue-400">{rejectingRequest.username_prefix}@ms365.pro</p>
+                                <p className="font-mono text-sm text-blue-400">{rejectingRequest.username_prefix}@{rejectingRequest.domain || 'ms365.pro'}</p>
                             </div>
 
                             <div>

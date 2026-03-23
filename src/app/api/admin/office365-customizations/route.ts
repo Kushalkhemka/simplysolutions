@@ -6,6 +6,22 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+const DEFAULT_DOMAIN = 'ms365.pro';
+
+// Extract domain suffix from license key (format: "Username: user@domain | Password: ...")
+function extractDomainFromLicenseKey(licenseKey: string | null): string {
+    if (!licenseKey) return DEFAULT_DOMAIN;
+    const usernameMatch = licenseKey.match(/Username\s*:\s*([^|]+)/i);
+    if (usernameMatch) {
+        const username = usernameMatch[1].trim();
+        const atIndex = username.lastIndexOf('@');
+        if (atIndex !== -1) {
+            return username.substring(atIndex + 1);
+        }
+    }
+    return DEFAULT_DOMAIN;
+}
+
 // GET: List all office365 customization requests
 export async function GET(request: NextRequest) {
     try {
@@ -35,6 +51,56 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        // Batch lookup license keys to extract domain for each request
+        // Chunk into batches to avoid Supabase URL length limits with .in()
+        const orderIds = [...new Set((requests || []).map(r => r.order_id))];
+        const domainMap: Record<string, string> = {};
+        const BATCH_SIZE = 50;
+
+        if (orderIds.length > 0) {
+            // First: get license keys from amazon_orders (in chunks)
+            for (let i = 0; i < orderIds.length; i += BATCH_SIZE) {
+                const chunk = orderIds.slice(i, i + BATCH_SIZE);
+                const { data: orders } = await supabase
+                    .from('amazon_orders')
+                    .select('order_id, license_key')
+                    .in('order_id', chunk);
+
+                if (orders) {
+                    for (const o of orders) {
+                        if (o.license_key) {
+                            domainMap[o.order_id] = extractDomainFromLicenseKey(o.license_key);
+                        }
+                    }
+                }
+            }
+
+            // Then: override with amazon_activation_license_keys (more authoritative, in chunks)
+            for (let i = 0; i < orderIds.length; i += BATCH_SIZE) {
+                const chunk = orderIds.slice(i, i + BATCH_SIZE);
+                const { data: licenseKeys } = await supabase
+                    .from('amazon_activation_license_keys')
+                    .select('order_id, license_key')
+                    .in('order_id', chunk);
+
+                if (licenseKeys) {
+                    for (const lk of licenseKeys) {
+                        if (lk.license_key) {
+                            domainMap[lk.order_id] = extractDomainFromLicenseKey(lk.license_key);
+                        }
+                    }
+                }
+            }
+
+            console.log(`[O365 List] Domain lookup: ${orderIds.length} orders, ${Object.keys(domainMap).length} domains found. Sample:`, Object.entries(domainMap).slice(0, 3));
+        }
+
+        // Attach domain to each request
+        const requestsWithDomain = (requests || []).map(r => ({
+            ...r,
+            domain: domainMap[r.order_id] || DEFAULT_DOMAIN
+        }));
+
         // Get stats
         const { data: allRequests } = await supabase
             .from('office365_customizations')
@@ -49,7 +115,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            data: requests || [],
+            data: requestsWithDomain,
             stats
         });
 

@@ -175,6 +175,7 @@ function ActivatePageContent() {
     const [custSubmittedUsername, setCustSubmittedUsername] = useState('');
     const [custEmail, setCustEmail] = useState('');
     const custUsernameDebounce = useRef<NodeJS.Timeout | null>(null);
+    const [custDomain, setCustDomain] = useState('ms365.pro');
 
     // Contact info modal state (for when keys are not available)
     const [showContactModal, setShowContactModal] = useState(false);
@@ -209,20 +210,25 @@ function ActivatePageContent() {
                 // Capture email from the response so the customization form has it
                 if (data.warrantyEmail) setWEmail(data.warrantyEmail);
                 else if (data.buyerEmail) setWEmail(data.buyerEmail);
+                if (data.domain) setCustDomain(data.domain);
             } else if (data.wasRejected) {
                 setCustomizationStatus({ canCustomize: true, wasRejected: true, rejectionReason: data.rejectionReason });
                 setWarrantyNeeded(false);
                 if (data.buyerEmail) setWEmail(data.buyerEmail);
+                if (data.domain) setCustDomain(data.domain);
             } else if (data.alreadySubmitted) {
                 setCustomizationStatus({ canCustomize: false, alreadySubmitted: true, usernamePrefix: data.usernamePrefix });
                 setWarrantyNeeded(false);
+                if (data.domain) setCustDomain(data.domain);
             } else if (data.alreadyCustomized) {
                 setCustomizationStatus({ canCustomize: false, alreadyCustomized: true, generatedEmail: data.generatedEmail });
                 setWarrantyNeeded(false);
+                if (data.domain) setCustDomain(data.domain);
             } else if (data.warrantyRequired) {
                 setWarrantyNeeded(true);
                 setCustomizationStatus(null);
                 if (data.buyerEmail) setWEmail(data.buyerEmail);
+                if (data.domain) setCustDomain(data.domain);
             } else {
                 setCustomizationStatus(null);
                 setWarrantyNeeded(false);
@@ -1550,7 +1556,7 @@ function ActivatePageContent() {
                                                                 <div>
                                                                     <p className="font-bold text-sm text-[#92400E]">Request Already Submitted</p>
                                                                     <p className="text-xs text-[#565959] mt-1">
-                                                                        Username <strong className="font-mono">{customizationStatus.usernamePrefix}@ms365.pro</strong> requested. You will be notified once it is ready.
+                                                                        Username <strong className="font-mono">{customizationStatus.usernamePrefix}@{custDomain}</strong> requested. You will be notified once it is ready.
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -1602,7 +1608,7 @@ function ActivatePageContent() {
                                                                 {!showCustomizationForm ? (
                                                                     <div className="text-center">
                                                                         <p className="text-sm text-[#565959] mb-3">
-                                                                            Replace your default numbered email with a custom one like <strong className="font-mono text-[#0078D4]">yourname@ms365.pro</strong>
+                                                                            Replace your default numbered email with a custom one like <strong className="font-mono text-[#0078D4]">yourname@{custDomain}</strong>
                                                                         </p>
                                                                         <button
                                                                             onClick={() => setShowCustomizationForm(true)}
@@ -1626,12 +1632,12 @@ function ActivatePageContent() {
                                                                                         }`}
                                                                                 />
                                                                                 <span className="inline-flex items-center px-3 border border-l-0 border-[#888C8C] rounded-r bg-[#F0F2F2] text-[#565959] text-sm font-mono">
-                                                                                    @ms365.pro
+                                                                                    @{custDomain}
                                                                                 </span>
                                                                             </div>
                                                                             {custCheckingUsername && <p className="text-xs text-[#565959] mt-1">Checking availability...</p>}
                                                                             {!custCheckingUsername && custUsernameAvailable === true && custUsername.length >= 3 && (
-                                                                                <p className="text-xs text-[#067D62] mt-1 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> {custUsername}@ms365.pro is available!</p>
+                                                                                <p className="text-xs text-[#067D62] mt-1 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> {custUsername}@{custDomain} is available!</p>
                                                                             )}
                                                                             {!custCheckingUsername && custUsernameAvailable === false && (
                                                                                 <p className="text-xs text-[#CC0C39] mt-1">This username is already taken</p>
@@ -1680,7 +1686,7 @@ function ActivatePageContent() {
                                                                         {custUsername.length >= 3 && (
                                                                             <div className="p-2 bg-[#F0F8FF] border border-[#0078D4]/30 rounded text-center">
                                                                                 <p className="text-xs text-[#565959]">Your new email will be</p>
-                                                                                <p className="font-mono font-bold text-[#0078D4]">{custUsername}@ms365.pro</p>
+                                                                                <p className="font-mono font-bold text-[#0078D4]">{custUsername}@{custDomain}</p>
                                                                             </div>
                                                                         )}
 
@@ -2615,7 +2621,7 @@ function ActivatePageContent() {
                                         <div className="p-2 sm:p-3">
                                             <p className="text-[10px] sm:text-xs text-[#334155] leading-relaxed">
                                                 Want a personalized email? You can request a custom username like{' '}
-                                                <strong className="text-[#0078D4] font-mono">yourname@ms365.pro</strong>{' '}
+                                                <strong className="text-[#0078D4] font-mono">yourname@{custDomain}</strong>{' '}
                                                 instead of the default numbered one.
                                             </p>
                                             <p className="text-[10px] sm:text-xs text-[#64748b] mt-1.5">
