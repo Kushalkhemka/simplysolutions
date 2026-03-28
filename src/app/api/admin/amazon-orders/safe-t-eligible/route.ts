@@ -96,7 +96,8 @@ export async function GET(request: NextRequest) {
                 eligibleDate: new Date(refundedAt.getTime() + (50 * 24 * 60 * 60 * 1000)).toISOString(),
                 licenseKeys: licenseKeyMap[order.order_id] || [],
                 safe_t_claimed: order.safe_t_claimed || false,
-                safe_t_claimed_at: order.safe_t_claimed_at || null
+                safe_t_claimed_at: order.safe_t_claimed_at || null,
+                safe_t_status: order.safe_t_status || null
             };
 
             if (daysSinceRefund >= 50) {
@@ -134,7 +135,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// PATCH: Toggle safe_t_claimed status for an order
+// PATCH: Update safe_t_status for an order
 export async function PATCH(request: NextRequest) {
     try {
         const supabase = createClient(
@@ -143,41 +144,66 @@ export async function PATCH(request: NextRequest) {
         );
 
         const body = await request.json();
-        const { orderId, claimed } = body;
+        const { orderId, status } = body;
 
-        if (!orderId || typeof claimed !== 'boolean') {
-            return NextResponse.json(
-                { error: 'orderId and claimed (boolean) are required' },
-                { status: 400 }
-            );
+        // Support legacy 'claimed' boolean for backward compat
+        if (body.claimed !== undefined) {
+            const claimed = body.claimed;
+            const newStatus = claimed ? 'claimed' : null;
+            const { error } = await supabase
+                .from('amazon_orders')
+                .update({
+                    safe_t_claimed: claimed,
+                    safe_t_claimed_at: claimed ? new Date().toISOString() : null,
+                    safe_t_status: newStatus
+                })
+                .eq('order_id', orderId);
+
+            if (error) {
+                console.error('Error updating safe_t_claimed:', error);
+                return NextResponse.json({ error: 'Failed to update claim status' }, { status: 500 });
+            }
+            return NextResponse.json({ success: true, message: claimed ? 'Order marked as claimed' : 'Status cleared' });
         }
 
+        const validStatuses = [null, 'ineligible', 'filed', 'claimed', 'rejected'];
+        if (!orderId) {
+            return NextResponse.json({ error: 'orderId is required' }, { status: 400 });
+        }
+        if (status !== null && !validStatuses.includes(status)) {
+            return NextResponse.json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` }, { status: 400 });
+        }
+
+        const isClaimed = status === 'claimed';
         const { error } = await supabase
             .from('amazon_orders')
             .update({
-                safe_t_claimed: claimed,
-                safe_t_claimed_at: claimed ? new Date().toISOString() : null
+                safe_t_status: status,
+                safe_t_claimed: isClaimed,
+                safe_t_claimed_at: isClaimed ? new Date().toISOString() : null
             })
             .eq('order_id', orderId);
 
         if (error) {
-            console.error('Error updating safe_t_claimed:', error);
-            return NextResponse.json(
-                { error: 'Failed to update claim status' },
-                { status: 500 }
-            );
+            console.error('Error updating safe_t_status:', error);
+            return NextResponse.json({ error: 'Failed to update status' }, { status: 500 });
         }
+
+        const messages: Record<string, string> = {
+            'ineligible': 'Order marked as ineligible',
+            'filed': 'Order marked as filed (in-process)',
+            'claimed': 'Order marked as claim received',
+            'rejected': 'Order marked as claim rejected',
+        };
 
         return NextResponse.json({
             success: true,
-            message: claimed ? 'Order marked as claimed' : 'Claim status removed'
+            message: status ? messages[status] || 'Status updated' : 'Status cleared'
         });
 
     } catch (error: any) {
         console.error('Error in PATCH safe-t-eligible:', error);
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
+

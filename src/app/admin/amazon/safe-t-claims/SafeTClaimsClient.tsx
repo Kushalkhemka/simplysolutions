@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Clock, CheckCircle, AlertCircle, ExternalLink, RefreshCw, Calendar, DollarSign, Search, Filter, X, Eye, EyeOff, Copy, CircleCheckBig, Undo2 } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Clock, CheckCircle, AlertCircle, ExternalLink, RefreshCw, Calendar, DollarSign, Search, Filter, X, Eye, EyeOff, Copy, CircleCheckBig, Undo2, ChevronDown, Ban, FileText, XCircle } from 'lucide-react';
 
 interface SafeTOrder {
     id: string;
@@ -18,6 +18,7 @@ interface SafeTOrder {
     licenseKeys: { license_key: string; fsn: string | null }[];
     safe_t_claimed: boolean;
     safe_t_claimed_at: string | null;
+    safe_t_status: string | null; // null, 'ineligible', 'filed', 'claimed', 'rejected'
 }
 
 interface SafeTData {
@@ -32,10 +33,125 @@ interface SafeTData {
     notYetEligible: SafeTOrder[];
 }
 
+type SafeTStatus = 'ineligible' | 'filed' | 'claimed' | 'rejected';
+
+const STATUS_CONFIG: Record<SafeTStatus, { label: string; color: string; icon: React.ElementType }> = {
+    filed: { label: 'Filed (In-Process)', color: 'purple', icon: FileText },
+    claimed: { label: 'Claimed', color: 'blue', icon: CircleCheckBig },
+    rejected: { label: 'Rejected', color: 'red', icon: XCircle },
+    ineligible: { label: 'Ineligible', color: 'gray', icon: Ban },
+};
+
+function StatusActions({ order, markingId, onSetStatus, onFileClaim }: {
+    order: SafeTOrder;
+    markingId: string | null;
+    onSetStatus: (orderId: string, status: string | null) => void;
+    onFileClaim: (orderId: string) => void;
+}) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const currentStatus = order.safe_t_status as SafeTStatus | null;
+    const isProcessing = markingId === order.order_id;
+
+    if (currentStatus) {
+        const config = STATUS_CONFIG[currentStatus];
+        const badgeClasses: Record<SafeTStatus, string> = {
+            filed: 'bg-purple-500/10 text-purple-400',
+            claimed: 'bg-blue-500/10 text-blue-400',
+            rejected: 'bg-red-500/10 text-red-400',
+            ineligible: 'bg-gray-500/10 text-gray-400',
+        };
+        return (
+            <div className="flex items-center gap-1">
+                <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${badgeClasses[currentStatus]}`}>
+                    <config.icon className="w-3 h-3" />
+                    {config.label}
+                </span>
+                <button
+                    onClick={() => onSetStatus(order.order_id, null)}
+                    disabled={isProcessing}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground rounded hover:bg-muted transition-colors disabled:opacity-50"
+                    title="Clear status"
+                >
+                    <Undo2 className="w-3 h-3" />
+                    Undo
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-1" ref={ref}>
+            {order.isEligible && (
+                <button
+                    onClick={() => onFileClaim(order.order_id)}
+                    className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                    <ExternalLink className="w-3 h-3" />
+                    File Claim
+                </button>
+            )}
+            <div className="relative">
+                <button
+                    onClick={() => setOpen(!open)}
+                    disabled={isProcessing}
+                    className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-muted hover:bg-accent text-foreground rounded-lg transition-colors disabled:opacity-50"
+                >
+                    {isProcessing ? 'Saving...' : 'Mark as'}
+                    <ChevronDown className="w-3 h-3" />
+                </button>
+                {open && (
+                    <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-card border border-border rounded-lg shadow-lg py-1">
+                        <button
+                            onClick={() => { onSetStatus(order.order_id, 'filed'); setOpen(false); }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-purple-400"
+                        >
+                            <FileText className="w-3.5 h-3.5" />
+                            Filed (In-Process)
+                        </button>
+                        <button
+                            onClick={() => { onSetStatus(order.order_id, 'claimed'); setOpen(false); }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-blue-400"
+                        >
+                            <CircleCheckBig className="w-3.5 h-3.5" />
+                            Claimed (Received)
+                        </button>
+                        <button
+                            onClick={() => { onSetStatus(order.order_id, 'rejected'); setOpen(false); }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-red-400"
+                        >
+                            <XCircle className="w-3.5 h-3.5" />
+                            Rejected
+                        </button>
+                        <hr className="my-1 border-border" />
+                        <button
+                            onClick={() => { onSetStatus(order.order_id, 'ineligible'); setOpen(false); }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-gray-400"
+                        >
+                            <Ban className="w-3.5 h-3.5" />
+                            Ineligible
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+
 export default function SafeTClaimsClient() {
     const [data, setData] = useState<SafeTData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'eligible' | 'approaching' | 'all' | 'claimed'>('eligible');
+    const [activeTab, setActiveTab] = useState<'eligible' | 'approaching' | 'all' | 'filed' | 'claimed' | 'rejected' | 'ineligible'>('eligible');
 
     // Filter state
     const [searchOrderId, setSearchOrderId] = useState('');
@@ -116,46 +232,32 @@ export default function SafeTClaimsClient() {
         window.open(`https://sellercentral.amazon.in/safet-claims/ref=xx_safetclaim_dnav_xx#/claims?orderId=${orderId}`, '_blank');
     };
 
-    const handleMarkClaimed = async (orderId: string, claimed: boolean) => {
+    const handleSetStatus = async (orderId: string, status: string | null) => {
         setMarkingId(orderId);
         try {
             const res = await fetch('/api/admin/amazon-orders/safe-t-eligible', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId, claimed })
+                body: JSON.stringify({ orderId, status })
             });
             const json = await res.json();
-            if (json.success) {
-                // Update local state: move order between unclaimed and claimed
-                if (data) {
-                    const allOrders = [...data.eligible, ...data.approaching, ...data.notYetEligible];
-                    const targetOrder = allOrders.find(o => o.order_id === orderId);
-
-                    if (claimed && targetOrder) {
-                        // Mark as claimed: update the flag inline
-                        const markClaimed = (orders: SafeTOrder[]) =>
-                            orders.map(o => o.order_id === orderId ? { ...o, safe_t_claimed: true, safe_t_claimed_at: new Date().toISOString() } : o);
-                        setData({
-                            ...data,
-                            eligible: markClaimed(data.eligible),
-                            approaching: markClaimed(data.approaching),
-                            notYetEligible: markClaimed(data.notYetEligible),
-                        });
-                    } else {
-                        // Undo claim: update the flag inline
-                        const unmarkClaimed = (orders: SafeTOrder[]) =>
-                            orders.map(o => o.order_id === orderId ? { ...o, safe_t_claimed: false, safe_t_claimed_at: null } : o);
-                        setData({
-                            ...data,
-                            eligible: unmarkClaimed(data.eligible),
-                            approaching: unmarkClaimed(data.approaching),
-                            notYetEligible: unmarkClaimed(data.notYetEligible),
-                        });
-                    }
-                }
+            if (json.success && data) {
+                const updateStatus = (orders: SafeTOrder[]) =>
+                    orders.map(o => o.order_id === orderId ? {
+                        ...o,
+                        safe_t_status: status,
+                        safe_t_claimed: status === 'claimed',
+                        safe_t_claimed_at: status === 'claimed' ? new Date().toISOString() : null
+                    } : o);
+                setData({
+                    ...data,
+                    eligible: updateStatus(data.eligible),
+                    approaching: updateStatus(data.approaching),
+                    notYetEligible: updateStatus(data.notYetEligible),
+                });
             }
         } catch (err) {
-            console.error('Error marking claim:', err);
+            console.error('Error setting status:', err);
         }
         setMarkingId(null);
     };
@@ -177,30 +279,30 @@ export default function SafeTClaimsClient() {
         );
     }
 
-    // Split orders into unclaimed and claimed
-    const unclaimedEligible = data.eligible.filter(o => !o.safe_t_claimed);
-    const unclaimedApproaching = data.approaching.filter(o => !o.safe_t_claimed);
-    const allUnclaimed = [...data.eligible, ...data.approaching, ...data.notYetEligible].filter(o => !o.safe_t_claimed);
-    const allClaimed = [...data.eligible, ...data.approaching, ...data.notYetEligible].filter(o => o.safe_t_claimed);
+    // Split orders by status
+    const allOrders = [...data.eligible, ...data.approaching, ...data.notYetEligible];
+    const pending = (orders: SafeTOrder[]) => orders.filter(o => !o.safe_t_status);
+    const byStatus = (status: string) => allOrders.filter(o => o.safe_t_status === status);
+
+    const pendingEligible = pending(data.eligible);
+    const pendingApproaching = pending(data.approaching);
+    const allPending = pending(allOrders);
+    const filedOrders = byStatus('filed');
+    const claimedOrders = byStatus('claimed');
+    const rejectedOrders = byStatus('rejected');
+    const ineligibleOrders = byStatus('ineligible');
 
     const getOrdersForTab = () => {
         switch (activeTab) {
-            case 'eligible':
-                return applyFilters(unclaimedEligible);
-            case 'approaching':
-                return applyFilters(unclaimedApproaching);
-            case 'all':
-                return applyFilters(allUnclaimed);
-            case 'claimed':
-                return applyFilters(allClaimed);
+            case 'eligible': return applyFilters(pendingEligible);
+            case 'approaching': return applyFilters(pendingApproaching);
+            case 'all': return applyFilters(allPending);
+            case 'filed': return applyFilters(filedOrders);
+            case 'claimed': return applyFilters(claimedOrders);
+            case 'rejected': return applyFilters(rejectedOrders);
+            case 'ineligible': return applyFilters(ineligibleOrders);
         }
     };
-
-    // Filtered counts for tab badges
-    const filteredEligibleCount = applyFilters(unclaimedEligible).length;
-    const filteredApproachingCount = applyFilters(unclaimedApproaching).length;
-    const filteredAllCount = applyFilters(allUnclaimed).length;
-    const filteredClaimedCount = applyFilters(allClaimed).length;
 
     const orders = getOrdersForTab();
 
@@ -346,7 +448,7 @@ export default function SafeTClaimsClient() {
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
-                    Eligible ({hasActiveFilters ? filteredEligibleCount : data.summary.eligible})
+                    Eligible ({pendingEligible.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('approaching')}
@@ -355,7 +457,7 @@ export default function SafeTClaimsClient() {
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
-                    Approaching ({hasActiveFilters ? filteredApproachingCount : data.summary.approaching})
+                    Approaching ({pendingApproaching.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('all')}
@@ -364,7 +466,16 @@ export default function SafeTClaimsClient() {
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
-                    All Refunded ({hasActiveFilters ? filteredAllCount : allUnclaimed.length})
+                    All Pending ({allPending.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('filed')}
+                    className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'filed'
+                        ? 'border-purple-500 text-purple-500'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    Filed ({filedOrders.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('claimed')}
@@ -373,7 +484,25 @@ export default function SafeTClaimsClient() {
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
-                    Claimed ({hasActiveFilters ? filteredClaimedCount : allClaimed.length})
+                    Claimed ({claimedOrders.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('rejected')}
+                    className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'rejected'
+                        ? 'border-red-500 text-red-500'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    Rejected ({rejectedOrders.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('ineligible')}
+                    className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'ineligible'
+                        ? 'border-gray-500 text-gray-500'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    Ineligible ({ineligibleOrders.length})
                 </button>
             </div>
 
@@ -464,45 +593,12 @@ export default function SafeTClaimsClient() {
                                         )}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <div className="flex items-center gap-1">
-                                            {order.safe_t_claimed ? (
-                                                <>
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
-                                                        <CircleCheckBig className="w-3 h-3" />
-                                                        Claimed
-                                                    </span>
-                                                    <button
-                                                        onClick={() => handleMarkClaimed(order.order_id, false)}
-                                                        disabled={markingId === order.order_id}
-                                                        className="inline-flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground rounded hover:bg-muted transition-colors disabled:opacity-50"
-                                                        title="Undo claim"
-                                                    >
-                                                        <Undo2 className="w-3 h-3" />
-                                                        Undo
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {order.isEligible && (
-                                                        <button
-                                                            onClick={() => openSafeTClaim(order.order_id)}
-                                                            className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                                                        >
-                                                            <ExternalLink className="w-3 h-3" />
-                                                            File Claim
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() => handleMarkClaimed(order.order_id, true)}
-                                                        disabled={markingId === order.order_id}
-                                                        className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                                                    >
-                                                        <CircleCheckBig className="w-3 h-3" />
-                                                        {markingId === order.order_id ? 'Saving...' : 'Done'}
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
+                                        <StatusActions
+                                            order={order}
+                                            markingId={markingId}
+                                            onSetStatus={handleSetStatus}
+                                            onFileClaim={openSafeTClaim}
+                                        />
                                     </td>
                                 </tr>
                             ))}
