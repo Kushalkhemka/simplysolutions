@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('fsn, quantity, order_date, fulfillment_type')
             .eq('order_id', orderId)
-            .single();
+            .maybeSingle();
 
         if (orderError || !order) {
             return NextResponse.json(

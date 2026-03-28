@@ -34,7 +34,7 @@ export async function POST(request: Request) {
             .from('amazon_orders')
             .select('order_id, fulfillment_type, early_appeal_status, state')
             .eq('order_id', orderId)
-            .single();
+            .maybeSingle();
 
         if (orderError || !order) {
             return NextResponse.json(

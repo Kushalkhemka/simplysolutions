@@ -21,7 +21,7 @@ async function generateUniqueSecretCode(adminClient: ReturnType<typeof getAdminC
             .from('amazon_orders')
             .select('id')
             .eq('order_id', code)
-            .single();
+            .maybeSingle();
 
         if (!existing) {
             return code;

@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
                 .from('amazon_orders')
                 .select('is_fraud, fraud_reason')
                 .eq('order_id', order_id)
-                .single();
+                .maybeSingle();
 
             if (amazonOrder?.is_fraud) {
                 return NextResponse.json({

@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('id, order_id, fsn, is_refunded, warranty_status')
             .eq('order_id', cleanOrderId)
-            .single();
+            .maybeSingle();
 
         if (!order) {
             return NextResponse.json({

@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
                 .from('amazon_orders')
                 .select('fsn')
                 .eq('order_id', productRequest.order_id)
-                .single();
+                .maybeSingle();
 
             if (order?.fsn) {
                 fsn = order.fsn;
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
                 .from('amazon_orders')
                 .select('buyer_phone_number')
                 .eq('order_id', productRequest.order_id)
-                .single();
+                .maybeSingle();
             customerPhone = orderForPhone?.buyer_phone_number || null;
         }
 

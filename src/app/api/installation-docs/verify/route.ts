@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('order_id')
             .eq('order_id', orderId.trim())
-            .single();
+            .maybeSingle();
 
         if (orderError || !order) {
             return NextResponse.json({

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('id')
             .eq('order_id', identifier)
-            .single();
+            .maybeSingle();
 
         if (existing) {
             return NextResponse.json({ error: 'Order already exists in the system' }, { status: 409 });

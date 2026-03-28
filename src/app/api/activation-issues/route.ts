@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('id, has_activation_issue')
             .eq('order_id', order_id)
-            .single();
+            .maybeSingle();
 
         if (!order) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });

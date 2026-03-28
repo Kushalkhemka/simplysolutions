@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('id, order_id, fsn')
             .eq('order_id', secretCode)
-            .single();
+            .maybeSingle();
 
         if (orderError || !order) {
             return errorResponse('Order not found: ' + secretCode, 404);

@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('order_id, fulfillment_type, early_appeal_status, redeemable_at')
             .eq('order_id', orderId.trim())
-            .single();
+            .maybeSingle();
 
         if (orderError || !order) {
             return NextResponse.json(

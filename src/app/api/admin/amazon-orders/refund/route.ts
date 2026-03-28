@@ -66,16 +66,16 @@ export async function GET(request: NextRequest) {
             .from('amazon_orders')
             .select('order_id, is_refunded, fulfillment_status')
             .eq('order_id', orderId)
-            .limit(1);
+            .maybeSingle();
 
-        if (error || !data || data.length === 0) {
+        if (error || !data) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
         }
 
         return NextResponse.json({
-            orderId: data[0].order_id,
-            isRefunded: data[0].is_refunded || false,
-            fulfillmentStatus: data[0].fulfillment_status
+            orderId: data.order_id,
+            isRefunded: data.is_refunded || false,
+            fulfillmentStatus: data.fulfillment_status
         });
 
     } catch (error: any) {

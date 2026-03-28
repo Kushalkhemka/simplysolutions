@@ -50,7 +50,7 @@ export async function POST(
                 .from('amazon_orders')
                 .select('fsn')
                 .eq('order_id', warranty.order_id)
-                .single();
+                .maybeSingle();
 
             if (order?.fsn) {
                 const { data: product } = await supabase

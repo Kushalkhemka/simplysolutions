@@ -53,7 +53,7 @@ export async function PATCH(
             .from('amazon_orders')
             .select('buyer_phone_number, product_name')
             .eq('order_id', replacementRequest.order_id)
-            .single();
+            .maybeSingle();
 
         const customerPhone = orderData?.buyer_phone_number;
         const productName = orderData?.product_name || replacementRequest.fsn || 'Your Product';

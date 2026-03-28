@@ -54,7 +54,7 @@ export async function GET(
                 .from('amazon_orders')
                 .select('license_key')
                 .eq('order_id', customization.order_id)
-                .single();
+                .maybeSingle();
 
             currentLicenseKey = order?.license_key || null;
 
@@ -273,7 +273,7 @@ export async function PATCH(
                 .from('amazon_orders')
                 .select('license_key')
                 .eq('order_id', customization.order_id)
-                .single();
+                .maybeSingle();
             currentLicenseKey = order?.license_key || null;
         }
 

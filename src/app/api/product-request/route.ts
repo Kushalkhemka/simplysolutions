@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('*')
             .eq('order_id', cleanOrderId)
-            .single();
+            .maybeSingle();
 
         console.log('Order lookup:', { cleanOrderId, order, queryError });
 

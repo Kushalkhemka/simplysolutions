@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
             .from('amazon_orders')
             .select('order_id, fsn, contact_email, buyer_email')
             .eq('order_id', cleanOrderId)
-            .single();
+            .maybeSingle();
 
         if (orderError || !order) {
             return NextResponse.json({

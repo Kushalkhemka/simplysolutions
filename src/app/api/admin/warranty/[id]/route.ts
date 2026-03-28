@@ -64,7 +64,7 @@ export async function PATCH(
                 .from('amazon_orders')
                 .select('fsn, quantity, order_date')
                 .eq('order_id', warranty.order_id)
-                .single();
+                .maybeSingle();
 
             if (order) {
                 quantity = order.quantity || 1;
@@ -110,7 +110,7 @@ export async function PATCH(
                 .from('amazon_orders')
                 .select('buyer_phone_number')
                 .eq('order_id', warranty.order_id)
-                .single();
+                .maybeSingle();
             customerPhone = orderData?.buyer_phone_number || null;
         }
 
@@ -295,7 +295,7 @@ export async function GET(
             .from('amazon_orders')
             .select('fsn, quantity, order_date, order_total')
             .eq('order_id', warranty.order_id)
-            .single();
+            .maybeSingle();
 
         if (order) {
             let productName = null;

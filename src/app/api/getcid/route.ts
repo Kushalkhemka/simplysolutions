@@ -105,26 +105,26 @@ export async function POST(request: NextRequest) {
 
         // Search for order
         let order = null;
-
-        // Use .limit(1) instead of .single() to handle multi-item orders
+        // Use .maybeSingle() instead of .single() to handle multi-item orders
         // (same order_id can have multiple rows, one per item/FSN)
-        const { data: exactMatches } = await supabase
+        // .maybeSingle() returns first matching row or null without erroring
+        const { data: exactMatch } = await supabase
             .from('amazon_orders')
             .select('id, order_id, fsn, quantity, getcid_used, getcid_count, getcid_limit, warranty_status')
             .eq('order_id', cleanIdentifier)
-            .limit(1);
+            .maybeSingle();
 
-        if (exactMatches && exactMatches.length > 0) {
-            order = exactMatches[0];
+        if (exactMatch) {
+            order = exactMatch;
         } else {
-            const { data: ilikeMatches } = await supabase
+            const { data: ilikeMatch } = await supabase
                 .from('amazon_orders')
                 .select('id, order_id, fsn, quantity, getcid_used, getcid_count, getcid_limit, warranty_status')
                 .ilike('order_id', cleanIdentifier)
-                .limit(1);
+                .maybeSingle();
 
-            if (ilikeMatches && ilikeMatches.length > 0) {
-                order = ilikeMatches[0];
+            if (ilikeMatch) {
+                order = ilikeMatch;
             }
         }
 
