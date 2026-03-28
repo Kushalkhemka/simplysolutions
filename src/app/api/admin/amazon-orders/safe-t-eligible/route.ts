@@ -3,11 +3,14 @@
  * Orders become eligible 50 days after refund date
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const { searchParams } = new URL(request.url);
+        const showClaimed = searchParams.get('showClaimed') === 'true';
+
         const supabase = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -18,11 +21,18 @@ export async function GET() {
 
         // Fetch all refunded orders
         // Use refunded_at if available, otherwise fall back to updated_at
-        const { data: refundedOrders, error } = await supabase
+        let query = supabase
             .from('amazon_orders')
             .select('*')
             .eq('is_refunded', true)
             .order('updated_at', { ascending: true });
+
+        // By default, exclude claimed orders
+        if (!showClaimed) {
+            query = query.or('safe_t_claimed.is.null,safe_t_claimed.eq.false');
+        }
+
+        const { data: refundedOrders, error } = await query;
 
         if (error) {
             console.error('Supabase error:', error);
@@ -72,7 +82,9 @@ export async function GET() {
                 daysUntilEligible: Math.max(0, daysUntilEligible),
                 isEligible: daysSinceRefund >= 50,
                 eligibleDate: new Date(refundedAt.getTime() + (50 * 24 * 60 * 60 * 1000)).toISOString(),
-                licenseKeys: licenseKeyMap[order.order_id] || []
+                licenseKeys: licenseKeyMap[order.order_id] || [],
+                safe_t_claimed: order.safe_t_claimed || false,
+                safe_t_claimed_at: order.safe_t_claimed_at || null
             };
 
             if (daysSinceRefund >= 50) {
@@ -110,3 +122,50 @@ export async function GET() {
     }
 }
 
+// PATCH: Toggle safe_t_claimed status for an order
+export async function PATCH(request: NextRequest) {
+    try {
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        const body = await request.json();
+        const { orderId, claimed } = body;
+
+        if (!orderId || typeof claimed !== 'boolean') {
+            return NextResponse.json(
+                { error: 'orderId and claimed (boolean) are required' },
+                { status: 400 }
+            );
+        }
+
+        const { error } = await supabase
+            .from('amazon_orders')
+            .update({
+                safe_t_claimed: claimed,
+                safe_t_claimed_at: claimed ? new Date().toISOString() : null
+            })
+            .eq('order_id', orderId);
+
+        if (error) {
+            console.error('Error updating safe_t_claimed:', error);
+            return NextResponse.json(
+                { error: 'Failed to update claim status' },
+                { status: 500 }
+            );
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: claimed ? 'Order marked as claimed' : 'Claim status removed'
+        });
+
+    } catch (error: any) {
+        console.error('Error in PATCH safe-t-eligible:', error);
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        );
+    }
+}

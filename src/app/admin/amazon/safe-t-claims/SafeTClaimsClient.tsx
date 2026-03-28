@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Clock, CheckCircle, AlertCircle, ExternalLink, RefreshCw, Calendar, DollarSign, Search, Filter, X, Key, Eye, EyeOff, Copy } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, ExternalLink, RefreshCw, Calendar, DollarSign, Search, Filter, X, Eye, EyeOff, Copy, CircleCheckBig, Undo2 } from 'lucide-react';
 
 interface SafeTOrder {
     id: string;
@@ -16,6 +16,8 @@ interface SafeTOrder {
     isEligible: boolean;
     eligibleDate: string;
     licenseKeys: { license_key: string; fsn: string | null }[];
+    safe_t_claimed: boolean;
+    safe_t_claimed_at: string | null;
 }
 
 interface SafeTData {
@@ -42,11 +44,13 @@ export default function SafeTClaimsClient() {
     const [daysMax, setDaysMax] = useState<string>('');
     const [showFilters, setShowFilters] = useState(false);
     const [showAllKeys, setShowAllKeys] = useState(false);
+    const [showClaimed, setShowClaimed] = useState(false);
+    const [markingId, setMarkingId] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/admin/amazon-orders/safe-t-eligible');
+            const res = await fetch(`/api/admin/amazon-orders/safe-t-eligible${showClaimed ? '?showClaimed=true' : ''}`);
             const json = await res.json();
             if (json.success) {
                 setData(json);
@@ -55,7 +59,7 @@ export default function SafeTClaimsClient() {
             console.error('Error fetching Safe-T data:', error);
         }
         setIsLoading(false);
-    }, []);
+    }, [showClaimed]);
 
     useEffect(() => {
         fetchData();
@@ -109,8 +113,58 @@ export default function SafeTClaimsClient() {
     };
 
     const openSafeTClaim = (orderId: string) => {
-        // Open Amazon Safe-T claim page
         window.open(`https://sellercentral.amazon.in/safet-claims/ref=xx_safetclaim_dnav_xx#/claims?orderId=${orderId}`, '_blank');
+    };
+
+    const handleMarkClaimed = async (orderId: string, claimed: boolean) => {
+        setMarkingId(orderId);
+        try {
+            const res = await fetch('/api/admin/amazon-orders/safe-t-eligible', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, claimed })
+            });
+            const json = await res.json();
+            if (json.success) {
+                // Update local state immediately
+                if (data) {
+                    const updateOrders = (orders: SafeTOrder[]) =>
+                        claimed
+                            ? orders.filter(o => o.order_id !== orderId)
+                            : orders.map(o => o.order_id === orderId ? { ...o, safe_t_claimed: false, safe_t_claimed_at: null } : o);
+                    
+                    if (!showClaimed) {
+                        // When not showing claimed, just remove from the list
+                        setData({
+                            ...data,
+                            eligible: updateOrders(data.eligible),
+                            approaching: updateOrders(data.approaching),
+                            notYetEligible: updateOrders(data.notYetEligible),
+                            summary: {
+                                ...data.summary,
+                                totalRefunded: data.summary.totalRefunded - (claimed ? 1 : 0),
+                                eligible: data.summary.eligible - (data.eligible.some(o => o.order_id === orderId) && claimed ? 1 : 0),
+                                approaching: data.summary.approaching - (data.approaching.some(o => o.order_id === orderId) && claimed ? 1 : 0),
+                                notYetEligible: data.summary.notYetEligible - (data.notYetEligible.some(o => o.order_id === orderId) && claimed ? 1 : 0)
+                            }
+                        });
+                    } else {
+                        // When showing claimed, update inline
+                        const toggleClaimed = (orders: SafeTOrder[]) =>
+                            orders.map(o => o.order_id === orderId ? { ...o, safe_t_claimed: claimed, safe_t_claimed_at: claimed ? new Date().toISOString() : null } : o);
+                        setData({
+                            ...data,
+                            eligible: toggleClaimed(data.eligible),
+                            approaching: toggleClaimed(data.approaching),
+                            notYetEligible: toggleClaimed(data.notYetEligible)
+                        });
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Error marking claim:', err);
+        }
+        setMarkingId(null);
     };
 
     if (isLoading) {
@@ -168,6 +222,19 @@ export default function SafeTClaimsClient() {
                     <RefreshCw className="w-4 h-4" />
                     Refresh
                 </button>
+            </div>
+
+            {/* Show Claimed Toggle */}
+            <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={showClaimed}
+                        onChange={(e) => setShowClaimed(e.target.checked)}
+                        className="rounded border-border"
+                    />
+                    Show claimed orders
+                </label>
             </div>
 
             {/* Summary Cards */}
@@ -397,15 +464,45 @@ export default function SafeTClaimsClient() {
                                         )}
                                     </td>
                                     <td className="px-4 py-3">
-                                        {order.isEligible && (
-                                            <button
-                                                onClick={() => openSafeTClaim(order.order_id)}
-                                                className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                                            >
-                                                <ExternalLink className="w-3 h-3" />
-                                                File Claim
-                                            </button>
-                                        )}
+                                        <div className="flex items-center gap-1">
+                                            {order.safe_t_claimed ? (
+                                                <>
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
+                                                        <CircleCheckBig className="w-3 h-3" />
+                                                        Claimed
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleMarkClaimed(order.order_id, false)}
+                                                        disabled={markingId === order.order_id}
+                                                        className="inline-flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground rounded hover:bg-muted transition-colors disabled:opacity-50"
+                                                        title="Undo claim"
+                                                    >
+                                                        <Undo2 className="w-3 h-3" />
+                                                        Undo
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {order.isEligible && (
+                                                        <button
+                                                            onClick={() => openSafeTClaim(order.order_id)}
+                                                            className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                                        >
+                                                            <ExternalLink className="w-3 h-3" />
+                                                            File Claim
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => handleMarkClaimed(order.order_id, true)}
+                                                        disabled={markingId === order.order_id}
+                                                        className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <CircleCheckBig className="w-3 h-3" />
+                                                        {markingId === order.order_id ? 'Saving...' : 'Done'}
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
