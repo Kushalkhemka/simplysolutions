@@ -27,12 +27,24 @@ export async function GET(request: NextRequest) {
             .eq('is_refunded', true)
             .order('updated_at', { ascending: true });
 
-        // By default, exclude claimed orders
+        // By default, exclude claimed orders (gracefully skip if column doesn't exist yet)
         if (!showClaimed) {
             query = query.or('safe_t_claimed.is.null,safe_t_claimed.eq.false');
         }
 
-        const { data: refundedOrders, error } = await query;
+        let { data: refundedOrders, error } = await query;
+
+        // If the safe_t_claimed column doesn't exist yet, retry without the filter
+        if (error && error.message?.includes('safe_t_claimed')) {
+            console.warn('safe_t_claimed column not found, fetching without filter. Run migration 033.');
+            const fallback = await supabase
+                .from('amazon_orders')
+                .select('*')
+                .eq('is_refunded', true)
+                .order('updated_at', { ascending: true });
+            refundedOrders = fallback.data;
+            error = fallback.error;
+        }
 
         if (error) {
             console.error('Supabase error:', error);

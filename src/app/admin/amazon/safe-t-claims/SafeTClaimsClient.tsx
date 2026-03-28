@@ -35,7 +35,7 @@ interface SafeTData {
 export default function SafeTClaimsClient() {
     const [data, setData] = useState<SafeTData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'eligible' | 'approaching' | 'all'>('eligible');
+    const [activeTab, setActiveTab] = useState<'eligible' | 'approaching' | 'all' | 'claimed'>('eligible');
 
     // Filter state
     const [searchOrderId, setSearchOrderId] = useState('');
@@ -44,13 +44,13 @@ export default function SafeTClaimsClient() {
     const [daysMax, setDaysMax] = useState<string>('');
     const [showFilters, setShowFilters] = useState(false);
     const [showAllKeys, setShowAllKeys] = useState(false);
-    const [showClaimed, setShowClaimed] = useState(false);
+
     const [markingId, setMarkingId] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`/api/admin/amazon-orders/safe-t-eligible${showClaimed ? '?showClaimed=true' : ''}`);
+            const res = await fetch('/api/admin/amazon-orders/safe-t-eligible?showClaimed=true');
             const json = await res.json();
             if (json.success) {
                 setData(json);
@@ -59,7 +59,7 @@ export default function SafeTClaimsClient() {
             console.error('Error fetching Safe-T data:', error);
         }
         setIsLoading(false);
-    }, [showClaimed]);
+    }, []);
 
     useEffect(() => {
         fetchData();
@@ -126,37 +126,30 @@ export default function SafeTClaimsClient() {
             });
             const json = await res.json();
             if (json.success) {
-                // Update local state immediately
+                // Update local state: move order between unclaimed and claimed
                 if (data) {
-                    const updateOrders = (orders: SafeTOrder[]) =>
-                        claimed
-                            ? orders.filter(o => o.order_id !== orderId)
-                            : orders.map(o => o.order_id === orderId ? { ...o, safe_t_claimed: false, safe_t_claimed_at: null } : o);
-                    
-                    if (!showClaimed) {
-                        // When not showing claimed, just remove from the list
+                    const allOrders = [...data.eligible, ...data.approaching, ...data.notYetEligible];
+                    const targetOrder = allOrders.find(o => o.order_id === orderId);
+
+                    if (claimed && targetOrder) {
+                        // Mark as claimed: update the flag inline
+                        const markClaimed = (orders: SafeTOrder[]) =>
+                            orders.map(o => o.order_id === orderId ? { ...o, safe_t_claimed: true, safe_t_claimed_at: new Date().toISOString() } : o);
                         setData({
                             ...data,
-                            eligible: updateOrders(data.eligible),
-                            approaching: updateOrders(data.approaching),
-                            notYetEligible: updateOrders(data.notYetEligible),
-                            summary: {
-                                ...data.summary,
-                                totalRefunded: data.summary.totalRefunded - (claimed ? 1 : 0),
-                                eligible: data.summary.eligible - (data.eligible.some(o => o.order_id === orderId) && claimed ? 1 : 0),
-                                approaching: data.summary.approaching - (data.approaching.some(o => o.order_id === orderId) && claimed ? 1 : 0),
-                                notYetEligible: data.summary.notYetEligible - (data.notYetEligible.some(o => o.order_id === orderId) && claimed ? 1 : 0)
-                            }
+                            eligible: markClaimed(data.eligible),
+                            approaching: markClaimed(data.approaching),
+                            notYetEligible: markClaimed(data.notYetEligible),
                         });
                     } else {
-                        // When showing claimed, update inline
-                        const toggleClaimed = (orders: SafeTOrder[]) =>
-                            orders.map(o => o.order_id === orderId ? { ...o, safe_t_claimed: claimed, safe_t_claimed_at: claimed ? new Date().toISOString() : null } : o);
+                        // Undo claim: update the flag inline
+                        const unmarkClaimed = (orders: SafeTOrder[]) =>
+                            orders.map(o => o.order_id === orderId ? { ...o, safe_t_claimed: false, safe_t_claimed_at: null } : o);
                         setData({
                             ...data,
-                            eligible: toggleClaimed(data.eligible),
-                            approaching: toggleClaimed(data.approaching),
-                            notYetEligible: toggleClaimed(data.notYetEligible)
+                            eligible: unmarkClaimed(data.eligible),
+                            approaching: unmarkClaimed(data.approaching),
+                            notYetEligible: unmarkClaimed(data.notYetEligible),
                         });
                     }
                 }
@@ -184,21 +177,30 @@ export default function SafeTClaimsClient() {
         );
     }
 
+    // Split orders into unclaimed and claimed
+    const unclaimedEligible = data.eligible.filter(o => !o.safe_t_claimed);
+    const unclaimedApproaching = data.approaching.filter(o => !o.safe_t_claimed);
+    const allUnclaimed = [...data.eligible, ...data.approaching, ...data.notYetEligible].filter(o => !o.safe_t_claimed);
+    const allClaimed = [...data.eligible, ...data.approaching, ...data.notYetEligible].filter(o => o.safe_t_claimed);
+
     const getOrdersForTab = () => {
         switch (activeTab) {
             case 'eligible':
-                return applyFilters(data.eligible);
+                return applyFilters(unclaimedEligible);
             case 'approaching':
-                return applyFilters(data.approaching);
+                return applyFilters(unclaimedApproaching);
             case 'all':
-                return applyFilters([...data.eligible, ...data.approaching, ...data.notYetEligible]);
+                return applyFilters(allUnclaimed);
+            case 'claimed':
+                return applyFilters(allClaimed);
         }
     };
 
     // Filtered counts for tab badges
-    const filteredEligibleCount = applyFilters(data.eligible).length;
-    const filteredApproachingCount = applyFilters(data.approaching).length;
-    const filteredAllCount = applyFilters([...data.eligible, ...data.approaching, ...data.notYetEligible]).length;
+    const filteredEligibleCount = applyFilters(unclaimedEligible).length;
+    const filteredApproachingCount = applyFilters(unclaimedApproaching).length;
+    const filteredAllCount = applyFilters(allUnclaimed).length;
+    const filteredClaimedCount = applyFilters(allClaimed).length;
 
     const orders = getOrdersForTab();
 
@@ -224,18 +226,7 @@ export default function SafeTClaimsClient() {
                 </button>
             </div>
 
-            {/* Show Claimed Toggle */}
-            <div className="flex items-center gap-2">
-                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={showClaimed}
-                        onChange={(e) => setShowClaimed(e.target.checked)}
-                        className="rounded border-border"
-                    />
-                    Show claimed orders
-                </label>
-            </div>
+
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -373,7 +364,16 @@ export default function SafeTClaimsClient() {
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                 >
-                    All Refunded ({hasActiveFilters ? filteredAllCount : data.summary.totalRefunded})
+                    All Refunded ({hasActiveFilters ? filteredAllCount : allUnclaimed.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('claimed')}
+                    className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'claimed'
+                        ? 'border-blue-500 text-blue-500'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    Claimed ({hasActiveFilters ? filteredClaimedCount : allClaimed.length})
                 </button>
             </div>
 
