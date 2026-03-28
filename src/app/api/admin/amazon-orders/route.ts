@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
             fsn: fsn,
             fulfillment_type: 'amazon_digital', // All manually created orders are digital
             warranty_status: 'PENDING',
+            getcid_limit: 2,
         };
 
         // If a key is selected, link it

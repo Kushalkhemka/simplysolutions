@@ -343,6 +343,7 @@ export default function ManualOrderClient() {
                         fulfillment_type: 'amazon_fba',
                         warranty_status: 'PENDING',
                         license_key_id: keyId,
+                        getcid_limit: 2,
                     });
 
                 if (error) {

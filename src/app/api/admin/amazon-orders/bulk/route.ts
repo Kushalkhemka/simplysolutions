@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
             fsn: fsn,
             fulfillment_type: 'amazon_digital',
             warranty_status: 'PENDING',
+            getcid_limit: 2,
         }));
 
         const { data, error } = await supabase

@@ -106,23 +106,25 @@ export async function POST(request: NextRequest) {
         // Search for order
         let order = null;
 
-        const { data: exactMatch } = await supabase
+        // Use .limit(1) instead of .single() to handle multi-item orders
+        // (same order_id can have multiple rows, one per item/FSN)
+        const { data: exactMatches } = await supabase
             .from('amazon_orders')
             .select('id, order_id, fsn, quantity, getcid_used, getcid_count, getcid_limit, warranty_status')
             .eq('order_id', cleanIdentifier)
-            .single();
+            .limit(1);
 
-        if (exactMatch) {
-            order = exactMatch;
+        if (exactMatches && exactMatches.length > 0) {
+            order = exactMatches[0];
         } else {
-            const { data: ilikeMatch } = await supabase
+            const { data: ilikeMatches } = await supabase
                 .from('amazon_orders')
                 .select('id, order_id, fsn, quantity, getcid_used, getcid_count, getcid_limit, warranty_status')
                 .ilike('order_id', cleanIdentifier)
-                .single();
+                .limit(1);
 
-            if (ilikeMatch) {
-                order = ilikeMatch;
+            if (ilikeMatches && ilikeMatches.length > 0) {
+                order = ilikeMatches[0];
             }
         }
 
@@ -143,7 +145,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Use the stored getcid_limit (set at order creation, admin-editable)
-        const maxUses = order.getcid_limit || 1;
+        // Default to 2 if not set (consistent with sync-fba which uses qty*2)
+        const maxUses = order.getcid_limit || 2;
         const currentUses = order.getcid_count || 0;
 
         if (currentUses >= maxUses) {
