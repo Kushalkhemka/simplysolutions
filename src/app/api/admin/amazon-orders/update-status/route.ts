@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Update order status
+        // Update order status (use .select() without .single() to handle multi-item orders)
         const { data, error } = await supabase
             .from('amazon_orders')
             .update({
@@ -32,8 +32,7 @@ export async function POST(request: NextRequest) {
                 updated_at: new Date().toISOString()
             })
             .eq('order_id', orderId)
-            .select()
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating order status:', error);
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             message: `Order status updated to ${status}`,
-            order: data
+            order: data?.[0] || null
         });
 
     } catch (error) {

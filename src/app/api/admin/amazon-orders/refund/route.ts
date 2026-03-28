@@ -33,8 +33,7 @@ export async function POST(request: NextRequest) {
                 updated_at: new Date().toISOString()
             })
             .eq('order_id', orderId)
-            .select()
-            .single();
+            .select();
 
         if (error) {
             console.error('Error updating refund status:', error);
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            order: data,
+            order: data?.[0] || null,
             message: isRefunded ? 'Order marked as refunded' : 'Refund status removed'
         });
 
@@ -67,16 +66,16 @@ export async function GET(request: NextRequest) {
             .from('amazon_orders')
             .select('order_id, is_refunded, fulfillment_status')
             .eq('order_id', orderId)
-            .single();
+            .limit(1);
 
-        if (error || !data) {
+        if (error || !data || data.length === 0) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
         }
 
         return NextResponse.json({
-            orderId: data.order_id,
-            isRefunded: data.is_refunded || false,
-            fulfillmentStatus: data.fulfillment_status
+            orderId: data[0].order_id,
+            isRefunded: data[0].is_refunded || false,
+            fulfillmentStatus: data[0].fulfillment_status
         });
 
     } catch (error: any) {
