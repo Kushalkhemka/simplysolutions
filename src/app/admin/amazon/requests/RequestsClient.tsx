@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CheckCircle, Clock, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle, Eye, Copy, Check, Mail, Key, User, Lock, Trash2, Download } from 'lucide-react';
+import { CheckCircle, Clock, Filter, Search, Calendar, X, Package, Send, Loader2, AlertCircle, Eye, Copy, Check, Mail, Key, User, Lock, Trash2, Download, CheckSquare, Square } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -56,6 +56,11 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
     const [showExportModal, setShowExportModal] = useState(false);
     const [exportDateFrom, setExportDateFrom] = useState('');
     const [exportDateTo, setExportDateTo] = useState('');
+
+    // Bulk completion state
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isBulkCompleting, setIsBulkCompleting] = useState(false);
+    const [bulkResult, setBulkResult] = useState<{ completed: number; failed: number } | null>(null);
 
     // Get unique types
     const types = useMemo(() => {
@@ -122,6 +127,63 @@ export default function RequestsClient({ requests: initialRequests, totalCount }
         setTypeFilter('all');
         setSearchQuery('');
         setDateFilter('all');
+        setSelectedIds(new Set());
+    };
+
+    // Bulk completion logic
+    const isBulkView = (typeFilter === 'autocad' || typeFilter === 'canva') && statusFilter !== 'completed';
+    const bulkEligible = filteredRequests.filter(r => !r.is_completed && (r.request_type === 'autocad' || r.request_type === 'canva'));
+
+    const toggleBulkSelect = (id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleBulkSelectAll = () => {
+        if (selectedIds.size === bulkEligible.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(bulkEligible.map(r => r.id)));
+        }
+    };
+
+    const handleBulkComplete = async () => {
+        if (selectedIds.size === 0) return;
+        const confirmed = window.confirm(
+            `Are you sure you want to COMPLETE ${selectedIds.size} request(s)?\n\nThis will send fulfillment emails, WhatsApp notifications, and mark them as completed.`
+        );
+        if (!confirmed) return;
+
+        setIsBulkCompleting(true);
+        setBulkResult(null);
+        try {
+            const res = await fetch('/api/admin/complete-product-request/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestIds: Array.from(selectedIds) })
+            });
+            const json = await res.json();
+            if (json.success) {
+                setBulkResult({ completed: json.completed, failed: json.failed });
+                toast.success(`${json.completed} completed, ${json.failed} failed`);
+                setSelectedIds(new Set());
+                // Update local state
+                setRequests(prev => prev.map(r =>
+                    selectedIds.has(r.id) ? { ...r, is_completed: true } : r
+                ));
+                router.refresh();
+            } else {
+                toast.error(json.error || 'Bulk complete failed');
+            }
+        } catch (err) {
+            console.error('Bulk complete error:', err);
+            toast.error('Failed to bulk complete. Check console.');
+        }
+        setIsBulkCompleting(false);
     };
 
     const hasActiveFilters = statusFilter !== 'all' || typeFilter !== 'all' || searchQuery || dateFilter !== 'all';
@@ -529,6 +591,48 @@ Email - ${request.email || '-'}`;
                 )}
             </div>
 
+            {/* Bulk Action Bar */}
+            {isBulkView && bulkEligible.length > 0 && (
+                <div className="flex items-center justify-between bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={toggleBulkSelectAll}
+                            className="flex items-center gap-2 text-sm font-medium hover:text-violet-600 transition-colors"
+                        >
+                            {selectedIds.size === bulkEligible.length && bulkEligible.length > 0 ? (
+                                <CheckSquare className="h-4 w-4 text-violet-500" />
+                            ) : (
+                                <Square className="h-4 w-4" />
+                            )}
+                            {selectedIds.size === bulkEligible.length ? 'Deselect All' : `Select All (${bulkEligible.length})`}
+                        </button>
+                        {selectedIds.size > 0 && (
+                            <span className="text-sm text-muted-foreground">
+                                {selectedIds.size} selected
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {bulkResult && (
+                            <span className="text-sm text-green-600 dark:text-green-400">
+                                ✓ {bulkResult.completed} done{bulkResult.failed > 0 ? `, ${bulkResult.failed} failed` : ''}
+                            </span>
+                        )}
+                        <button
+                            onClick={handleBulkComplete}
+                            disabled={selectedIds.size === 0 || isBulkCompleting}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        >
+                            {isBulkCompleting ? (
+                                <><Loader2 className="h-4 w-4 animate-spin" /> Completing...</>
+                            ) : (
+                                <><CheckCircle className="h-4 w-4" /> Bulk Complete ({selectedIds.size})</>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Table - Mobile Cards View */}
             <div className="lg:hidden space-y-3">
                 {filteredRequests.length === 0 ? (
@@ -606,6 +710,17 @@ Email - ${request.email || '-'}`;
                     <table className="w-full">
                         <thead className="bg-muted/50 border-b">
                             <tr>
+                                {isBulkView && (
+                                    <th className="px-4 py-3 w-10">
+                                        <button onClick={toggleBulkSelectAll} className="hover:text-primary">
+                                            {selectedIds.size === bulkEligible.length && bulkEligible.length > 0 ? (
+                                                <CheckSquare className="h-4 w-4 text-primary" />
+                                            ) : (
+                                                <Square className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </th>
+                                )}
                                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Order ID</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</th>
@@ -620,8 +735,23 @@ Email - ${request.email || '-'}`;
                             {filteredRequests.map((request) => (
                                 <tr
                                     key={request.id}
-                                    className="hover:bg-muted/50 transition-colors"
+                                    className={`hover:bg-muted/50 transition-colors ${selectedIds.has(request.id) ? 'bg-violet-50/50 dark:bg-violet-900/10' : ''}`}
                                 >
+                                    {isBulkView && (
+                                        <td className="px-4 py-3">
+                                            {!request.is_completed && (request.request_type === 'autocad' || request.request_type === 'canva') ? (
+                                                <button onClick={() => toggleBulkSelect(request.id)} className="hover:text-primary">
+                                                    {selectedIds.has(request.id) ? (
+                                                        <CheckSquare className="h-4 w-4 text-primary" />
+                                                    ) : (
+                                                        <Square className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <span className="w-4 h-4 block" />
+                                            )}
+                                        </td>
+                                    )}
                                     <td className="px-4 py-3 text-sm font-medium">
                                         {request.email || 'NA'}
                                     </td>
