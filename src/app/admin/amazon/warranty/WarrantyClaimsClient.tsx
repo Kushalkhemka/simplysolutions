@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
-import { CheckCircle, XCircle, Clock, ExternalLink, ChevronLeft, ChevronRight, Loader2, Search, Eye, X, Package, Phone, Mail, Calendar, Image as ImageIcon, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, ExternalLink, ChevronLeft, ChevronRight, Loader2, Search, Eye, X, Package, Phone, Mail, Calendar, Image as ImageIcon, AlertTriangle, Send, CheckSquare, Square } from 'lucide-react';
 
 interface WarrantyRegistration {
     id: string;
@@ -35,6 +35,11 @@ export default function WarrantyClaimsClient() {
     const [verifiedCount, setVerifiedCount] = useState(0);
     const [rejectedCount, setRejectedCount] = useState(0);
     const [resubmissionCount, setResubmissionCount] = useState(0);
+
+    // Bulk selection state
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isBulkResending, setIsBulkResending] = useState(false);
+    const [bulkResult, setBulkResult] = useState<{ sent: number; failed: number } | null>(null);
 
     const pageSize = 50;
     const supabase = createClient();
@@ -104,6 +109,7 @@ export default function WarrantyClaimsClient() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setCurrentPage(1);
+        setSelectedIds(new Set());
         fetchWarranties();
     };
 
@@ -131,6 +137,52 @@ export default function WarrantyClaimsClient() {
     };
 
     const totalPages = Math.ceil(totalCount / pageSize);
+
+    const isResubmissionView = statusFilter === 'NEEDS_RESUBMISSION';
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === warranties.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(warranties.map(w => w.id)));
+        }
+    };
+
+    const handleBulkResend = async () => {
+        if (selectedIds.size === 0) return;
+        setIsBulkResending(true);
+        setBulkResult(null);
+        try {
+            const res = await fetch('/api/admin/warranty/bulk-resend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ warrantyIds: Array.from(selectedIds) })
+            });
+            const json = await res.json();
+            if (json.success) {
+                setBulkResult({ sent: json.sent, failed: json.failed });
+                setSelectedIds(new Set());
+                // Refresh data
+                fetchWarranties();
+                fetchStats();
+            } else {
+                alert(json.error || 'Failed to resend');
+            }
+        } catch (err) {
+            console.error('Bulk resend error:', err);
+            alert('Failed to resend. Check console.');
+        }
+        setIsBulkResending(false);
+    };
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return '-';
@@ -208,6 +260,48 @@ export default function WarrantyClaimsClient() {
                 )}
             </form>
 
+            {/* Bulk Action Bar */}
+            {isResubmissionView && warranties.length > 0 && (
+                <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={toggleSelectAll}
+                            className="flex items-center gap-2 text-sm font-medium hover:text-orange-600 transition-colors"
+                        >
+                            {selectedIds.size === warranties.length ? (
+                                <CheckSquare className="h-4 w-4 text-orange-500" />
+                            ) : (
+                                <Square className="h-4 w-4" />
+                            )}
+                            {selectedIds.size === warranties.length ? 'Deselect All' : 'Select All'}
+                        </button>
+                        {selectedIds.size > 0 && (
+                            <span className="text-sm text-muted-foreground">
+                                {selectedIds.size} selected
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {bulkResult && (
+                            <span className="text-sm text-green-600 dark:text-green-400">
+                                ✓ {bulkResult.sent} sent{bulkResult.failed > 0 ? `, ${bulkResult.failed} failed` : ''}
+                            </span>
+                        )}
+                        <button
+                            onClick={handleBulkResend}
+                            disabled={selectedIds.size === 0 || isBulkResending}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        >
+                            {isBulkResending ? (
+                                <><Loader2 className="h-4 w-4 animate-spin" /> Sending...</>
+                            ) : (
+                                <><Send className="h-4 w-4" /> Bulk Resend Resubmission ({selectedIds.size})</>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Warranty - Mobile Cards View */}
             <div className="lg:hidden space-y-3">
                 {isLoading ? (
@@ -274,6 +368,17 @@ export default function WarrantyClaimsClient() {
                         <table className="w-full">
                             <thead className="bg-muted/50">
                                 <tr>
+                                    {isResubmissionView && (
+                                        <th className="px-4 py-3 w-10">
+                                            <button onClick={toggleSelectAll} className="hover:text-primary">
+                                                {selectedIds.size === warranties.length && warranties.length > 0 ? (
+                                                    <CheckSquare className="h-4 w-4 text-primary" />
+                                                ) : (
+                                                    <Square className="h-4 w-4" />
+                                                )}
+                                            </button>
+                                        </th>
+                                    )}
                                     <th className="px-4 py-3 text-left text-sm font-medium">Order ID</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Contact</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
@@ -285,7 +390,18 @@ export default function WarrantyClaimsClient() {
                             </thead>
                             <tbody className="divide-y">
                                 {warranties.map((warranty) => (
-                                    <tr key={warranty.id} className="hover:bg-muted/30">
+                                    <tr key={warranty.id} className={`hover:bg-muted/30 ${selectedIds.has(warranty.id) ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}`}>
+                                        {isResubmissionView && (
+                                            <td className="px-4 py-3">
+                                                <button onClick={() => toggleSelect(warranty.id)} className="hover:text-primary">
+                                                    {selectedIds.has(warranty.id) ? (
+                                                        <CheckSquare className="h-4 w-4 text-primary" />
+                                                    ) : (
+                                                        <Square className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                </button>
+                                            </td>
+                                        )}
                                         <td className="px-4 py-3 font-mono text-sm">{warranty.order_id}</td>
                                         <td className="px-4 py-3 text-sm">{warranty.contact || warranty.email || warranty.phone || '-'}</td>
                                         <td className="px-4 py-3">{getStatusBadge(warranty.status)}</td>
