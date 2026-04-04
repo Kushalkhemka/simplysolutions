@@ -157,29 +157,34 @@ export default function WarrantyClaimsClient() {
         }
     };
 
-    const handleBulkResend = async () => {
+    const handleBulkAction = async (action: 'resend' | 'reject') => {
         if (selectedIds.size === 0) return;
+        if (action === 'reject') {
+            const confirmed = window.confirm(
+                `Are you sure you want to REJECT ${selectedIds.size} warranty claim(s)?\n\nThis will send rejection emails/WhatsApp and change their status to REJECTED.`
+            );
+            if (!confirmed) return;
+        }
         setIsBulkResending(true);
         setBulkResult(null);
         try {
             const res = await fetch('/api/admin/warranty/bulk-resend', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ warrantyIds: Array.from(selectedIds) })
+                body: JSON.stringify({ warrantyIds: Array.from(selectedIds), action })
             });
             const json = await res.json();
             if (json.success) {
                 setBulkResult({ sent: json.sent, failed: json.failed });
                 setSelectedIds(new Set());
-                // Refresh data
                 fetchWarranties();
                 fetchStats();
             } else {
-                alert(json.error || 'Failed to resend');
+                alert(json.error || `Failed to ${action}`);
             }
         } catch (err) {
-            console.error('Bulk resend error:', err);
-            alert('Failed to resend. Check console.');
+            console.error(`Bulk ${action} error:`, err);
+            alert(`Failed to ${action}. Check console.`);
         }
         setIsBulkResending(false);
     };
@@ -284,19 +289,26 @@ export default function WarrantyClaimsClient() {
                     <div className="flex items-center gap-3">
                         {bulkResult && (
                             <span className="text-sm text-green-600 dark:text-green-400">
-                                ✓ {bulkResult.sent} sent{bulkResult.failed > 0 ? `, ${bulkResult.failed} failed` : ''}
+                                ✓ {bulkResult.sent} done{bulkResult.failed > 0 ? `, ${bulkResult.failed} failed` : ''}
                             </span>
                         )}
                         <button
-                            onClick={handleBulkResend}
+                            onClick={() => handleBulkAction('resend')}
                             disabled={selectedIds.size === 0 || isBulkResending}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                         >
                             {isBulkResending ? (
-                                <><Loader2 className="h-4 w-4 animate-spin" /> Sending...</>
+                                <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</>
                             ) : (
-                                <><Send className="h-4 w-4" /> Bulk Resend Resubmission ({selectedIds.size})</>
+                                <><Send className="h-4 w-4" /> Resend ({selectedIds.size})</>
                             )}
+                        </button>
+                        <button
+                            onClick={() => handleBulkAction('reject')}
+                            disabled={selectedIds.size === 0 || isBulkResending}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        >
+                            <XCircle className="h-4 w-4" /> Reject ({selectedIds.size})
                         </button>
                     </div>
                 </div>
