@@ -54,19 +54,34 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 4. Check if replacement has already been used (max 1 time)
+        // 4. Check if replacement has already been used (max 1 time - any type, instant or manual)
         const { data: existingReplacements } = await supabase
             .from('license_replacement_requests')
             .select('id')
             .eq('order_id', cleanOrderId)
-            .eq('status', 'APPROVED')
-            .like('admin_notes', '%INSTANT-O365-REPLACEMENT%');
+            .eq('status', 'APPROVED');
 
         if (existingReplacements && existingReplacements.length >= 1) {
             return NextResponse.json(
                 { success: false, error: 'You have already used your one-time replacement for this order. Please contact support for further assistance.' },
                 { status: 403 }
             );
+        }
+
+        // 4b. If there are any PENDING replacement requests for this order, delete them
+        //     so the instant replacement takes over cleanly
+        const { data: pendingRequests } = await supabase
+            .from('license_replacement_requests')
+            .select('id')
+            .eq('order_id', cleanOrderId)
+            .eq('status', 'PENDING');
+
+        if (pendingRequests && pendingRequests.length > 0) {
+            const pendingIds = pendingRequests.map(r => r.id);
+            await supabase
+                .from('license_replacement_requests')
+                .delete()
+                .in('id', pendingIds);
         }
 
         // 5. Find an available OFFICE365 key that is different from current keys
