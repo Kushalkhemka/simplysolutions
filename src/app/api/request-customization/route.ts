@@ -131,9 +131,11 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json({
                     valid: true,
                     alreadyCustomized: true,
+                    canResubmit: true,
                     generatedEmail: existingCustomization.generated_email,
+                    buyerEmail: order.contact_email,
                     domain,
-                    message: 'Your customization request has already been fulfilled!'
+                    message: 'Your customization request has already been fulfilled! If you received a replacement key, you can submit a new customization request.'
                 });
             }
             // If rejected, allow resubmission
@@ -198,7 +200,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { orderId, usernamePrefix, firstName, lastName, customerEmail } = body;
+        const { orderId, usernamePrefix, firstName, lastName, customerEmail, isResubmission } = body;
 
         // Validate required fields
         if (!orderId || !usernamePrefix || !firstName || !lastName || !customerEmail) {
@@ -273,16 +275,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if already submitted — allow resubmission if rejected
+        // Check if already submitted — allow resubmission if rejected or if completed + replacement scenario
         const { data: existingCustomization } = await supabase
             .from('office365_customizations')
-            .select('id, is_rejected')
+            .select('id, is_rejected, is_completed')
             .eq('order_id', trimmedOrderId)
             .maybeSingle();
 
         if (existingCustomization) {
             if (existingCustomization.is_rejected) {
                 // Delete the rejected request to allow resubmission
+                await supabase
+                    .from('office365_customizations')
+                    .delete()
+                    .eq('id', existingCustomization.id);
+            } else if (existingCustomization.is_completed && isResubmission) {
+                // User got a replacement key and needs to resubmit — delete old completed request
                 await supabase
                     .from('office365_customizations')
                     .delete()

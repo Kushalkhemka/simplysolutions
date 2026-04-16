@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, Loader2, CheckCircle, AlertTriangle, User, Mail, ArrowRight, Shield, XCircle, Info } from 'lucide-react';
+import { Search, Loader2, CheckCircle, AlertTriangle, User, Mail, ArrowRight, Shield, XCircle, Info, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -35,6 +35,9 @@ function RequestCustomizationContent() {
 
     // Success
     const [submittedUsername, setSubmittedUsername] = useState('');
+
+    // Resubmission (replacement key scenario)
+    const [isResubmission, setIsResubmission] = useState(false);
 
     // Domain suffix from license key
     const [domain, setDomain] = useState('ms365.pro');
@@ -74,7 +77,11 @@ function RequestCustomizationContent() {
             } else if (data.valid && data.alreadySubmitted) {
                 toast.info('A customization request has already been submitted for this order.');
             } else if (data.valid && data.alreadyCustomized) {
-                toast.success('Your customization has already been fulfilled!');
+                if (data.canResubmit) {
+                    toast.info('Your customization was already fulfilled. You can resubmit if you received a replacement key.');
+                } else {
+                    toast.success('Your customization has already been fulfilled!');
+                }
             }
         } catch (error) {
             console.error('Order verification error:', error);
@@ -203,6 +210,7 @@ function RequestCustomizationContent() {
                     firstName: formData.firstName.trim(),
                     lastName: formData.lastName.trim(),
                     customerEmail: formData.customerEmail.trim(),
+                    isResubmission,
                 }),
             });
 
@@ -299,7 +307,7 @@ function RequestCustomizationContent() {
         );
     }
 
-    if (orderStatus?.alreadyCustomized) {
+    if (orderStatus?.alreadyCustomized && !isResubmission) {
         return (
             <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
                 <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-8 text-center">
@@ -313,9 +321,29 @@ function RequestCustomizationContent() {
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 font-mono text-lg font-bold text-slate-900 mb-4">
                         {orderStatus.generatedEmail}
                     </div>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-500 mb-6">
                         Login at <a href="https://www.office.com" target="_blank" className="text-blue-600 underline">office.com</a> with this username.
                     </p>
+                    {orderStatus.canResubmit && (
+                        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-left">
+                            <p className="text-sm text-amber-800 mb-3">
+                                <strong>Got a replacement key?</strong> If you received a new Office 365 account due to a replacement, you can submit a new customization request.
+                            </p>
+                            <button
+                                onClick={() => {
+                                    setIsResubmission(true);
+                                    setOrderStatus({ ...orderStatus, valid: true, warrantyVerified: true });
+                                    setStep('form');
+                                    setFormData({ usernamePrefix: '', firstName: '', lastName: '', customerEmail: '' });
+                                    setUsernameAvailable(null);
+                                }}
+                                className="w-full px-4 py-3 bg-gradient-to-b from-[#FF9900] to-[#E88B00] text-white font-bold text-sm rounded-lg hover:from-[#E88B00] hover:to-[#CC7A00] transition-all shadow-sm flex items-center justify-center gap-2"
+                            >
+                                <RefreshCw className="w-4 h-4" />
+                                Resubmit for Replacement Key
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         );

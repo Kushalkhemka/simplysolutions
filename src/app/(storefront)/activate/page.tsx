@@ -149,11 +149,13 @@ function ActivatePageContent() {
         canCustomize: boolean;
         alreadySubmitted?: boolean;
         alreadyCustomized?: boolean;
+        canResubmit?: boolean;
         wasRejected?: boolean;
         rejectionReason?: string;
         usernamePrefix?: string;
         generatedEmail?: string;
     } | null>(null);
+    const [isResubmission, setIsResubmission] = useState(false);
     const [warrantyNeeded, setWarrantyNeeded] = useState(false);
     const [warrantySubmittedInline, setWarrantySubmittedInline] = useState(false);
     const [wEmail, setWEmail] = useState('');
@@ -221,8 +223,9 @@ function ActivatePageContent() {
                 setWarrantyNeeded(false);
                 if (data.domain) setCustDomain(data.domain);
             } else if (data.alreadyCustomized) {
-                setCustomizationStatus({ canCustomize: false, alreadyCustomized: true, generatedEmail: data.generatedEmail });
+                setCustomizationStatus({ canCustomize: false, alreadyCustomized: true, canResubmit: data.canResubmit || false, generatedEmail: data.generatedEmail });
                 setWarrantyNeeded(false);
+                if (data.buyerEmail) setWEmail(data.buyerEmail);
                 if (data.domain) setCustDomain(data.domain);
             } else if (data.warrantyRequired) {
                 setWarrantyNeeded(true);
@@ -331,6 +334,7 @@ function ActivatePageContent() {
                     firstName: custFirstName.trim(),
                     lastName: custLastName.trim(),
                     customerEmail: custEmail.trim(),
+                    isResubmission,
                 }),
             });
             const data = await res.json();
@@ -1577,13 +1581,52 @@ function ActivatePageContent() {
                                                         )}
 
                                                         {/* Already customized */}
-                                                        {customizationStatus?.alreadyCustomized && (
-                                                            <div className="flex items-start gap-3 p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg">
-                                                                <CheckCircle className="w-5 h-5 text-[#067D62] flex-shrink-0 mt-0.5" />
+                                                        {customizationStatus?.alreadyCustomized && !isResubmission && (
+                                                            <div>
+                                                                <div className="flex items-start gap-3 p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg">
+                                                                    <CheckCircle className="w-5 h-5 text-[#067D62] flex-shrink-0 mt-0.5" />
+                                                                    <div>
+                                                                        <p className="font-bold text-sm text-[#067D62]">Username Customized!</p>
+                                                                        <p className="text-xs text-[#565959] mt-1">
+                                                                            Your custom username is <strong className="font-mono text-[#0078D4]">{customizationStatus.generatedEmail}</strong>
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                {customizationStatus.canResubmit && (
+                                                                    <div className="mt-3 p-3 bg-[#FFF8E1] border border-[#FFE082] rounded-lg">
+                                                                        <p className="text-xs text-[#6D4C00] mb-2">
+                                                                            <strong>Got a replacement key?</strong> If you received a new Office 365 account due to a replacement, you can submit a new customization request for your updated account.
+                                                                        </p>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setIsResubmission(true);
+                                                                                setCustomizationStatus({ ...customizationStatus, canCustomize: true });
+                                                                                setCustUsername('');
+                                                                                setCustFirstName('');
+                                                                                setCustLastName('');
+                                                                                setCustEmail('');
+                                                                                setCustUsernameAvailable(null);
+                                                                                setCustSubmitted(false);
+                                                                                setShowCustomizationForm(true);
+                                                                            }}
+                                                                            className="px-4 py-2 bg-gradient-to-b from-[#FF9900] to-[#E88B00] text-white font-bold text-xs rounded-lg hover:from-[#E88B00] hover:to-[#CC7A00] transition-all shadow-sm flex items-center gap-2"
+                                                                        >
+                                                                            <RefreshCw className="w-3.5 h-3.5" />
+                                                                            Resubmit for Replacement Key
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Resubmission mode notice */}
+                                                        {isResubmission && !custSubmitted && (
+                                                            <div className="flex items-start gap-3 p-3 bg-[#FFF3E0] border border-[#FFCC80] rounded-lg mb-3">
+                                                                <RefreshCw className="w-5 h-5 text-[#E65100] flex-shrink-0 mt-0.5" />
                                                                 <div>
-                                                                    <p className="font-bold text-sm text-[#067D62]">Username Customized!</p>
+                                                                    <p className="font-bold text-sm text-[#BF360C]">Replacement Resubmission</p>
                                                                     <p className="text-xs text-[#565959] mt-1">
-                                                                        Your custom username is <strong className="font-mono text-[#0078D4]">{customizationStatus.generatedEmail}</strong>
+                                                                        Your previous customization ({customizationStatus?.generatedEmail}) will be replaced with the new username you choose below.
                                                                     </p>
                                                                 </div>
                                                             </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { RefreshCw, CheckCircle, Copy, AlertTriangle, Loader2, Shield, Key, ArrowRight, Search } from 'lucide-react';
+import { RefreshCw, CheckCircle, Copy, AlertTriangle, Loader2, Shield, Key, ArrowRight, ShoppingCart, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function GetReplacementPage() {
@@ -67,130 +67,178 @@ export default function GetReplacementPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-slate-100">
-            {/* Header */}
-            <div className="bg-[#232F3E] py-5 border-b-4 border-[#FF9900]">
-                <div className="container mx-auto px-4">
-                    <h1 className="text-2xl md:text-3xl font-bold text-center text-white">
-                        Office 365 Replacement
-                    </h1>
-                    <p className="text-center text-[#FF9900] text-sm mt-1 font-medium uppercase tracking-wide">
+        <div className="min-h-screen bg-[#EAEDED]">
+            {/* Success Banner */}
+            {newLicenseKey && (
+                <div className="bg-[#067D62] text-white py-3 px-4">
+                    <div className="container-dense flex items-center justify-center gap-2 text-sm font-medium">
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="font-bold">Success!</span>
+                        <span className="hidden sm:inline">Your Replacement License Key is Ready</span>
+                    </div>
+                </div>
+            )}
+
+            {/* Amazon-style Header Banner */}
+            <div className="bg-[#232F3E] py-4 border-b-4 border-[#FF9900]">
+                <div className="container-dense">
+                    <div className="flex items-center justify-center gap-3 mb-1">
+                        <RefreshCw className="w-6 h-6 text-[#FF9900]" />
+                        <h1 className="text-2xl md:text-3xl font-bold text-center text-white uppercase tracking-wider">
+                            Office 365 Replacement
+                        </h1>
+                    </div>
+                    <p className="text-center text-[#FF9900] text-sm font-medium">
                         Get Your Replacement License Key
                     </p>
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-8 md:py-12">
-                <div className="max-w-lg mx-auto">
+            {/* Main Content */}
+            <div className="container-dense py-8 md:py-12">
+                <div className="max-w-2xl mx-auto">
 
-                    {/* Success State */}
-                    {newLicenseKey ? (
-                        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in duration-300">
-                            {/* Success Header */}
-                            <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-8 text-center">
-                                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircle className="h-10 w-10 text-white" />
-                                </div>
-                                <h2 className="text-2xl font-bold text-white mb-1">Replacement Issued!</h2>
-                                <p className="text-emerald-100 text-sm">Your new Office 365 license key is ready</p>
-                            </div>
-
-                            <div className="p-6 space-y-5">
-                                {/* Order ID reference */}
-                                <div className="flex items-center gap-2 text-sm text-slate-500">
-                                    <span className="font-medium text-slate-700">Order ID:</span>
-                                    <span className="font-mono">{orderId.trim()}</span>
-                                </div>
-
-                                {/* New License Key Box */}
-                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <Key className="h-5 w-5 text-amber-700" />
-                                        <h3 className="font-semibold text-amber-900">Your New License Key</h3>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1 bg-white border-2 border-amber-300 rounded-lg p-4 font-mono text-sm md:text-base font-bold text-slate-900 break-all select-all">
-                                            {newLicenseKey}
-                                        </div>
-                                        <button
-                                            onClick={handleCopy}
-                                            className={`p-4 rounded-lg border-2 transition-all flex-shrink-0 ${copied
-                                                ? 'bg-emerald-600 border-emerald-600 text-white'
-                                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
-                                                }`}
-                                            title="Copy key"
-                                        >
-                                            {copied ? <CheckCircle className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Important Notice */}
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <div className="flex items-start gap-3">
-                                        <Shield className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <h4 className="font-semibold text-blue-800 text-sm mb-1.5">Important: After Activation</h4>
-                                            <ul className="text-xs text-blue-700 space-y-1">
-                                                <li>• Visit <a href="https://mysignins.microsoft.com/security-info" target="_blank" rel="noopener noreferrer" className="underline font-medium">mysignins.microsoft.com/security-info</a> to link your email & phone</li>
-                                                <li>• Save your password securely — it cannot be recovered</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Warning */}
-                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                    <div className="flex items-start gap-3">
-                                        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                                        <p className="text-xs text-amber-700">
-                                            <strong>Note:</strong> This was your one-time replacement. No further replacements can be issued for this order.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={handleReset}
-                                        className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-all text-sm flex items-center justify-center gap-2"
-                                    >
-                                        <RefreshCw className="h-4 w-4" />
-                                        Replace Another
-                                    </button>
-                                    <a
-                                        href={`/activate?code=${orderId.trim()}`}
-                                        className="flex-1 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-all text-sm flex items-center justify-center gap-2"
-                                    >
-                                        Go to Activation
-                                        <ArrowRight className="h-4 w-4" />
-                                    </a>
-                                </div>
-                            </div>
+                    {/* How It Works Card */}
+                    <div className="bg-white rounded-lg shadow border border-[#DDD] overflow-hidden mb-6">
+                        <div className="bg-gradient-to-b from-[#F7F8FA] to-[#E7E9EC] px-4 py-3 border-b border-[#DDD]">
+                            <h3 className="font-bold text-[#0F1111] text-sm flex items-center gap-2">
+                                <HelpCircle className="w-4 h-4 text-[#FF9900]" />
+                                How It Works
+                            </h3>
                         </div>
-                    ) : (
-                        /* Input State */
-                        <div className="space-y-6">
-                            {/* Main Card */}
-                            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-                                {/* Info Banner */}
-                                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-center">
-                                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <RefreshCw className="h-6 w-6 text-white" />
-                                    </div>
-                                    <h2 className="text-lg font-bold text-white mb-1">Get Your Replacement Key</h2>
-                                    <p className="text-blue-100 text-sm">
-                                        Enter your Order ID to receive a new Office 365 license key
-                                    </p>
-                                </div>
+                        <div className="p-4">
+                            <ol className="space-y-2 text-sm text-[#0F1111]">
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-[#FF9900]">1.</span>
+                                    <span>Enter your <strong>Amazon Order ID</strong> or <strong>Secret Code</strong> from your original purchase</span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-[#FF9900]">2.</span>
+                                    <span>We verify your order is an <strong className="text-[#0078D4]">Office 365</strong> product eligible for replacement</span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-[#FF9900]">3.</span>
+                                    <span>A <strong>new license key</strong> is assigned to your order <strong className="text-[#067D62]">instantly</strong></span>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
 
-                                <div className="p-6 space-y-5">
+                    {/* Main Replacement Card */}
+                    <div className="bg-white rounded-lg shadow-lg border border-[#DDD] overflow-hidden">
+                        {/* Card Header */}
+                        <div className="bg-gradient-to-b from-[#F7F8FA] to-[#E7E9EC] px-6 py-4 border-b border-[#DDD]">
+                            <h2 className="text-lg font-bold text-[#0F1111]">Get Your Replacement Key</h2>
+                            <p className="text-sm text-[#565959] mt-1">
+                                Enter your Order ID to receive a new Office 365 license key
+                            </p>
+                        </div>
+
+                        <div className="p-6">
+                            {newLicenseKey ? (
+                                /* Success State */
+                                <div className="space-y-6">
+                                    {/* Success Icon */}
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 bg-[#E7F4E4] rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <CheckCircle className="w-8 h-8 text-[#067D62]" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-[#0F1111]">Replacement Issued!</h3>
+                                        <p className="text-sm text-[#565959] mt-1">Your new Office 365 license key is ready</p>
+                                    </div>
+
+                                    {/* Order ID Reference */}
+                                    <div className="text-center text-sm text-[#565959]">
+                                        <span className="font-medium text-[#0F1111]">Order ID:</span>{' '}
+                                        <span className="font-mono">{orderId.trim()}</span>
+                                    </div>
+
+                                    {/* New License Key Box */}
+                                    <div className="bg-[#FCF5EE] border-2 border-[#FF9900] rounded-lg p-5">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Key className="h-5 w-5 text-[#FF9900]" />
+                                            <p className="text-sm font-bold text-[#0F1111] uppercase tracking-wide">Your New License Key</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <code className="flex-1 bg-white border border-[#DDD] rounded-lg p-4 font-mono text-base font-bold text-[#0F1111] break-all select-all">
+                                                {newLicenseKey}
+                                            </code>
+                                            <button
+                                                onClick={handleCopy}
+                                                className={`p-3 rounded-lg border transition-all flex-shrink-0 ${copied
+                                                    ? 'bg-[#067D62] border-[#067D62] text-white'
+                                                    : 'bg-white border-[#DDD] text-[#565959] hover:bg-[#F7F8FA] hover:border-[#888C8C]'
+                                                    }`}
+                                                title="Copy key"
+                                            >
+                                                {copied ? <CheckCircle className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Copy Button */}
+                                    <button
+                                        onClick={handleCopy}
+                                        className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Copy className="w-5 h-5" />
+                                        Copy to Clipboard
+                                    </button>
+
+                                    {/* Important Notice */}
+                                    <div className="bg-[#F0F8FF] border border-[#0078D4] rounded-lg p-4">
+                                        <div className="flex items-start gap-3">
+                                            <Shield className="h-5 w-5 text-[#0078D4] flex-shrink-0 mt-0.5" />
+                                            <div>
+                                                <h4 className="font-bold text-[#0F1111] text-sm mb-1.5">Important: After Activation</h4>
+                                                <ul className="text-xs text-[#565959] space-y-1">
+                                                    <li>• Visit <a href="https://mysignins.microsoft.com/security-info" target="_blank" rel="noopener noreferrer" className="text-[#007185] hover:text-[#C7511F] hover:underline font-medium">mysignins.microsoft.com/security-info</a> to link your email & phone</li>
+                                                    <li>• Save your password securely — it cannot be recovered</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Warning */}
+                                    <div className="bg-[#FEF8F2] border border-[#FF9900] rounded-lg p-4">
+                                        <div className="flex items-start gap-3">
+                                            <AlertTriangle className="h-5 w-5 text-[#FF9900] flex-shrink-0 mt-0.5" />
+                                            <p className="text-xs text-[#565959]">
+                                                <strong className="text-[#0F1111]">Note:</strong> This was your one-time replacement. No further replacements can be issued for this order.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={handleReset}
+                                            className="flex-1 py-3 px-4 bg-white hover:bg-[#F7F8FA] text-[#0F1111] font-bold rounded-lg border border-[#888C8C] transition-all text-sm flex items-center justify-center gap-2"
+                                        >
+                                            <RefreshCw className="h-4 w-4" />
+                                            Replace Another
+                                        </button>
+                                        <a
+                                            href={`/activate?code=${orderId.trim()}`}
+                                            className="flex-1 py-3 px-4 bg-gradient-to-b from-[#FF9900] to-[#E47911] hover:from-[#FA8900] hover:to-[#D07910] text-white font-bold rounded-lg border border-[#D07910] shadow-sm transition-all text-sm flex items-center justify-center gap-2"
+                                        >
+                                            Go to Activation
+                                            <ArrowRight className="h-4 w-4" />
+                                        </a>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Input State */
+                                <div>
                                     {/* Order ID Input */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Order ID / Secret Code
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-bold text-[#0F1111] mb-2">
+                                            ORDER ID / SECRET CODE
                                         </label>
-                                        <div className="relative">
+                                        <div className="flex">
+                                            <div className="bg-[#F0F2F2] border border-r-0 border-[#888C8C] rounded-l px-3 flex items-center">
+                                                <ShoppingCart className="w-5 h-5 text-[#FF9900]" />
+                                            </div>
                                             <input
                                                 type="text"
                                                 value={orderId}
@@ -199,104 +247,89 @@ export default function GetReplacementPage() {
                                                     if (error) setError(null);
                                                 }}
                                                 onKeyDown={handleKeyDown}
-                                                placeholder="Enter your Order ID or 15-digit Secret Code"
-                                                className={`w-full px-4 py-4 pr-12 border-2 rounded-xl text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base font-medium placeholder:font-normal placeholder:text-slate-400 ${
-                                                    error ? 'border-red-300 bg-red-50/50' : 'border-slate-200'
-                                                }`}
+                                                placeholder="e.g. 408-1234567-1234567 or 15-digit Secret Code"
+                                                className="flex-1 px-4 py-3 border border-[#888C8C] rounded-r text-base font-mono text-[#0F1111] bg-white focus:outline-none focus:ring-2 focus:ring-[#FF9900] focus:border-[#FF9900] placeholder:text-[#6B7280]"
+                                                maxLength={25}
                                                 autoFocus
                                             />
-                                            <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                                         </div>
-                                        {error && (
-                                            <div className="mt-3 flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                                <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
-                                                <p className="text-sm text-red-700">{error}</p>
-                                            </div>
-                                        )}
                                     </div>
+
+                                    {/* Helper Note */}
+                                    <p className="text-xs text-[#CC0C39] mb-6 flex items-start gap-1">
+                                        <span className="font-bold">*Note:</span>
+                                        <span>Enter either the Secret Code from your email OR your Amazon Order ID (format: 408-1234567-1234567).</span>
+                                    </p>
+
+                                    {/* Error Message */}
+                                    {error && (
+                                        <div className="mb-6">
+                                            <div className="p-4 bg-[#FCF4F4] border border-[#CC0C39] rounded-lg">
+                                                <div className="flex items-start gap-3">
+                                                    <AlertTriangle className="w-5 h-5 text-[#CC0C39] flex-shrink-0 mt-0.5" />
+                                                    <span className="text-[#CC0C39] text-sm">{error}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Submit Button */}
                                     <button
                                         onClick={handleSubmit}
                                         disabled={isLoading || !orderId.trim()}
-                                        className="w-full py-4 bg-[#FFD814] hover:bg-[#F7CA00] active:bg-[#E7B800] text-slate-900 font-bold rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
+                                        className="w-full py-3 bg-gradient-to-b from-[#FFD814] to-[#F7CA00] hover:from-[#F7CA00] hover:to-[#E7B800] text-[#0F1111] font-bold rounded-lg border border-[#FCD200] shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
                                         {isLoading ? (
                                             <>
-                                                <Loader2 className="h-5 w-5 animate-spin" />
+                                                <div className="w-4 h-4 border-2 border-[#0F1111]/30 border-t-[#0F1111] rounded-full animate-spin" />
                                                 Processing...
                                             </>
                                         ) : (
                                             <>
-                                                <RefreshCw className="h-5 w-5" />
+                                                <RefreshCw className="w-5 h-5" />
                                                 Get Replacement Key
                                             </>
                                         )}
                                     </button>
                                 </div>
-                            </div>
+                            )}
+                        </div>
+                    </div>
 
-                            {/* How It Works */}
-                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                                <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
-                                    <h3 className="font-semibold text-slate-800 text-sm">How It Works</h3>
-                                </div>
-                                <div className="p-6">
-                                    <div className="space-y-4">
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-7 h-7 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
-                                            <div>
-                                                <p className="text-sm font-medium text-slate-800">Enter Your Order ID</p>
-                                                <p className="text-xs text-slate-500 mt-0.5">Use the Order ID or secret code from your original purchase</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-7 h-7 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
-                                            <div>
-                                                <p className="text-sm font-medium text-slate-800">Instant Verification</p>
-                                                <p className="text-xs text-slate-500 mt-0.5">We verify your order is eligible for a replacement (Office 365 only)</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-7 h-7 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">3</div>
-                                            <div>
-                                                <p className="text-sm font-medium text-slate-800">Get New License Key</p>
-                                                <p className="text-xs text-slate-500 mt-0.5">A fresh license key is assigned to your order instantly</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                    {/* Eligibility Card */}
+                    <div className="mt-6 bg-white rounded-lg shadow border border-[#DDD] overflow-hidden">
+                        <div className="bg-[#FEF8F2] border-l-4 border-[#FF9900] p-4">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="h-5 w-5 text-[#FF9900] flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <h4 className="font-bold text-[#0F1111] text-sm mb-1.5">Eligibility</h4>
+                                    <ul className="text-xs text-[#565959] space-y-1">
+                                        <li>• Only available for <strong className="text-[#0F1111]">Office 365</strong> orders</li>
+                                        <li>• Order must have been <strong className="text-[#0F1111]">activated already</strong></li>
+                                        <li>• Maximum <strong className="text-[#CC0C39]">1 replacement</strong> per order</li>
+                                    </ul>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            {/* Eligibility Info */}
-                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                                <div className="flex items-start gap-3">
-                                    <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <h4 className="font-semibold text-amber-800 text-sm mb-1">Eligibility</h4>
-                                        <ul className="text-xs text-amber-700 space-y-1">
-                                            <li>• Only available for <strong>Office 365</strong> orders</li>
-                                            <li>• Order must have been activated already</li>
-                                            <li>• Maximum <strong>1 replacement</strong> per order</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Support */}
-                            <div className="text-center">
-                                <p className="text-xs text-slate-500 mb-2">Need help? Contact us on WhatsApp</p>
+                    {/* Support Card */}
+                    <div className="mt-6 bg-white rounded-lg shadow border border-[#DDD] overflow-hidden">
+                        <div className="bg-[#FEF8F2] border-l-4 border-[#FF9900] p-4">
+                            <p className="text-sm text-[#0F1111]">
+                                <span className="font-bold">Need Help?</span> Contact us on WhatsApp:{' '}
                                 <a
                                     href="https://wa.me/918178848830"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white text-sm font-medium rounded-full hover:bg-[#20bd5a] transition-all"
+                                    className="font-bold text-[#007185] hover:text-[#C7511F] hover:underline"
                                 >
-                                    Chat on WhatsApp
+                                    +91 8178848830
                                 </a>
-                            </div>
+                                {' '}(message only)
+                            </p>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>

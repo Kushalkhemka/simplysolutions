@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Clock, CheckCircle, AlertCircle, ExternalLink, RefreshCw, Calendar, DollarSign, Search, Filter, X, Eye, EyeOff, Copy, CircleCheckBig, Undo2, ChevronDown, Ban, FileText, XCircle } from 'lucide-react';
 
 interface SafeTOrder {
@@ -42,6 +43,45 @@ const STATUS_CONFIG: Record<SafeTStatus, { label: string; color: string; icon: R
     ineligible: { label: 'Ineligible', color: 'gray', icon: Ban },
 };
 
+// Portal-based dropdown that renders outside the overflow container
+function DropdownPortal({ anchorRef, open, children }: {
+    anchorRef: React.RefObject<HTMLButtonElement | null>;
+    open: boolean;
+    children: React.ReactNode;
+}) {
+    const [pos, setPos] = useState({ top: 0, left: 0 });
+
+    useEffect(() => {
+        if (!open || !anchorRef.current) return;
+        const updatePos = () => {
+            const rect = anchorRef.current!.getBoundingClientRect();
+            setPos({
+                top: rect.bottom + window.scrollY + 4,
+                left: rect.right + window.scrollX - 192, // 192px = w-48
+            });
+        };
+        updatePos();
+        window.addEventListener('scroll', updatePos, true);
+        window.addEventListener('resize', updatePos);
+        return () => {
+            window.removeEventListener('scroll', updatePos, true);
+            window.removeEventListener('resize', updatePos);
+        };
+    }, [open, anchorRef]);
+
+    if (!open) return null;
+
+    return createPortal(
+        <div
+            className="fixed z-[9999] w-48 bg-card border border-border rounded-lg shadow-lg py-1"
+            style={{ top: pos.top, left: pos.left, position: 'absolute' }}
+        >
+            {children}
+        </div>,
+        document.body
+    );
+}
+
 function StatusActions({ order, markingId, onSetStatus, onFileClaim }: {
     order: SafeTOrder;
     markingId: string | null;
@@ -50,10 +90,16 @@ function StatusActions({ order, markingId, onSetStatus, onFileClaim }: {
 }) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
+    const btnRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+            if (ref.current && !ref.current.contains(e.target as Node)) {
+                // Also check if the click is inside the portal dropdown
+                const portal = document.querySelector('[data-dropdown-portal]');
+                if (portal && portal.contains(e.target as Node)) return;
+                setOpen(false);
+            }
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
@@ -62,6 +108,55 @@ function StatusActions({ order, markingId, onSetStatus, onFileClaim }: {
     const currentStatus = order.safe_t_status as SafeTStatus | null;
     const isProcessing = markingId === order.order_id;
 
+    // For 'filed' status: show badge + dropdown with Claimed/Rejected/Undo
+    if (currentStatus === 'filed') {
+        const config = STATUS_CONFIG[currentStatus];
+        return (
+            <div className="flex items-center gap-1" ref={ref}>
+                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-purple-500/10 text-purple-400">
+                    <config.icon className="w-3 h-3" />
+                    {config.label}
+                </span>
+                <button
+                    ref={btnRef}
+                    onClick={() => setOpen(!open)}
+                    disabled={isProcessing}
+                    className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-muted hover:bg-accent text-foreground rounded-lg transition-colors disabled:opacity-50"
+                >
+                    {isProcessing ? 'Saving...' : 'Mark as'}
+                    <ChevronDown className="w-3 h-3" />
+                </button>
+                <DropdownPortal anchorRef={btnRef} open={open}>
+                    <div data-dropdown-portal>
+                        <button
+                            onClick={() => { onSetStatus(order.order_id, 'claimed'); setOpen(false); }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-blue-400"
+                        >
+                            <CircleCheckBig className="w-3.5 h-3.5" />
+                            Claimed (Received)
+                        </button>
+                        <button
+                            onClick={() => { onSetStatus(order.order_id, 'rejected'); setOpen(false); }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-red-400"
+                        >
+                            <XCircle className="w-3.5 h-3.5" />
+                            Rejected
+                        </button>
+                        <hr className="my-1 border-border" />
+                        <button
+                            onClick={() => { onSetStatus(order.order_id, null); setOpen(false); }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-muted-foreground"
+                        >
+                            <Undo2 className="w-3.5 h-3.5" />
+                            Undo (Clear Status)
+                        </button>
+                    </div>
+                </DropdownPortal>
+            </div>
+        );
+    }
+
+    // For other set statuses (claimed/rejected/ineligible): show badge + Undo
     if (currentStatus) {
         const config = STATUS_CONFIG[currentStatus];
         const badgeClasses: Record<SafeTStatus, string> = {
@@ -89,6 +184,7 @@ function StatusActions({ order, markingId, onSetStatus, onFileClaim }: {
         );
     }
 
+    // No status set: show File Claim + Mark as dropdown
     return (
         <div className="flex items-center gap-1" ref={ref}>
             {order.isEligible && (
@@ -100,8 +196,9 @@ function StatusActions({ order, markingId, onSetStatus, onFileClaim }: {
                     File Claim
                 </button>
             )}
-            <div className="relative">
+            <div>
                 <button
+                    ref={btnRef}
                     onClick={() => setOpen(!open)}
                     disabled={isProcessing}
                     className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-muted hover:bg-accent text-foreground rounded-lg transition-colors disabled:opacity-50"
@@ -109,8 +206,8 @@ function StatusActions({ order, markingId, onSetStatus, onFileClaim }: {
                     {isProcessing ? 'Saving...' : 'Mark as'}
                     <ChevronDown className="w-3 h-3" />
                 </button>
-                {open && (
-                    <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-card border border-border rounded-lg shadow-lg py-1">
+                <DropdownPortal anchorRef={btnRef} open={open}>
+                    <div data-dropdown-portal>
                         <button
                             onClick={() => { onSetStatus(order.order_id, 'filed'); setOpen(false); }}
                             className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 text-purple-400"
@@ -141,7 +238,7 @@ function StatusActions({ order, markingId, onSetStatus, onFileClaim }: {
                             Ineligible
                         </button>
                     </div>
-                )}
+                </DropdownPortal>
             </div>
         </div>
     );
