@@ -139,6 +139,8 @@ export default function WarrantyClaimsClient() {
     const totalPages = Math.ceil(totalCount / pageSize);
 
     const isResubmissionView = statusFilter === 'NEEDS_RESUBMISSION';
+    const isProcessingView = statusFilter === 'PROCESSING';
+    const showBulkActions = isResubmissionView || isProcessingView;
 
     const toggleSelect = (id: string) => {
         setSelectedIds(prev => {
@@ -157,11 +159,17 @@ export default function WarrantyClaimsClient() {
         }
     };
 
-    const handleBulkAction = async (action: 'resend' | 'reject') => {
+    const handleBulkAction = async (action: 'resend' | 'reject' | 'approve') => {
         if (selectedIds.size === 0) return;
         if (action === 'reject') {
             const confirmed = window.confirm(
                 `Are you sure you want to REJECT ${selectedIds.size} warranty claim(s)?\n\nThis will send rejection emails/WhatsApp and change their status to REJECTED.`
+            );
+            if (!confirmed) return;
+        }
+        if (action === 'approve') {
+            const confirmed = window.confirm(
+                `Are you sure you want to APPROVE ${selectedIds.size} warranty claim(s)?\n\nThis will send approval emails/WhatsApp and change their status to VERIFIED.`
             );
             if (!confirmed) return;
         }
@@ -266,15 +274,21 @@ export default function WarrantyClaimsClient() {
             </form>
 
             {/* Bulk Action Bar */}
-            {isResubmissionView && warranties.length > 0 && (
-                <div className="flex items-center justify-between bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg px-4 py-3">
+            {showBulkActions && warranties.length > 0 && (
+                <div className={`flex items-center justify-between rounded-lg px-4 py-3 ${
+                    isProcessingView
+                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
+                        : 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800'
+                }`}>
                     <div className="flex items-center gap-3">
                         <button
                             onClick={toggleSelectAll}
-                            className="flex items-center gap-2 text-sm font-medium hover:text-orange-600 transition-colors"
+                            className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+                                isProcessingView ? 'hover:text-yellow-600' : 'hover:text-orange-600'
+                            }`}
                         >
                             {selectedIds.size === warranties.length ? (
-                                <CheckSquare className="h-4 w-4 text-orange-500" />
+                                <CheckSquare className={`h-4 w-4 ${isProcessingView ? 'text-yellow-500' : 'text-orange-500'}`} />
                             ) : (
                                 <Square className="h-4 w-4" />
                             )}
@@ -292,17 +306,32 @@ export default function WarrantyClaimsClient() {
                                 ✓ {bulkResult.sent} done{bulkResult.failed > 0 ? `, ${bulkResult.failed} failed` : ''}
                             </span>
                         )}
-                        <button
-                            onClick={() => handleBulkAction('resend')}
-                            disabled={selectedIds.size === 0 || isBulkResending}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                        >
-                            {isBulkResending ? (
-                                <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</>
-                            ) : (
-                                <><Send className="h-4 w-4" /> Resend ({selectedIds.size})</>
-                            )}
-                        </button>
+                        {isProcessingView && (
+                            <button
+                                onClick={() => handleBulkAction('approve')}
+                                disabled={selectedIds.size === 0 || isBulkResending}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                            >
+                                {isBulkResending ? (
+                                    <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</>
+                                ) : (
+                                    <><CheckCircle className="h-4 w-4" /> Approve ({selectedIds.size})</>
+                                )}
+                            </button>
+                        )}
+                        {isResubmissionView && (
+                            <button
+                                onClick={() => handleBulkAction('resend')}
+                                disabled={selectedIds.size === 0 || isBulkResending}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                            >
+                                {isBulkResending ? (
+                                    <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</>
+                                ) : (
+                                    <><Send className="h-4 w-4" /> Resend ({selectedIds.size})</>
+                                )}
+                            </button>
+                        )}
                         <button
                             onClick={() => handleBulkAction('reject')}
                             disabled={selectedIds.size === 0 || isBulkResending}
@@ -326,8 +355,17 @@ export default function WarrantyClaimsClient() {
                     </div>
                 ) : (
                     warranties.map((warranty) => (
-                        <div key={warranty.id} className="bg-card border rounded-lg p-4">
+                        <div key={warranty.id} className={`bg-card border rounded-lg p-4 ${selectedIds.has(warranty.id) ? 'ring-2 ring-primary/50' : ''}`}>
                             <div className="flex items-start justify-between gap-3">
+                                {showBulkActions && (
+                                    <button onClick={() => toggleSelect(warranty.id)} className="mt-1 hover:text-primary flex-shrink-0">
+                                        {selectedIds.has(warranty.id) ? (
+                                            <CheckSquare className="h-4 w-4 text-primary" />
+                                        ) : (
+                                            <Square className="h-4 w-4 text-muted-foreground" />
+                                        )}
+                                    </button>
+                                )}
                                 <div className="flex-1 min-w-0">
                                     <p className="font-mono text-sm font-medium truncate">{warranty.order_id}</p>
                                     <p className="text-sm text-muted-foreground truncate mt-1">{warranty.contact || warranty.email || warranty.phone || '-'}</p>
@@ -380,7 +418,7 @@ export default function WarrantyClaimsClient() {
                         <table className="w-full">
                             <thead className="bg-muted/50">
                                 <tr>
-                                    {isResubmissionView && (
+                                    {showBulkActions && (
                                         <th className="px-4 py-3 w-10">
                                             <button onClick={toggleSelectAll} className="hover:text-primary">
                                                 {selectedIds.size === warranties.length && warranties.length > 0 ? (
@@ -402,8 +440,8 @@ export default function WarrantyClaimsClient() {
                             </thead>
                             <tbody className="divide-y">
                                 {warranties.map((warranty) => (
-                                    <tr key={warranty.id} className={`hover:bg-muted/30 ${selectedIds.has(warranty.id) ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}`}>
-                                        {isResubmissionView && (
+                                    <tr key={warranty.id} className={`hover:bg-muted/30 ${selectedIds.has(warranty.id) ? (isProcessingView ? 'bg-yellow-50/50 dark:bg-yellow-900/10' : 'bg-orange-50/50 dark:bg-orange-900/10') : ''}`}>
+                                        {showBulkActions && (
                                             <td className="px-4 py-3">
                                                 <button onClick={() => toggleSelect(warranty.id)} className="hover:text-primary">
                                                     {selectedIds.has(warranty.id) ? (

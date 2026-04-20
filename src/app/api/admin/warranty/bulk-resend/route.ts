@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendWarrantyResubmissionEmail, sendWarrantyRejectionEmail } from '@/lib/emails/warranty-emails';
-import { sendWarrantyResubmission, sendWarrantyRejected } from '@/lib/whatsapp';
+import {
+    sendWarrantyApprovalEmail,
+    sendWarrantyResubmissionEmail,
+    sendWarrantyRejectionEmail
+} from '@/lib/emails/warranty-emails';
+import { notifyWarrantyStatus } from '@/lib/push/customer-notifications';
+import {
+    sendWarrantyApproved,
+    sendWarrantyResubmission,
+    sendWarrantyRejected
+} from '@/lib/whatsapp';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -23,23 +32,29 @@ async function getCustomerDetails(warranty: any) {
     }
 
     let productName = warranty.product_name;
+    let purchaseDate: string | null = null;
+    let quantity = warranty.quantity || 1;
     if (!productName) {
         const { data: order } = await supabase
             .from('amazon_orders')
-            .select('fsn')
+            .select('fsn, quantity, order_date')
             .eq('order_id', warranty.order_id)
             .maybeSingle();
-        if (order?.fsn) {
-            const { data: product } = await supabase
-                .from('products_data')
-                .select('product_title')
-                .eq('fsn', order.fsn)
-                .single();
-            productName = product?.product_title || null;
+        if (order) {
+            quantity = order.quantity || 1;
+            purchaseDate = order.order_date || null;
+            if (order.fsn) {
+                const { data: product } = await supabase
+                    .from('products_data')
+                    .select('product_title')
+                    .eq('fsn', order.fsn)
+                    .single();
+                productName = product?.product_title || null;
+            }
         }
     }
 
-    return { customerEmail, customerPhone, productName };
+    return { customerEmail, customerPhone, productName, purchaseDate, quantity };
 }
 
 // POST - Bulk resend or reject warranty claims
@@ -47,10 +62,10 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { warrantyIds, action = 'resend' } = body;
-        // action: 'resend' | 'reject'
+        // action: 'resend' | 'reject' | 'approve'
 
-        if (!['resend', 'reject'].includes(action)) {
-            return NextResponse.json({ error: 'Action must be "resend" or "reject"' }, { status: 400 });
+        if (!['resend', 'reject', 'approve'].includes(action)) {
+            return NextResponse.json({ error: 'Action must be "resend", "reject", or "approve"' }, { status: 400 });
         }
 
         if (!warrantyIds || warrantyIds.length === 0) {
@@ -82,9 +97,65 @@ export async function POST(request: NextRequest) {
 
         for (const warranty of warranties) {
             try {
-                const { customerEmail, customerPhone, productName } = await getCustomerDetails(warranty);
+                const { customerEmail, customerPhone, productName, purchaseDate, quantity } = await getCustomerDetails(warranty);
 
-                if (action === 'resend') {
+                if (action === 'approve') {
+                    // Approve: set VERIFIED, send approval email + WhatsApp + push
+                    await supabase
+                        .from('warranty_registrations')
+                        .update({
+                            status: 'VERIFIED',
+                            verified_at: new Date().toISOString(),
+                            missing_seller_feedback: false,
+                            missing_product_review: false,
+                            product_name: productName,
+                            quantity,
+                            purchase_date: purchaseDate,
+                            admin_notes: 'Bulk approved'
+                        })
+                        .eq('id', warranty.id);
+
+                    let emailSent = false;
+                    let whatsappSent = false;
+
+                    // Send approval email
+                    if (customerEmail) {
+                        try {
+                            emailSent = await sendWarrantyApprovalEmail({
+                                customerEmail,
+                                orderId: warranty.order_id,
+                                productName,
+                                quantity,
+                                purchaseDate
+                            });
+                        } catch (emailError) {
+                            console.error(`Email failed for ${warranty.order_id}:`, emailError);
+                        }
+                    }
+
+                    // Send push notification
+                    try {
+                        await notifyWarrantyStatus(warranty.order_id, 'approved', productName);
+                    } catch (pushError) {
+                        console.error(`Push failed for ${warranty.order_id}:`, pushError);
+                    }
+
+                    // Send WhatsApp notification
+                    if (customerPhone) {
+                        try {
+                            const formattedDate = purchaseDate
+                                ? new Date(purchaseDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                                : 'N/A';
+                            await sendWarrantyApproved(customerPhone, warranty.order_id, productName || 'Your Product', formattedDate);
+                            whatsappSent = true;
+                        } catch (whatsappError) {
+                            console.error(`WhatsApp failed for ${warranty.order_id}:`, whatsappError);
+                        }
+                    }
+
+                    sent++;
+
+                } else if (action === 'resend') {
                     const missingSeller = warranty.missing_seller_feedback || false;
                     const missingReview = warranty.missing_product_review || false;
 
@@ -177,6 +248,7 @@ export async function POST(request: NextRequest) {
                     sent++;
                 }
 
+                // Small delay to avoid rate limiting on email/WhatsApp
                 await new Promise(resolve => setTimeout(resolve, 200));
 
             } catch (err: any) {
