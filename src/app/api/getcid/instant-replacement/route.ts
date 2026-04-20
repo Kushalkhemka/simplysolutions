@@ -59,6 +59,23 @@ export async function POST(request: NextRequest) {
         const currentKeyIds = currentKeys?.map(k => k.id) || [];
         const currentKeyStrings = currentKeys?.map(k => k.license_key) || [];
 
+        // 3b. Check if customer already has a good account (@ms365pro.online with prefix >= 2000)
+        //     These accounts are perfectly fine and don't need replacement
+        const hasGoodAccount = currentKeyStrings.some(key => {
+            const match = key.match(/^(\d+)@ms365pro\.online/i);
+            if (match) {
+                const prefix = parseInt(match[1], 10);
+                return prefix >= 2000;
+            }
+            return false;
+        });
+
+        if (hasGoodAccount) {
+            return NextResponse.json({
+                error: 'Your account is already on the latest version and does not require a replacement. If you are facing any issues, please contact support on WhatsApp.'
+            }, { status: 400 });
+        }
+
         // 4. Find an available replacement key
         // Must be: same FSN, not redeemed, DIFFERENT BASE KEY (not just different suffix)
         const { data: availableKeys, error: keysError } = await supabase

@@ -54,6 +54,25 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // 3b. Check if customer already has a good account (@ms365pro.online with prefix >= 2000)
+        //     These accounts are perfectly fine and don't need replacement
+        const hasGoodAccount = currentKeys.some(k => {
+            const key = k.license_key || '';
+            const match = key.match(/^(\d+)@ms365pro\.online/i);
+            if (match) {
+                const prefix = parseInt(match[1], 10);
+                return prefix >= 2000;
+            }
+            return false;
+        });
+
+        if (hasGoodAccount) {
+            return NextResponse.json(
+                { success: false, error: 'Your account is already on the latest version and does not require a replacement. If you are facing any issues, please contact support on WhatsApp.' },
+                { status: 400 }
+            );
+        }
+
         // 4. Check if replacement has already been used (max 1 time - any type, instant or manual)
         const { data: existingReplacements } = await supabase
             .from('license_replacement_requests')
